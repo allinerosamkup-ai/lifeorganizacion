@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#fbc9a1",
+                        "background-light": "#faf9f6",
+                        "background-dark": "#121212",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<title>LifeOrganizer AI - Splash Screen</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display font-light">
+<!-- Main Container -->
+<div class="relative flex h-screen w-full flex-col items-center justify-between overflow-hidden px-6 py-12">
+<!-- Background Decorative Elements -->
+<div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+<!-- Gradient Overlay -->
+<div class="absolute inset-0 bg-gradient-to-b from-primary/5 via-background-light to-transparent dark:from-primary/10 dark:via-background-dark dark:to-background-dark"></div>
+<!-- Abstract Floral Pattern 1 -->
+<div class="absolute -top-20 -right-20 dark:opacity-10 text-primary opacity-10">
+<span class="material-symbols-outlined !text-[300px]">filter_vintage</span>
+</div>
+<!-- Abstract Floral Pattern 2 -->
+<div class="absolute -bottom-24 -left-24 dark:opacity-10 text-primary/60 opacity-5">
+<span class="material-symbols-outlined !text-[400px]">local_florist</span>
+</div>
+<!-- Soft Pink/Purple Blur Accents -->
+<div class="absolute top-1/4 left-1/4 w-64 h-64 bg-pink-300/30 dark:bg-pink-900/20 rounded-full blur-[100px]"></div>
+<div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-primary/20 dark:bg-primary/10 rounded-full blur-[120px]"></div>
+</div>
+<!-- Content Area -->
+<div class="relative z-10 flex flex-col items-center justify-center flex-1 w-full max-w-md text-center">
+<!-- Logo Section -->
+<div class="mb-8 flex items-center justify-center">
+<div class="relative flex h-24 w-24 items-center justify-center rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm shadow-sm ring-1 ring-primary/20">
+<div class="text-primary flex items-center justify-center" data-icon="Flower">
+<svg fill="currentColor" height="48px" viewbox="0 0 256 256" width="48px" xmlns="http://www.w3.org/2000/svg">
+<path d="M210.35,129.36c-.81-.47-1.7-.92-2.62-1.36.92-.44,1.81-.89,2.62-1.36a40,40,0,1,0-40-69.28c-.81.47-1.65,1-2.48,1.59.08-1,.13-2,.13-3a40,40,0,0,0-80,0c0,.94,0,1.94.13,3-.83-.57-1.67-1.12-2.48-1.59a40,40,0,1,0-40,69.28c.81.47,1.7.92,2.62,1.36-.92.44-1.81.89-2.62,1.36a40,40,0,1,0,40,69.28c.81-.47,1.65-1,2.48-1.59-.08,1-.13,2-.13,2.95a40,40,0,0,0,80,0c0-.94-.05-1.94-.13-2.95.83.57,1.67,1.12,2.48,1.59A39.79,39.79,0,0,0,190.29,204a40.43,40.43,0,0,0,10.42-1.38,40,40,0,0,0,9.64-73.28ZM104,128a24,24,0,1,1,24,24A24,24,0,0,1,104,128Zm74.35-56.79a24,24,0,1,1,24,41.57c-6.27,3.63-18.61,6.13-35.16,7.19A40,40,0,0,0,154.53,98.1C163.73,84.28,172.08,74.84,178.35,71.21ZM128,32a24,24,0,0,1,24,24c0,7.24-4,19.19-11.36,34.06a39.81,39.81,0,0,0-25.28,0C108,75.19,104,63.24,104,56A24,24,0,0,1,128,32ZM44.86,80a24,24,0,0,1,32.79-8.79c6.27,3.63,14.62,13.07,23.82,26.89A40,40,0,0,0,88.81,120c-16.55-1.06-28.89-3.56-35.16-7.18A24,24,0,0,1,44.86,80ZM77.65,184.79a24,24,0,1,1-24-41.57c6.27-3.63,18.61-6.13,35.16-7.19a40,40,0,0,0,12.66,21.87C92.27,171.72,83.92,181.16,77.65,184.79ZM128,224a24,24,0,0,1-24-24c0-7.24,4-19.19,11.36-34.06a39.81,39.81,0,0,0,25.28,0C148,180.81,152,192.76,152,200A24,24,0,0,1,128,224Zm83.14-48a24,24,0,0,1-32.79,8.79c-6.27-3.63-14.62-13.07-23.82-26.89A40,40,0,0,0,167.19,136c16.55,1.06,28.89,3.56,35.16,7.18A24,24,0,0,1,211.14,176Z"></path>
+</svg>
+</div>
+</div>
+</div>
+<!-- Typography -->
+<div class="space-y-3 px-4">
+<h1 class="text-slate-800 dark:text-slate-200 text-4xl font-light tracking-widest uppercase">
+                    LifeOrganizer AI
+                </h1>
+<p class="text-slate-500 dark:text-slate-400 text-base font-light italic leading-relaxed">
+                    Seu Sistema Operacional Pessoal Adaptativo
+                </p>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="relative z-10 w-full max-w-sm space-y-6">
+<div class="flex flex-col gap-4">
+<button class="w-full bg-primary/20 hover:bg-primary/30 text-slate-800 dark:text-slate-100 font-normal h-14 rounded-full border border-primary/30 transition-all active:scale-[0.98] flex items-center justify-center gap-3 tracking-wide">
+<span>Começar Jornada</span>
+<span class="material-symbols-outlined text-lg">east</span>
+</button>
+<a class="w-full text-center py-2 text-slate-400 dark:text-slate-500 font-light text-sm hover:text-primary transition-colors tracking-wide" href="#">
+                    Já tenho uma conta
+                </a>
+</div>
+<!-- Visual Divider/Indicator -->
+<div class="flex justify-center gap-1.5 py-4">
+<div class="h-1.5 w-6 rounded-full bg-primary"></div>
+<div class="h-1.5 w-1.5 rounded-full bg-primary/30"></div>
+<div class="h-1.5 w-1.5 rounded-full bg-primary/30"></div>
+</div>
+</div>
+<!-- Footer Text -->
+<div class="relative z-10 pt-8">
+<p class="text-slate-400 dark:text-slate-500 text-xs text-center">
+                © 2024 LifeOrganizer AI. Todos os direitos reservados.
+            </p>
+</div>
+</div>
+</body>
+</html>

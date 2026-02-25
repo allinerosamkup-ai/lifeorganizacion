@@ -1,0 +1,29 @@
+{
+  "workflows": {
+    "yUhLMMaNgPgGXDxI": {
+      "lastSyncedHash": "e3aec8d37d87894b3c08baecffe3d3e34e366512d32f4dc2b0c6bd8ffba688a7",
+      "lastSyncedAt": "2026-02-24T15:01:41.473Z",
+      "filename": "Teoria da Permissão — Agente Telegram.workflow.ts"
+    },
+    "jEtSQQ5CzZbGFwS6": {
+      "lastSyncedHash": "bceea8c2c1c4207c51896d0785a012a087a4ffa2386d1e63032c4ea7a7f8496f",
+      "lastSyncedAt": "2026-02-24T15:03:12.376Z",
+      "filename": "⚙️ SETUP — Criar Estrutura Airtable (Rodar 1x).workflow.ts"
+    },
+    "2nAp9iMw3sQEodB6": {
+      "lastSyncedHash": "170cfe5cd5455be09d7f25b3dbfe5a58a79c9bac30f2f2b495a6038db3eb7d76",
+      "lastSyncedAt": "2026-02-24T15:04:16.861Z",
+      "filename": "Motor de Retenção — Franciele AI (Gemini + Airtable).workflow.ts"
+    },
+    "qijvAVHztJMkJ7ES": {
+      "lastSyncedHash": "cfe491b870fc2c1ccfbd39b0426a6957d0228ea670e78f791c51a68745e095c2",
+      "lastSyncedAt": "2026-02-25T19:47:18.216Z",
+      "filename": "[LifeOrganizer] Sugestão Diária.workflow.ts"
+    },
+    "lHlXYAMRpI7jQ6Pt": {
+      "lastSyncedHash": "b0b72f96eb72c7eca7a2fe246073d295c68a008d374d5b5f95cdc5d97acb4aee",
+      "lastSyncedAt": "2026-02-25T19:47:30.002Z",
+      "filename": "[LifeOrganizer] Reflexão Semanal.workflow.ts"
+    }
+  }
+}

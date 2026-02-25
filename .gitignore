@@ -1,0 +1,36 @@
+# Arquivos sensíveis
+.env
+credentials.json
+token.json
+
+# Arquivos intermediários
+.tmp/*
+!.tmp/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# n8n-as-code AI helpers
+n8nac-skills
+n8nac-skills.cmd

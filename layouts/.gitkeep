@@ -1,0 +1,18 @@
+# Layouts HTML estáticos prontos para conversão
+
+# Este diretório contém os layouts HTML fornecidos que serão
+# convertidos para componentes React no Lovable.dev.
+
+# Layouts disponíveis:
+# - splash-screen.html
+# - interacao-ia.html
+# - insights-avancados.html
+# - dashboard.html
+# - calendario.html
+# - agenda.html
+# - modo-foco.html
+# - onboarding-passo1.html
+# - configuracoes.html
+# - planos.html
+
+# Veja directives/layouts-guide.md para guia de conversão

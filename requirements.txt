@@ -1,0 +1,18 @@
+# Dependências Python para o projeto lifeorganizacion
+# Instale com: pip install -r requirements.txt
+
+# Utilitários essenciais
+python-dotenv>=1.0.0
+requests>=2.31.0
+
+# Google API (quando necessário para integrações futuras)
+# google-api-python-client
+# google-auth-httplib2
+# google-auth-oauthlib
+
+# Supabase (quando necessário para scripts de migração)
+# supabase>=2.0.0
+
+# Testes (quando necessário)
+# pytest>=7.4.0
+# pytest-asyncio>=0.21.0

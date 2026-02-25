@@ -1,0 +1,11 @@
+# Edge Functions do Supabase
+
+# Funções disponíveis:
+# - calculate-cycle-phase/ - Calcula fase do ciclo menstrual
+# - process-checkin/ - Processa check-in com análise de IA
+# - generate-daily-suggestions/ - Gera sugestões diárias de tarefas
+# - update-weekly-learning/ - Atualiza padrões aprendidos
+# - stripe-webhook/ - Processa webhooks do Stripe
+
+# Para fazer deploy:
+# supabase functions deploy [nome-da-funcao]
