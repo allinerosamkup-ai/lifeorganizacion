@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Advanced Insights Warm Theme</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Playfair+Display:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "warm-bg": "#FDFBF7", // Soft warm beige background
+                        "warm-text": "#5D4037", // Warm dark brown text
+                        "warm-accent": "#D4A5A5", // Soft pink accent
+                        "chart-sleep": "#FFE082", // Warm yellow for sleep
+                        "chart-energy": "#A5D6A7", // Warm green for energy
+                        "card-bg": "#FFFDF9", // Slightly lighter card bg
+                        "highlight-card": "#FFE4E1", // Misty rose for highlight
+                        "ai-card": "#F5F5DC", // Beige for AI card
+                        "nav-active": "#8D6E63", // Brown for active nav
+                    },
+                    fontFamily: {
+                        sans: ['"DM Sans"', 'sans-serif'],
+                        display: ['"Playfair Display"', 'serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(93, 64, 55, 0.05)',
+                        'journal': '2px 2px 10px rgba(0,0,0,0.03), -1px -1px 5px rgba(255,255,255,0.8)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-warm-bg text-warm-text font-sans h-screen w-full flex flex-col overflow-hidden selection:bg-warm-accent selection:text-white">
+<div class="w-full h-12 flex justify-between items-end px-6 pb-2 z-20 shrink-0">
+<span class="text-xs font-medium opacity-80">9:41</span>
+<div class="flex gap-1.5 items-center">
+<span class="material-symbols-outlined text-[18px] opacity-80">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[18px] opacity-80">wifi</span>
+<span class="material-symbols-outlined text-[18px] opacity-80">battery_full</span>
+</div>
+</div>
+<header class="w-full px-6 pt-2 pb-2 shrink-0">
+<div class="flex justify-between items-center mb-4">
+<div>
+<button class="flex items-center text-sm font-medium text-warm-text/60 mb-1 hover:text-warm-text transition-colors">
+<span class="material-symbols-outlined text-sm mr-1">arrow_back_ios</span>
+                    September Analysis
+                </button>
+<h1 class="text-3xl font-display font-bold text-warm-text">Weekly Patterns</h1>
+</div>
+<div class="h-10 w-10 rounded-full bg-warm-accent/20 flex items-center justify-center border border-white shadow-sm">
+<img alt="Profile" class="h-10 w-10 rounded-full object-cover p-0.5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCO2-pD6T5YZMEQSJS4Y9EglML97qKB_6X_7AUQjsNQYacyl2NESrqYh38enOHVqPNSjkvSFdKlO74bsku0jvqweRkgMLMVXBFUKNCSE6BkKu6QgiJo57AaNlnKBD_2v2M_YejPmIai7qApTBTclNHvpV11ieCM_zQ0ExjMbH90Ve_ke30d6Bvbrm0ElUeKzlHfnz-XY9JRzZ076TSYby_ElKxLFoPUn_ghDyWCLul6-FAB_0ytFJhom5kUeEXlrYV6_cfRHJYEVvNT"/>
+</div>
+</div>
+<div class="flex gap-3 overflow-x-auto hide-scrollbar py-2">
+<button class="px-4 py-2 bg-warm-text text-white rounded-full text-sm font-medium shadow-soft whitespace-nowrap">Follicular</button>
+<button class="px-4 py-2 bg-white text-warm-text/60 border border-warm-text/10 rounded-full text-sm font-medium whitespace-nowrap">Ovulation</button>
+<button class="px-4 py-2 bg-white text-warm-text/60 border border-warm-text/10 rounded-full text-sm font-medium whitespace-nowrap">Luteal</button>
+<button class="px-4 py-2 bg-white text-warm-text/60 border border-warm-text/10 rounded-full text-sm font-medium whitespace-nowrap">Menstrual</button>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto px-6 pb-32 hide-scrollbar">
+<div class="bg-highlight-card rounded-2xl p-5 mb-6 shadow-journal border border-white/50 relative overflow-hidden mt-4">
+<div class="absolute -right-4 -top-4 w-24 h-24 bg-white/20 rounded-full blur-xl"></div>
+<div class="flex items-start gap-3 relative z-10">
+<div class="bg-white/80 p-2 rounded-full shadow-sm text-warm-accent shrink-0">
+<span class="material-symbols-outlined text-xl">bolt</span>
+</div>
+<div>
+<h3 class="font-display font-bold text-lg text-warm-text mb-1">Peak Performance</h3>
+<p class="text-warm-text text-sm leading-relaxed font-medium opacity-90">
+                        Seu pico real de energia: folicular, 09h–11h
+                    </p>
+</div>
+</div>
+</div>
+<div class="bg-card-bg rounded-3xl p-6 mb-6 shadow-journal border border-warm-text/5">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-display font-bold text-lg text-warm-text">Sleep vs. Energy</h3>
+<div class="flex gap-3 text-[10px] font-medium uppercase tracking-wider">
+<div class="flex items-center gap-1">
+<div class="w-2 h-2 rounded-full bg-chart-sleep"></div>
+<span>Sleep</span>
+</div>
+<div class="flex items-center gap-1">
+<div class="w-2 h-2 rounded-full bg-chart-energy"></div>
+<span>Energy</span>
+</div>
+</div>
+</div>
+<div class="flex justify-between items-end h-40 gap-3">
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full flex gap-1 h-full items-end justify-center px-0.5">
+<div class="w-2.5 bg-chart-sleep rounded-t-full h-[60%] opacity-90 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-2.5 bg-chart-energy rounded-t-full h-[40%] opacity-90 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<span class="text-[10px] font-bold text-warm-text/60">M</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full flex gap-1 h-full items-end justify-center px-0.5">
+<div class="w-2.5 bg-chart-sleep rounded-t-full h-[75%] opacity-90 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-2.5 bg-chart-energy rounded-t-full h-[65%] opacity-90 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<span class="text-[10px] font-bold text-warm-text/60">T</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full flex gap-1 h-full items-end justify-center px-0.5">
+<div class="w-2.5 bg-chart-sleep rounded-t-full h-[80%] opacity-90 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-2.5 bg-chart-energy rounded-t-full h-[90%] opacity-90 group-hover:opacity-100 transition-opacity shadow-[0_0_10px_rgba(165,214,167,0.4)]"></div>
+</div>
+<span class="text-[10px] font-bold text-warm-text">W</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full flex gap-1 h-full items-end justify-center px-0.5">
+<div class="w-2.5 bg-chart-sleep rounded-t-full h-[50%] opacity-90 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-2.5 bg-chart-energy rounded-t-full h-[55%] opacity-90 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<span class="text-[10px] font-bold text-warm-text/60">T</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full flex gap-1 h-full items-end justify-center px-0.5">
+<div class="w-2.5 bg-chart-sleep rounded-t-full h-[65%] opacity-90 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-2.5 bg-chart-energy rounded-t-full h-[45%] opacity-90 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<span class="text-[10px] font-bold text-warm-text/60">F</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full flex gap-1 h-full items-end justify-center px-0.5">
+<div class="w-2.5 bg-chart-sleep rounded-t-full h-[90%] opacity-90 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-2.5 bg-chart-energy rounded-t-full h-[30%] opacity-90 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<span class="text-[10px] font-bold text-warm-text/60">S</span>
+</div>
+<div class="flex flex-col items-center gap-2 flex-1 group">
+<div class="w-full flex gap-1 h-full items-end justify-center px-0.5">
+<div class="w-2.5 bg-chart-sleep rounded-t-full h-[85%] opacity-90 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-2.5 bg-chart-energy rounded-t-full h-[35%] opacity-90 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<span class="text-[10px] font-bold text-warm-text/60">S</span>
+</div>
+</div>
+</div>
+<div class="bg-ai-card rounded-2xl p-6 relative border border-warm-text/5 shadow-soft">
+<div class="absolute top-4 right-4">
+<span class="material-symbols-outlined text-warm-accent/80 text-xl">auto_awesome</span>
+</div>
+<h3 class="font-display font-bold text-lg text-warm-text mb-2">AI Cycle Insight</h3>
+<p class="text-sm text-warm-text/80 leading-relaxed mb-4">
+                Based on your logs, your creativity peaks around 10 AM during your follicular phase. Consider scheduling brainstorming sessions then for maximum output.
+            </p>
+<div class="flex items-center gap-2">
+<button class="bg-warm-text text-white text-xs px-3 py-1.5 rounded-lg font-medium shadow-sm active:scale-95 transition-transform">
+                    Add to Calendar
+                </button>
+<button class="text-warm-text/60 hover:text-warm-text transition-colors p-1.5 rounded-lg border border-transparent hover:border-warm-text/10">
+<span class="material-symbols-outlined text-lg">thumb_up</span>
+</button>
+<button class="text-warm-text/60 hover:text-warm-text transition-colors p-1.5 rounded-lg border border-transparent hover:border-warm-text/10">
+<span class="material-symbols-outlined text-lg">thumb_down</span>
+</button>
+</div>
+</div>
+</main>
+<nav class="fixed bottom-0 w-full bg-warm-bg/95 backdrop-blur-md border-t border-warm-text/5 px-6 py-4 pb-8 flex justify-between items-center z-40">
+<button class="flex flex-col items-center gap-1 text-warm-text/40 hover:text-nav-active transition-colors">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-[10px] font-medium">Today</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-nav-active relative">
+<span class="material-symbols-outlined fill-1">insights</span>
+<span class="text-[10px] font-medium">Insights</span>
+<span class="absolute -top-1 right-2 w-1.5 h-1.5 bg-warm-accent rounded-full"></span>
+</button>
+<div class="w-8"></div> 
+<button class="flex flex-col items-center gap-1 text-warm-text/40 hover:text-nav-active transition-colors">
+<span class="material-symbols-outlined">spa</span>
+<span class="text-[10px] font-medium">Wellness</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-warm-text/40 hover:text-nav-active transition-colors">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</button>
+</nav>
+
+</body></html>

@@ -21,7 +21,7 @@ export default function Welcome() {
                         </div>
                         {/* Using arbitrary CSS for pulse/bounce delays to avoid complex setups inline */}
                         <span className="absolute -top-4 -right-2 text-[#D68CA0] material-icons-round text-2xl animate-pulse">auto_awesome</span>
-                        <span className="absolute bottom-4 -left-6 text-primary material-icons-round text-xl animate-bounce" style={{ animationDuration: '3s' }}>star</span>
+                        <span className="absolute bottom-4 -left-6 text-primary material-icons-round text-xl animate-bounce [animation-duration:3s]">star</span>
                     </div>
                 </div>
 

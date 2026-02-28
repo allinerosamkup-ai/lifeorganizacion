@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Focus Mode Active Warm Theme</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "focus-bg-start": "#4A2c2c", // Dark deep rose/brownish
+                        "focus-bg-end": "#2D1B1B",   // Darker tone
+                        "focus-accent": "#D88B9A",   // Soft pink for accents
+                        "focus-text": "#F2E6E6",     // Off-white warm text
+                        "focus-circle-bg": "#5C3A3A",
+                        "focus-circle-progress": "#E57373", // Warm coral/pink
+                    },
+                    fontFamily: {
+                        sans: ['"DM Sans"', 'sans-serif'],
+                        display: ['"Playfair Display"', 'serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.2)',
+                        'glow': '0 0 25px rgba(229, 115, 115, 0.15)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-gradient-to-b from-focus-bg-start to-focus-bg-end text-focus-text font-sans h-screen w-full flex flex-col overflow-hidden relative">
+<div class="w-full h-12 flex justify-between items-end px-6 pb-2 z-20 shrink-0">
+<span class="text-xs font-medium opacity-80 text-white">10:24</span>
+<div class="flex gap-1.5 items-center text-white">
+<span class="material-symbols-outlined text-[18px] opacity-80">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[18px] opacity-80">wifi</span>
+<span class="material-symbols-outlined text-[18px] opacity-80">battery_full</span>
+</div>
+</div>
+<header class="w-full px-6 pt-4 shrink-0 flex justify-between items-center z-10">
+<div class="flex items-center gap-2 opacity-80">
+<span class="material-symbols-outlined text-focus-accent">spa</span>
+<span class="text-sm tracking-wider uppercase">Deep Focus</span>
+</div>
+<button class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center backdrop-blur-sm active:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-white opacity-70">more_vert</span>
+</button>
+</header>
+<main class="flex-1 flex flex-col items-center justify-center px-8 relative z-10">
+<div class="relative w-72 h-72 mb-10 flex items-center justify-center">
+<svg class="absolute top-0 left-0 w-full h-full transform -rotate-90 drop-shadow-2xl" viewBox="0 0 200 200">
+<circle class="opacity-30" cx="100" cy="100" fill="none" r="90" stroke="#5C3A3A" stroke-width="6"></circle>
+<circle class="filter drop-shadow-[0_0_10px_rgba(229,115,115,0.4)]" cx="100" cy="100" fill="none" r="90" stroke="#E57373" stroke-dasharray="565.48" stroke-dashoffset="140" stroke-linecap="round" stroke-width="6"></circle>
+</svg>
+<div class="flex flex-col items-center z-10">
+<span class="text-6xl font-display font-medium tracking-tight text-white drop-shadow-lg">14:22</span>
+<span class="text-sm text-focus-accent mt-2 opacity-80 font-medium tracking-widest uppercase">Remaining</span>
+</div>
+<div class="absolute w-56 h-56 bg-focus-circle-progress rounded-full blur-[80px] opacity-10"></div>
+</div>
+<div class="text-center w-full max-w-xs mb-8">
+<h2 class="text-3xl font-display font-bold leading-tight mb-3 text-white">Strategic Planning</h2>
+<div class="inline-flex items-center gap-2 bg-white/5 border border-white/10 backdrop-blur-md px-4 py-2 rounded-full">
+<span class="material-symbols-outlined text-focus-accent text-sm">favorite</span>
+<span class="text-sm font-medium text-focus-accent">15min (HRV alto)</span>
+</div>
+<p class="text-white/40 text-xs mt-3 max-w-[200px] mx-auto">Adaptive duration based on your current biological rhythm.</p>
+</div>
+<div class="flex flex-col gap-4 w-full max-w-xs items-center">
+<div class="flex gap-4 w-full">
+<button class="flex-1 bg-focus-accent text-[#2D1B1B] font-bold py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-[#E57373]/20 active:scale-[0.98] transition-transform hover:bg-[#eb9aa8]">
+<span class="material-symbols-outlined">pause</span>
+                    Pausar
+                </button>
+<button class="flex-1 bg-white/10 backdrop-blur-md border border-white/10 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 active:bg-white/20 transition-colors">
+<span class="material-symbols-outlined">check</span>
+                    Concluir
+                </button>
+</div>
+<button class="text-white/40 text-sm font-medium py-3 px-6 hover:text-white/70 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">close</span>
+                Abandonar
+            </button>
+</div>
+</main>
+<div class="absolute top-0 right-0 w-64 h-64 bg-[#E57373] rounded-full blur-[120px] opacity-[0.08] pointer-events-none"></div>
+<div class="absolute bottom-0 left-0 w-80 h-80 bg-[#5C3A3A] rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
+
+</body></html>

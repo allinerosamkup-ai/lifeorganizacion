@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Onboarding Conclusion Summary</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ee2b5b",
+                        "primary-content": "#ffffff",
+                        "background-light": "#fcf8f7", // Warm beige tone
+                        "background-dark": "#221015",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#2d1a1f",
+                        "text-main": "#2b181d",
+                        "text-muted": "#9a8c90",
+                        "accent-soft": "#fdecee", // Very light pink for backgrounds
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "1.5rem", "xl": "2rem", "2xl": "2.5rem", "full": "9999px"},
+                    boxShadow: {
+                        'soft': '0 10px 40px -10px rgba(238, 43, 91, 0.1)',
+                        'card': '0 4px 20px -2px rgba(43, 24, 29, 0.05)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom subtle confetti animation using CSS gradients */
+        @keyframes confetti-fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: #ee2b5b;
+            opacity: 0.6;
+            border-radius: 2px;
+            animation: confetti-fall 4s linear infinite;
+        }
+        .confetti:nth-child(2n) { background-color: #ffb7c5; width: 6px; height: 6px; animation-duration: 5s; animation-delay: 1s; }
+        .confetti:nth-child(3n) { background-color: #fca5b9; width: 10px; height: 10px; animation-duration: 3.5s; animation-delay: 2s; }
+        .confetti:nth-child(4n) { background-color: #ee2b5b; width: 5px; height: 12px; animation-duration: 4.5s; animation-delay: 0.5s; }
+        
+        .bg-confetti-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-main antialiased min-h-screen flex flex-col relative overflow-x-hidden">
+<!-- Confetti Background Layer -->
+<div aria-hidden="true" class="bg-confetti-wrapper">
+<div class="confetti left-[10%]"></div>
+<div class="confetti left-[20%]"></div>
+<div class="confetti left-[35%]"></div>
+<div class="confetti left-[50%]"></div>
+<div class="confetti left-[65%]"></div>
+<div class="confetti left-[80%]"></div>
+<div class="confetti left-[90%]"></div>
+</div>
+<!-- Top App Bar -->
+<header class="relative z-10 flex items-center justify-between px-6 py-4 pt-12"> <!-- pt-12 for status bar space -->
+<button class="text-text-main p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-[24px]">arrow_back</span>
+</button>
+<span class="text-sm font-bold tracking-wider text-primary uppercase">Resumo</span>
+<div class="w-10"></div> <!-- Spacer for balance -->
+</header>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col px-6 pt-4 pb-8 relative z-10">
+<!-- Headers -->
+<div class="mb-8 text-center animate-fade-in-up">
+<h1 class="text-3xl md:text-4xl font-extrabold text-text-main dark:text-white leading-tight mb-3">
+                Tudo pronto!
+            </h1>
+<p class="text-text-muted dark:text-gray-400 text-base md:text-lg max-w-xs mx-auto leading-relaxed">
+                Personalizamos sua experiência com base no seu ritmo biológico.
+            </p>
+</div>
+<!-- Summary Card -->
+<div class="w-full max-w-md mx-auto bg-surface-light dark:bg-surface-dark rounded-2xl shadow-soft p-1 border border-accent-soft/50 dark:border-white/5 relative overflow-hidden group">
+<!-- Decorative gradient splash inside card -->
+<div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+<div class="p-6 md:p-8 flex flex-col items-center">
+<!-- Main Icon / Avatar Representation -->
+<div class="mb-6 relative">
+<div class="w-24 h-24 rounded-full bg-gradient-to-tr from-accent-soft to-white dark:from-surface-dark dark:to-primary/20 flex items-center justify-center shadow-inner relative z-10 border-4 border-white dark:border-surface-dark">
+<span class="material-symbols-outlined text-primary text-[40px]">spa</span>
+</div>
+<!-- Orbiting decorative element -->
+<div class="absolute inset-0 border border-primary/20 rounded-full scale-125 animate-spin-slow"></div>
+</div>
+<h2 class="text-xl font-bold text-text-main dark:text-white mb-6">Resumo do seu Perfil</h2>
+<!-- Data Grid -->
+<div class="w-full grid gap-4">
+<!-- Row 1: Phase -->
+<div class="bg-background-light dark:bg-background-dark/50 rounded-xl p-4 flex items-center gap-4 transition-transform hover:scale-[1.02]">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-[20px]">water_drop</span>
+</div>
+<div class="flex-1">
+<p class="text-xs font-semibold text-text-muted uppercase tracking-wide">Fase Atual</p>
+<p class="text-lg font-bold text-text-main dark:text-white">Folicular</p>
+</div>
+<span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span>
+</div>
+<!-- Row 2: Energy -->
+<div class="bg-background-light dark:bg-background-dark/50 rounded-xl p-4 flex items-center gap-4 transition-transform hover:scale-[1.02]">
+<div class="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-yellow-600 dark:text-yellow-400 text-[20px]">bolt</span>
+</div>
+<div class="flex-1">
+<p class="text-xs font-semibold text-text-muted uppercase tracking-wide">Energia Base</p>
+<p class="text-lg font-bold text-text-main dark:text-white">Alta / Criativa</p>
+</div>
+</div>
+<!-- Row 3: Goal -->
+<div class="bg-background-light dark:bg-background-dark/50 rounded-xl p-4 flex items-center gap-4 transition-transform hover:scale-[1.02]">
+<div class="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-blue-500 text-[20px]">track_changes</span>
+</div>
+<div class="flex-1">
+<p class="text-xs font-semibold text-text-muted uppercase tracking-wide">Objetivo Principal</p>
+<p class="text-lg font-bold text-text-main dark:text-white">Foco no Trabalho</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Decoration inside card -->
+<div class="h-2 w-full bg-gradient-to-r from-primary/40 via-primary to-primary/40"></div>
+</div>
+</main>
+<!-- Bottom Actions Area -->
+<div class="p-6 pb-10 bg-gradient-to-t from-background-light via-background-light to-transparent dark:from-background-dark dark:via-background-dark z-20 sticky bottom-0">
+<div class="max-w-md mx-auto flex flex-col gap-4">
+<button class="w-full bg-primary hover:bg-primary/90 text-primary-content h-14 rounded-full font-bold text-lg shadow-lg shadow-primary/30 transform transition active:scale-95 flex items-center justify-center gap-2">
+                Começar minha jornada
+                <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+<p class="text-center text-xs text-text-muted">Você pode alterar essas configurações a qualquer momento.</p>
+</div>
+</div>
+</body></html>

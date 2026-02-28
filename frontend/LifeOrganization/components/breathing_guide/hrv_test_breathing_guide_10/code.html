@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Quick Check-in Warm Theme</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Playfair+Display:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#D97D87", // Soft warm pink for main actions
+                        secondary: "#E8A0A8", // Lighter warm pink
+                        "background-light": "#FFF5F3", // Very warm, pale peach/rose off-white
+                        "card-light": "#FFFFFF",
+                        "text-main": "#5D4037", // Warm brown/dark taupe instead of harsh black
+                        "text-sub": "#8D6E63", // Lighter brown
+                        "chip-bg": "#FBE9E7", // Very light warm bg for chips
+                        "chip-border": "#FFCCBC", 
+                    },
+                    fontFamily: {
+                        sans: ['"DM Sans"', 'sans-serif'],
+                        display: ['"Playfair Display"', 'serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 8px 30px -4px rgba(217, 125, 135, 0.15)',
+                        'inner-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.03)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            min-height: max(844px, 100dvh);
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light text-text-main font-sans h-screen w-full flex flex-col overflow-hidden relative">
+<div class="w-full h-12 flex justify-between items-end px-6 pb-2 z-20 shrink-0">
+<span class="text-xs font-medium text-text-main opacity-80">9:41</span>
+<div class="flex gap-1.5 items-center text-text-main opacity-80">
+<span class="material-symbols-outlined text-[18px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[18px]">wifi</span>
+<span class="material-symbols-outlined text-[18px]">battery_full</span>
+</div>
+</div>
+<main class="flex-1 flex flex-col px-8 pt-8 pb-10 overflow-y-auto hide-scrollbar z-10">
+<div class="mb-10">
+<p class="text-sm font-medium text-primary uppercase tracking-wider mb-3">Check-in Matinal</p>
+<h1 class="text-4xl font-display font-medium text-text-main leading-tight">Como você está se sentindo hoje?</h1>
+</div>
+<div class="w-full relative group mb-8">
+<textarea class="w-full h-48 bg-card-light rounded-3xl border-0 p-6 text-lg text-text-main placeholder-text-sub/50 shadow-soft focus:ring-2 focus:ring-primary/20 resize-none transition-shadow" placeholder="Escreva seus pensamentos, sonhos ou como seu corpo está..."></textarea>
+<div class="absolute bottom-4 right-4 text-primary opacity-50">
+<span class="material-symbols-outlined text-2xl">edit_note</span>
+</div>
+</div>
+<div class="mb-auto">
+<label class="block text-sm font-medium text-text-sub mb-4 ml-1">Atalhos de humor</label>
+<div class="flex flex-wrap gap-3">
+<button class="px-5 py-2.5 rounded-full bg-card-light border border-transparent hover:border-primary/30 text-text-sub hover:text-primary font-medium shadow-sm transition-all active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">battery_low</span>
+                    Cansada
+                </button>
+<button class="px-5 py-2.5 rounded-full bg-card-light border border-transparent hover:border-primary/30 text-text-sub hover:text-primary font-medium shadow-sm transition-all active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-yellow-500">wb_sunny</span>
+                    Com energia
+                </button>
+<button class="px-5 py-2.5 rounded-full bg-card-light border border-transparent hover:border-primary/30 text-text-sub hover:text-primary font-medium shadow-sm transition-all active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">sentiment_stressed</span>
+                    Estressada
+                </button>
+<button class="w-10 h-10 rounded-full bg-card-light flex items-center justify-center text-text-sub shadow-sm hover:text-primary transition-colors">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+<button class="w-full py-4 rounded-full bg-primary text-white font-medium text-lg shadow-lg shadow-primary/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-8">
+<span>Entrar no meu dia</span>
+<span class="material-symbols-outlined text-xl">arrow_forward</span>
+</button>
+<div class="w-full text-center mt-6">
+<button class="text-sm text-text-sub/70 hover:text-primary transition-colors">Pular por enquanto</button>
+</div>
+</main>
+<div class="fixed top-0 right-0 w-[500px] h-[500px] bg-gradient-to-b from-primary/5 to-transparent rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
+<div class="fixed bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-t from-orange-100/40 to-transparent rounded-full blur-3xl pointer-events-none translate-y-1/2 -translate-x-1/2"></div>
+
+</body></html>

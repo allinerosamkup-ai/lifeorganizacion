@@ -1,0 +1,305 @@
+{
+  "updatedAt": "2026-02-26T19:00:40.966Z",
+  "createdAt": "2026-02-26T19:00:40.966Z",
+  "id": "JVtUytFjnuqArnkB",
+  "name": "LifeOrganizer — 03 Cycle Phase Alert",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "note-c3",
+      "name": "📋 Documentação",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        80
+      ],
+      "parameters": {
+        "content": "## 🌙 03 — Cycle Phase Alert\n**Trigger:** Cron 09h00 diário\n\n**Fluxo:** Cron → Buscar transições em 2 dias → Loop → Claude Opus → WhatsApp + Notificação App\n\n**Modelo:** claude-opus-4-6 (saúde/biologia = precisão máxima)",
+        "height": 140,
+        "width": 900
+      }
+    },
+    {
+      "id": "cron-c3",
+      "name": "Cron 09h00 — Transições",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "query-c3",
+      "name": "Buscar Transições em 2 Dias",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/get_users_near_phase_transition",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "days_ahead",
+              "value": "2"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "split-c3",
+      "name": "Loop por Usuária",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {
+        "options": {}
+      }
+    },
+    {
+      "id": "claude-c3",
+      "name": "OpenAI — Alerta de Fase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        900,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.OPENAI_API_KEY}}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "body": "={{ JSON.stringify({ model: 'gpt-4o', max_tokens: 1200, messages: [{ role: 'system', content: 'Especialista em saúde hormonal feminina e produtividade baseada em ciclo. Cada fase é um superpoder diferente. JSON válido sempre.' }, [{ role: 'user', content: 'Alerta de transição de fase para o LifeOrganizer AI.\\n\\nUsuária: ' + $json.full_name + '\\nFase ATUAL: ' + $json.current_phase + ' dia ' + $json.day_of_cycle + '\\nPróxima fase: ' + $json.next_phase + ' em ' + $json.days_until_transition + ' dia(s)\\n\\nSAÍDA JSON:\\n{\\n  \"notification_title\": \"título push (max 45 chars)\",\\n  \"notification_body\": \"corpo push (max 100 chars)\",\\n  \"whatsapp_message\": \"WhatsApp max 100 palavras com \\\\n entre parágrafos\",\\n  \"biological_insight\": \"insight científico acessível\",\\n  \"affirmation\": \"afirmação motivacionalüaníca\"\\n}' }] }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      }
+    },
+    {
+      "id": "code-c3",
+      "name": "Parsear Alerta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const item = $input.item.json;\nconst raw = item.choices?.[0]?.message?.content?.replace(/```json\\n?/g, '').replace(/```/g, '').trim() || '{}';\nlet parsed;\ntry { parsed = JSON.parse(raw); } catch(e) {\n  parsed = {\n    notification_title: 'Sua fase está mudando em breve 🌙',\n    notification_body: 'Preparamos insights personalizados para você!',\n    whatsapp_message: 'Sua próxima fase do ciclo está chegando! Abra o app para ver seus insights 🌸',\n    biological_insight: '',\n    affirmation: ''\n  };\n}\nreturn { json: {\n  user_id: item.id,\n  user_phone: item.phone_number,\n  next_phase: item.next_phase,\n  ...parsed\n}};"
+      }
+    },
+    {
+      "id": "notif-c3",
+      "name": "Salvar Notificação App",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1340,
+        400
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/notifications",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "user_id",
+              "value": "={{ $json.user_id }}"
+            },
+            {
+              "name": "type",
+              "value": "cycle_phase_alert"
+            },
+            {
+              "name": "title",
+              "value": "={{ $json.notification_title }}"
+            },
+            {
+              "name": "body",
+              "value": "={{ $json.notification_body }}"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ next_phase: $json.next_phase, biological_insight: $json.biological_insight, affirmation: $json.affirmation }) }}"
+            },
+            {
+              "name": "created_at",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Cron 09h00 — Transições": {
+      "main": [
+        [
+          {
+            "node": "Buscar Transições em 2 Dias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Transições em 2 Dias": {
+      "main": [
+        [
+          {
+            "node": "Loop por Usuária",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop por Usuária": {
+      "main": [
+        [
+          {
+            "node": "OpenAI — Alerta de Fase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI — Alerta de Fase": {
+      "main": [
+        [
+          {
+            "node": "Parsear Alerta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear Alerta": {
+      "main": [
+        [
+          {
+            "node": "Salvar Notificação App",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Sao_Paulo",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "669d86dc-3ae1-4334-acbc-cf8a9578c23f",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-02-26T19:00:40.968Z",
+      "createdAt": "2026-02-26T19:00:40.968Z",
+      "role": "workflow:owner",
+      "workflowId": "JVtUytFjnuqArnkB",
+      "projectId": "ZRwIjvHgccCCaLzC",
+      "project": {
+        "updatedAt": "2026-02-23T18:28:02.128Z",
+        "createdAt": "2026-02-23T18:26:39.653Z",
+        "id": "ZRwIjvHgccCCaLzC",
+        "name": "alline izabel rosa <allineizabeldarosa@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "e180afa2-c34c-498f-89b4-95220def0688"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

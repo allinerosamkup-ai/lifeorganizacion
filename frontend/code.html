@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LifeOrganizer AI - Onboarding</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#7830c0",
+                        "primary-light": "#f3e8ff",
+                        "accent-pink": "#fce7f3",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#19131f",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom slider styling to match theme */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: #dbd3e4;
+            border-radius: 4px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #7830c0;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -8px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        input[type=range]:focus::-webkit-slider-runnable-track {
+            background: #dbd3e4;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display text-slate-900 dark:text-slate-100">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between p-4 bg-background-light dark:bg-background-dark sticky top-0 z-10">
+<button class="flex items-center justify-center size-10 rounded-full hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100">arrow_back</span>
+</button>
+<h2 class="text-lg font-bold tracking-tight text-primary">LifeOrganizer AI</h2>
+<div class="size-10"></div> <!-- Spacer for symmetry -->
+</header>
+<main class="flex-1 flex flex-col max-w-md mx-auto w-full px-6 pb-12">
+<!-- Progress Indicator -->
+<div class="mt-4 mb-8">
+<div class="flex justify-between items-center mb-2">
+<span class="text-xs font-semibold uppercase tracking-wider text-primary/70">Passo 1 de 4</span>
+<span class="text-xs font-medium text-slate-500">25%</span>
+</div>
+<div class="h-2 w-full bg-primary/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 25%;"></div>
+</div>
+</div>
+<!-- Welcome Text -->
+<section class="mb-10">
+<h1 class="text-3xl font-bold leading-tight text-slate-900 dark:text-slate-100 mb-3">
+                Olá! Vamos conhecer seu ritmo
+            </h1>
+<p class="text-slate-600 dark:text-slate-400 text-base leading-relaxed">
+                Para personalizar sua experiência, precisamos entender seu ciclo biológico.
+            </p>
+</section>
+<!-- Form Fields -->
+<div class="space-y-8">
+<!-- Date Picker -->
+<div class="flex flex-col gap-2">
+<label class="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg">calendar_today</span>
+                    Última menstruação
+                </label>
+<div class="relative">
+<input class="w-full h-14 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="Selecione a data" type="date"/>
+</div>
+<p class="text-[11px] text-slate-400 italic">O primeiro dia do seu último período.</p>
+</div>
+<!-- Cycle Duration Slider -->
+<div class="flex flex-col gap-4 p-5 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+<div class="flex justify-between items-end">
+<label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Duração média do ciclo</label>
+<span class="text-2xl font-bold text-primary">28 <span class="text-sm font-normal text-slate-500">dias</span></span>
+</div>
+<input class="accent-primary" max="35" min="21" type="range" value="28"/>
+<div class="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+<span>21 dias</span>
+<span>35 dias</span>
+</div>
+</div>
+<!-- Luteal Phase Slider -->
+<div class="flex flex-col gap-4 p-5 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+<div class="flex justify-between items-end">
+<div class="flex flex-col">
+<label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Duração da fase lútea</label>
+<span class="text-[10px] text-slate-400">Geralmente entre 10 e 16 dias</span>
+</div>
+<span class="text-2xl font-bold text-primary">14 <span class="text-sm font-normal text-slate-500">dias</span></span>
+</div>
+<input class="accent-primary" max="16" min="10" type="range" value="14"/>
+<div class="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+<span>10 dias</span>
+<span>16 dias</span>
+</div>
+</div>
+</div>
+<!-- Footer Action -->
+<div class="mt-auto pt-10">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-4 rounded-xl shadow-lg shadow-primary/25 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                Continuar
+                <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<p class="text-center text-xs text-slate-400 mt-6 px-4">
+                Seus dados são criptografados e usados apenas para gerar seus insights de saúde.
+            </p>
+</div>
+</main>
+<!-- Background Decorative Element (Subtle soft tone) -->
+<div class="fixed top-[-10%] right-[-10%] w-[50%] h-[40%] bg-primary/5 blur-[100px] rounded-full -z-10"></div>
+<div class="fixed bottom-[-10%] left-[-10%] w-[50%] h-[40%] bg-accent-pink/20 blur-[100px] rounded-full -z-10"></div>
+</body></html>

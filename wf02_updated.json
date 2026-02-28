@@ -1,0 +1,360 @@
+{
+  "updatedAt": "2026-02-26T19:00:09.166Z",
+  "createdAt": "2026-02-26T19:00:09.166Z",
+  "id": "1YJROEHdnAebULrC",
+  "name": "LifeOrganizer — 02 Daily Check-in Reminder",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "note-d2",
+      "name": "📋 Documentação",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        80
+      ],
+      "parameters": {
+        "content": "## ⏰ 02 — Daily Check-in Reminder\n**Trigger:** Cron 08h00 diário (Brasília)\n\n**Fluxo:** Cron → Buscar sem check-in → IF tem usuárias → Loop → Claude Haiku → A/B Test → WhatsApp + Log\n\n**Modelo:** claude-haiku-4-5-20251001 (alto volume = custo eficiente)\n\n**A/B Test:** 50% recebem variante B da mensagem",
+        "height": 155,
+        "width": 900
+      }
+    },
+    {
+      "id": "cron-d2",
+      "name": "Cron 08h00 Diário",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "query-d2",
+      "name": "Buscar Usuárias Sem Check-in",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/get_users_without_checkin_today",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "timezone_offset",
+              "value": "-3"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "if-d2",
+      "name": "Há Usuárias?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "split-d2",
+      "name": "Loop por Usuária",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        900,
+        200
+      ],
+      "parameters": {
+        "options": {}
+      }
+    },
+    {
+      "id": "claude-d2",
+      "name": "OpenAI — Mensagem Personalizada",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.OPENAI_API_KEY}}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "body": "={{ JSON.stringify({ model: 'gpt-4o-mini', max_tokens: 400, messages: [{ role: 'system', content: 'Especialista em comunicação empática para apps de saúde feminina. Nunca usa linguagem de pressão ou culpa. JSON válido sempre.' }, [{ role: 'user', content: 'Lembrete de check-in personalizado WhatsApp.\\n\\nNome: ' + ($json.full_name || $json.email.split('@')[0]) + '\\nFase: ' + $json.current_phase + ' dia ' + $json.day_of_cycle + '\\nStreak: ' + $json.streak_days + ' dias\\n\\nREGRAS:\\n- MENSTRUAL: gentil, auto-cuidado, sem pressão\\n- FOLICULAR: energético, criatividade\\n- OVULATÓRIA: confiante, conexões\\n- LUTEAL: acolhedor, valida cansaço\\n\\nSAÍDA JSON:\\n{\"message\": \"msg principal (max 50 palavras)\", \"message_variant_b\": \"variante A/B\"}' }] }) }}",
+        "options": {
+          "timeout": 20000
+        }
+      }
+    },
+    {
+      "id": "code-d2",
+      "name": "Preparar + A/B Test",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        200
+      ],
+      "parameters": {
+        "jsCode": "const item = $input.item.json;\nconst raw = item.choices?.[0]?.message?.content?.replace(/```json\\n?/g, '').replace(/```/g, '').trim() || '{}';\nlet parsed;\ntry { parsed = JSON.parse(raw); } catch(e) {\n  parsed = { message: 'Ei! Que tal fazer seu check-in de hoje? 🌸', message_variant_b: null };\n}\nconst useVariant = Math.random() > 0.5 && parsed.message_variant_b;\nreturn { json: {\n  phone_number: item.phone_number,\n  final_message: useVariant ? parsed.message_variant_b : parsed.message,\n  ab_variant: useVariant ? 'B' : 'A',\n  user_id: item.id\n}};"
+      }
+    },
+    {
+      "id": "log-d2",
+      "name": "Log Reminder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1780,
+        200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/reminder_logs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "user_id",
+              "value": "={{ $json.user_id }}"
+            },
+            {
+              "name": "type",
+              "value": "daily_checkin"
+            },
+            {
+              "name": "channel",
+              "value": "whatsapp"
+            },
+            {
+              "name": "ab_variant",
+              "value": "={{ $json.ab_variant }}"
+            },
+            {
+              "name": "sent_at",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "noop-d2",
+      "name": "Nenhuma Usuária — Stop",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        900,
+        420
+      ],
+      "parameters": {}
+    }
+  ],
+  "connections": {
+    "Cron 08h00 Diário": {
+      "main": [
+        [
+          {
+            "node": "Buscar Usuárias Sem Check-in",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Usuárias Sem Check-in": {
+      "main": [
+        [
+          {
+            "node": "Há Usuárias?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Há Usuárias?": {
+      "main": [
+        [
+          {
+            "node": "Loop por Usuária",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Nenhuma Usuária — Stop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop por Usuária": {
+      "main": [
+        [
+          {
+            "node": "OpenAI — Mensagem Personalizada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI — Mensagem Personalizada": {
+      "main": [
+        [
+          {
+            "node": "Preparar + A/B Test",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar + A/B Test": {
+      "main": [
+        [
+          {
+            "node": "Log Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Sao_Paulo",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "68f5ffe0-bcef-4ebb-baf4-cc3d4f20abdb",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-02-26T19:00:09.175Z",
+      "createdAt": "2026-02-26T19:00:09.175Z",
+      "role": "workflow:owner",
+      "workflowId": "1YJROEHdnAebULrC",
+      "projectId": "ZRwIjvHgccCCaLzC",
+      "project": {
+        "updatedAt": "2026-02-23T18:28:02.128Z",
+        "createdAt": "2026-02-23T18:26:39.653Z",
+        "id": "ZRwIjvHgccCCaLzC",
+        "name": "alline izabel rosa <allineizabeldarosa@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "e180afa2-c34c-498f-89b4-95220def0688"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pricing Plans Warm Theme</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Playfair+Display:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        background: "#FDFBF7", // Warm beige/off-white background
+                        card: "#FFFFFF",
+                        primary: "#E5989B", // Soft pink (muted rose)
+                        "primary-dark": "#D67D82",
+                        secondary: "#B5838D", // Dustier pink/mauve for accents
+                        text: "#4A403A", // Dark warm brown/grey
+                        "text-muted": "#8D817B",
+                        badge: "#FFB4A2", // Soft peach/pink badge
+                        success: "#6D9773", // Muted green for checks
+                    },
+                    fontFamily: {
+                        sans: ['"DM Sans"', 'sans-serif'],
+                        display: ['"Playfair Display"', 'serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 8px 30px -4px rgba(181, 131, 141, 0.1)',
+                        'card': '0 4px 12px -2px rgba(74, 64, 58, 0.05)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-text font-sans h-screen w-full flex flex-col overflow-hidden relative">
+<div class="w-full h-12 flex justify-between items-end px-6 pb-2 z-20 shrink-0">
+<span class="text-xs font-medium opacity-80 text-text">9:41</span>
+<div class="flex gap-1.5 items-center text-text">
+<span class="material-symbols-outlined text-[18px] opacity-80">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[18px] opacity-80">wifi</span>
+<span class="material-symbols-outlined text-[18px] opacity-80">battery_full</span>
+</div>
+</div>
+<header class="w-full px-6 pt-4 pb-2 shrink-0 flex flex-col items-center text-center">
+<button class="absolute top-14 left-6 text-text-muted hover:text-text transition-colors">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+<h1 class="text-3xl font-display font-bold text-text mb-2 mt-8">Escolha seu plano</h1>
+<p class="text-sm text-text-muted mb-8 max-w-[260px]">Sincronize sua produtividade com seu ritmo biológico.</p>
+<div class="bg-[#F5F0EB] p-1 rounded-full flex relative w-64 mb-4">
+<div class="w-1/2 h-9 bg-white rounded-full shadow-sm absolute left-1 top-1 transition-transform duration-300 ease-out translate-x-full"></div>
+<button class="w-1/2 h-9 rounded-full text-sm font-medium text-text-muted z-10 transition-colors">Mensal</button>
+<button class="w-1/2 h-9 rounded-full text-sm font-bold text-text z-10 transition-colors">Anual</button>
+</div>
+<p class="text-xs text-secondary font-medium mb-6">Economize 20% no plano anual</p>
+</header>
+<main class="flex-1 overflow-y-auto hide-scrollbar w-full px-6 pb-24 space-y-5">
+<div class="bg-card rounded-3xl p-6 shadow-card border border-[#F0EAE4]">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="text-xl font-display font-bold text-text">Básico</h3>
+<p class="text-sm text-text-muted">Para começar sua jornada</p>
+</div>
+<div class="text-right">
+<span class="text-2xl font-bold text-text">Grátis</span>
+</div>
+</div>
+<ul class="space-y-3 mb-6">
+<li class="flex items-center gap-3 text-sm text-text">
+<span class="material-symbols-outlined text-success text-lg">check</span>
+                    Rastreamento de ciclo básico
+                </li>
+<li class="flex items-center gap-3 text-sm text-text">
+<span class="material-symbols-outlined text-success text-lg">check</span>
+                    Calendário de energia diário
+                </li>
+<li class="flex items-center gap-3 text-sm text-text">
+<span class="material-symbols-outlined text-success text-lg">check</span>
+                    3 tarefas prioritárias por dia
+                </li>
+</ul>
+<button class="w-full py-3 rounded-xl border border-primary text-primary font-bold text-sm hover:bg-primary/5 transition-colors">
+                Continuar Grátis
+            </button>
+</div>
+<div class="bg-card rounded-3xl p-6 shadow-soft border-2 border-primary relative overflow-visible transform scale-[1.02]">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                Mais Popular
+            </div>
+<div class="flex justify-between items-start mb-4 mt-2">
+<div>
+<h3 class="text-xl font-display font-bold text-text">Pro</h3>
+<p class="text-sm text-text-muted">Ritmo e produtividade total</p>
+</div>
+<div class="text-right">
+<span class="text-2xl font-bold text-text">R$ 29</span>
+<span class="text-xs text-text-muted">/mês</span>
+</div>
+</div>
+<ul class="space-y-3 mb-6">
+<li class="flex items-center gap-3 text-sm text-text font-medium">
+<span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+                    Insights hormonais detalhados
+                </li>
+<li class="flex items-center gap-3 text-sm text-text font-medium">
+<span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+                    Tarefas ilimitadas
+                </li>
+<li class="flex items-center gap-3 text-sm text-text font-medium">
+<span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+                    Integração com calendário
+                </li>
+<li class="flex items-center gap-3 text-sm text-text font-medium">
+<span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+                    Sugestões de bem-estar
+                </li>
+</ul>
+<button class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm shadow-md shadow-primary/30 hover:bg-primary-dark transition-colors">
+                Começar Pro
+            </button>
+</div>
+<div class="bg-card rounded-3xl p-6 shadow-card border border-[#F0EAE4]">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="text-xl font-display font-bold text-text">Equipe</h3>
+<p class="text-sm text-text-muted">Para times conscientes</p>
+</div>
+<div class="text-right">
+<span class="text-2xl font-bold text-text">R$ 59</span>
+<span class="text-xs text-text-muted">/usuário</span>
+</div>
+</div>
+<ul class="space-y-3 mb-6">
+<li class="flex items-center gap-3 text-sm text-text">
+<span class="material-symbols-outlined text-success text-lg">check</span>
+                    Tudo do plano Pro
+                </li>
+<li class="flex items-center gap-3 text-sm text-text">
+<span class="material-symbols-outlined text-success text-lg">check</span>
+                    Dashboard de equipe
+                </li>
+<li class="flex items-center gap-3 text-sm text-text">
+<span class="material-symbols-outlined text-success text-lg">check</span>
+                    Workshops de ciclo
+                </li>
+</ul>
+<button class="w-full py-3 rounded-xl border border-[#E0D6CC] text-text-muted font-bold text-sm hover:bg-[#F5F0EB] transition-colors">
+                Falar com Vendas
+            </button>
+</div>
+<div class="flex justify-center pb-8">
+<button class="text-xs text-text-muted underline decoration-dotted">Restaurar compras</button>
+</div>
+</main>
+
+</body></html>

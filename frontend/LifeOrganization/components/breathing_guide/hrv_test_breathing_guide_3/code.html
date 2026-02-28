@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HRV Test Result Warm Theme</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#D88D98", // Soft pink for main actions
+                        secondary: "#C4A484", // Beige/Light brown
+                        "background-light": "#FFFDF9", // Very soft warm off-white (Cream)
+                        "background-dark": "#2C2420", 
+                        "card-light": "#FFFFFF",
+                        "card-dark": "#3D3430",
+                        "text-light": "#5D4037", // Warm dark brown text
+                        "text-dark": "#EFEBE9",
+                        "status-good": "#81C784", // Green
+                        "status-mod": "#FFD54F", // Yellow
+                        "status-bad": "#E57373", // Red/Pinkish
+                        "accent-soft": "#F8E1E1", // Soft pink background
+                    },
+                    fontFamily: {
+                        sans: ['"DM Sans"', 'sans-serif'],
+                        display: ['"Playfair Display"', 'serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 8px 30px -4px rgba(180, 150, 150, 0.1)',
+                        'inner-glow': 'inset 0 0 20px rgba(216, 141, 152, 0.1)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            min-height: max(800px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light text-text-light font-sans h-screen w-full flex flex-col overflow-hidden selection:bg-primary/20">
+<div class="w-full h-12 flex justify-between items-end px-6 pb-2 z-20 shrink-0 text-text-light/60">
+<span class="text-xs font-medium">9:41</span>
+<div class="flex gap-1.5 items-center">
+<span class="material-symbols-outlined text-[18px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[18px]">wifi</span>
+<span class="material-symbols-outlined text-[18px]">battery_full</span>
+</div>
+</div>
+<header class="w-full px-6 pt-2 pb-2 shrink-0 flex items-center justify-between">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-soft text-text-light hover:bg-accent-soft transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<span class="text-sm font-bold uppercase tracking-widest text-secondary">Resultados</span>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-soft text-text-light hover:bg-accent-soft transition-colors">
+<span class="material-symbols-outlined">share</span>
+</button>
+</header>
+<main class="flex-1 overflow-y-auto px-6 pt-6 pb-24 hide-scrollbar flex flex-col items-center">
+<p class="text-sm font-medium text-secondary mb-6">Hoje, 12 de Outubro</p>
+<div class="w-full relative">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-accent-soft/30 rounded-full blur-3xl -z-10"></div>
+<div class="flex flex-col items-center justify-center mb-8">
+<h1 class="text-5xl md:text-6xl font-display font-bold text-text-light mb-1">72.3<span class="text-2xl font-sans font-normal text-text-light/60 ml-1">ms</span></h1>
+<p class="text-sm text-text-light/70 uppercase tracking-wide font-medium mt-2">Variabilidade (SDNN)</p>
+<div class="mt-6 flex items-center gap-2 px-4 py-2 bg-status-bad/10 rounded-full border border-status-bad/20">
+<span class="w-2 h-2 rounded-full bg-status-bad"></span>
+<span class="text-sm font-bold text-status-bad uppercase tracking-wider">Alto Estresse</span>
+</div>
+</div>
+</div>
+<div class="w-full bg-white rounded-3xl p-6 shadow-soft mb-6">
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-full bg-accent-soft flex items-center justify-center shrink-0 text-primary">
+<span class="material-symbols-outlined">ecg_heart</span>
+</div>
+<div>
+<h3 class="font-display font-bold text-lg text-text-light mb-1">O que isso significa?</h3>
+<p class="text-sm text-text-light/70 leading-relaxed">
+                        Seu sistema nervoso simpático está dominante agora. Isso indica uma carga de estresse elevada. Seu corpo precisa de recuperação ativa antes de assumir tarefas complexas.
+                    </p>
+</div>
+</div>
+</div>
+<button class="w-full bg-primary text-white py-4 rounded-2xl shadow-lg shadow-primary/30 flex items-center justify-center gap-2 mb-8 hover:scale-[1.02] active:scale-95 transition-all">
+<span class="material-symbols-outlined">edit_calendar</span>
+<span class="font-medium text-lg">Reordenar minha agenda agora</span>
+</button>
+<div class="w-full grid grid-cols-2 gap-4 mb-8">
+<div class="bg-white p-4 rounded-2xl shadow-soft flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-secondary mb-2">water_drop</span>
+<span class="text-2xl font-display font-bold text-text-light">14<span class="text-xs font-sans text-text-light/50 ml-0.5">o</span></span>
+<span class="text-xs text-text-light/60 uppercase mt-1">Dia do Ciclo</span>
+</div>
+<div class="bg-white p-4 rounded-2xl shadow-soft flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-secondary mb-2">bedtime</span>
+<span class="text-2xl font-display font-bold text-text-light">6h</span>
+<span class="text-xs text-text-light/60 uppercase mt-1">Sono</span>
+</div>
+</div>
+<div class="w-full bg-white rounded-3xl p-6 shadow-soft">
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-display font-bold text-lg text-text-light">Últimos 7 dias</h3>
+<span class="text-xs font-medium text-secondary bg-secondary/10 px-2 py-1 rounded-full">Tendência de alta</span>
+</div>
+<div class="h-24 flex items-end justify-between gap-2 px-2">
+<div class="w-full bg-accent-soft rounded-t-lg h-[40%]"></div>
+<div class="w-full bg-accent-soft rounded-t-lg h-[55%]"></div>
+<div class="w-full bg-accent-soft rounded-t-lg h-[35%]"></div>
+<div class="w-full bg-accent-soft rounded-t-lg h-[60%]"></div>
+<div class="w-full bg-accent-soft rounded-t-lg h-[45%]"></div>
+<div class="w-full bg-accent-soft rounded-t-lg h-[70%]"></div>
+<div class="w-full bg-primary rounded-t-lg h-[85%] relative group">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-text-light text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">72.3ms</div>
+</div>
+</div>
+<div class="flex justify-between mt-2 text-[10px] text-text-light/40 font-medium px-1">
+<span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span><span>D</span>
+</div>
+</div>
+</main>
+<nav class="fixed bottom-0 w-full bg-white/95 backdrop-blur-md border-t border-gray-100 px-6 py-4 pb-8 flex justify-between items-center z-40">
+<button class="flex flex-col items-center gap-1 text-text-light/40 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-[10px] font-medium">Hoje</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-text-light/40 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">insights</span>
+<span class="text-[10px] font-medium">Insights</span>
+</button>
+<div class="w-12 h-12 -mt-8 bg-primary rounded-full shadow-lg shadow-primary/40 flex items-center justify-center text-white cursor-pointer hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">monitor_heart</span>
+</div>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined fill-1">spa</span>
+<span class="text-[10px] font-medium">Wellness</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-text-light/40 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Perfil</span>
+</button>
+</nav>
+
+</body></html>

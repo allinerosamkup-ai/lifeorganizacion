@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Splash Welcome Screen Updated</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&amp;family=Nunito:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#D68CA0", // Warmer muted rose
+                        secondary: "#D0A9D9", // Warm lavender
+                        action: "#C07A92", // Changed from vibrant purple #8A2BE2 to a muted warm rose/pink
+                        "action-hover": "#B06A82", // Slightly darker for hover states
+                        accent: "#FDE2D6", // Peach/cream
+                        "text-dark": "#4A3B3E", // Dark brownish grey for text
+                        "text-light": "#FDF8F5", // Light cream for dark mode text
+                        "background-light": "#FFF0F5", // Lavender blush / soft pinkish
+                        "background-dark": "#2D1E2F", // Deep warm purple for dark mode
+                        "card-light": "#FFFFFF",
+                        "card-dark": "#3D2B35",
+                    },
+                    fontFamily: {
+                        display: ["DM Serif Display", "serif"],
+                        body: ["Nunito", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "1.5rem",
+                        'xl': '2rem',
+                    },
+                    backgroundImage: {
+                        'gradient-soft': 'linear-gradient(180deg, #FFF0F5 0%, #FFE4E8 100%)',
+                        'gradient-dark': 'linear-gradient(180deg, #2D1E2F 0%, #251820 100%)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        .organic-shape {
+            border-radius: 45% 55% 40% 60% / 55% 45% 60% 40%;
+            animation: float 6s ease-in-out infinite;
+        }
+        .organic-shape-2 {
+            border-radius: 60% 40% 50% 50% / 40% 50% 50% 60%;
+            animation: float-reverse 8s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        @keyframes float-reverse {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(10px) rotate(-2deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col items-center justify-between relative overflow-hidden transition-colors duration-300">
+<div class="absolute top-[-10%] left-[-20%] w-[80vw] h-[80vw] bg-[#E8A2B8]/15 dark:bg-[#E8A2B8]/10 blur-3xl rounded-full pointer-events-none z-0"></div>
+<div class="absolute bottom-[10%] right-[-10%] w-[60vw] h-[60vw] bg-[#D8BFD8]/20 dark:bg-[#D8BFD8]/10 blur-3xl rounded-full pointer-events-none z-0"></div>
+<div class="relative w-full flex-1 flex flex-col items-center justify-center pt-16 px-6 z-10">
+<div class="relative w-64 h-64 mb-10 flex items-center justify-center">
+<div class="absolute w-56 h-56 bg-accent dark:bg-card-dark organic-shape shadow-lg opacity-80"></div>
+<div class="absolute w-48 h-48 bg-primary/20 dark:bg-primary/10 organic-shape-2 rotate-45"></div>
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-20 h-20 bg-[#D68CA0] rounded-full flex items-center justify-center shadow-xl mb-4 text-white">
+<span class="material-icons-round text-5xl">spa</span>
+</div>
+<span class="absolute -top-4 -right-2 text-[#D68CA0] material-icons-round text-2xl animate-pulse">auto_awesome</span>
+<span class="absolute bottom-4 -left-6 text-primary material-icons-round text-xl animate-bounce" style="animation-duration: 3s;">star</span>
+</div>
+</div>
+<div class="text-center space-y-3">
+<h1 class="font-display text-5xl text-text-dark dark:text-text-light tracking-tight">
+                Luna<span class="text-action">Flow</span>
+</h1>
+<p class="font-body text-lg text-text-dark/70 dark:text-text-light/70 max-w-[280px] mx-auto leading-relaxed">
+                Produtividade que respeita seu ritmo
+            </p>
+</div>
+</div>
+<div class="w-full px-6 pb-12 z-10 space-y-4">
+<button class="w-full group relative overflow-hidden bg-action hover:bg-action-hover text-white font-body font-bold text-lg py-4 px-6 rounded-2xl shadow-lg shadow-[#D68CA0]/30 transition-all hover:scale-[1.02] hover:shadow-xl active:scale-95">
+<div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+<span class="relative flex items-center justify-center gap-2">
+                Criar minha conta
+                <span class="material-icons-round text-xl">arrow_forward</span>
+</span>
+</button>
+<button class="w-full bg-transparent border-2 border-action/40 dark:border-white/20 text-action dark:text-text-light font-body font-semibold text-lg py-4 px-6 rounded-2xl hover:bg-action/5 dark:hover:bg-white/5 transition-colors active:scale-95">
+            Já tenho conta
+        </button>
+<p class="text-center text-xs text-text-dark/40 dark:text-text-light/30 font-body mt-6">
+            Ao continuar, você concorda com nossos <a class="underline hover:text-action" href="#">Termos</a> e <a class="underline hover:text-action" href="#">Política</a>.
+        </p>
+</div>
+<div class="absolute top-20 right-8 transform rotate-12 opacity-60 pointer-events-none">
+<span class="material-icons-round text-primary/40 text-3xl">wb_sunny</span>
+</div>
+<div class="absolute top-1/3 left-6 transform -rotate-12 opacity-40 pointer-events-none">
+<span class="material-icons-round text-[#DDA0DD]/50 text-4xl">water_drop</span>
+</div>
+</body></html>

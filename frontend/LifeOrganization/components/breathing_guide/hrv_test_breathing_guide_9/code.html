@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Onboarding Goals Warm Theme</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Playfair+Display:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#DFA09E", // Warm soft pink
+                        secondary: "#C77D63", // Terracotta/Warm accent
+                        "background-light": "#FDFBF7", // Very warm beige/off-white
+                        "background-dark": "#2C2420", 
+                        "card-light": "#FFF5F2", // Slightly pinkish white
+                        "card-dark": "#3D3430",
+                        "text-light": "#5D4037", // Warm brown
+                        "text-dark": "#EFEBE9",
+                        "badge-high": "#D84315", // Deep orange/red for high
+                        "badge-med": "#F57F17", // Amber for medium
+                        "badge-low": "#689F38", // Green for low
+                        "input-bg": "#FFFFFF",
+                    },
+                    fontFamily: {
+                        sans: ['"DM Sans"', 'sans-serif'],
+                        display: ['"Playfair Display"', 'serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 8px 30px -4px rgba(199, 125, 99, 0.15)',
+                        'inner-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light text-text-light font-sans h-screen w-full flex flex-col overflow-hidden selection:bg-primary selection:text-white">
+<div class="w-full h-12 flex justify-between items-end px-6 pb-2 z-20 shrink-0">
+<span class="text-xs font-medium opacity-80">9:41</span>
+<div class="flex gap-1.5 items-center">
+<span class="material-symbols-outlined text-[18px] opacity-80">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[18px] opacity-80">wifi</span>
+<span class="material-symbols-outlined text-[18px] opacity-80">battery_full</span>
+</div>
+</div>
+<header class="w-full px-6 pt-4 pb-2 shrink-0">
+<div class="flex justify-between items-center mb-6">
+<button class="text-text-light/60 hover:text-text-light transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<span class="text-sm font-medium text-secondary uppercase tracking-wider">Passo 4 de 7</span>
+<button class="text-text-light/60 hover:text-text-light transition-colors">
+<span class="text-sm font-medium">Pular</span>
+</button>
+</div>
+<div class="flex gap-1.5 h-1.5 w-full mb-8">
+<div class="flex-1 bg-secondary rounded-full"></div>
+<div class="flex-1 bg-secondary rounded-full"></div>
+<div class="flex-1 bg-secondary rounded-full"></div>
+<div class="flex-1 bg-secondary rounded-full"></div>
+<div class="flex-1 bg-secondary/20 rounded-full"></div>
+<div class="flex-1 bg-secondary/20 rounded-full"></div>
+<div class="flex-1 bg-secondary/20 rounded-full"></div>
+</div>
+<h1 class="text-3xl font-display font-bold text-text-light mb-2">Quais são seus focos?</h1>
+<p class="text-text-light/70 text-base leading-relaxed">
+            Defina até 5 objetivos principais para este ciclo. Vamos alinhar suas tarefas com sua energia.
+        </p>
+</header>
+<main class="flex-1 overflow-y-auto px-6 pb-32 hide-scrollbar">
+<div class="space-y-3 mb-8 mt-4">
+<div class="bg-white rounded-2xl p-4 shadow-soft flex items-center justify-between border border-secondary/10">
+<div class="flex items-center gap-3">
+<div class="w-2 h-10 rounded-full bg-badge-high"></div>
+<div>
+<h3 class="font-medium text-text-light text-lg">Lançar novo projeto</h3>
+<span class="text-xs text-badge-high font-bold uppercase tracking-wide bg-badge-high/10 px-2 py-0.5 rounded-md">Alta Prioridade</span>
+</div>
+</div>
+<button class="text-text-light/40 hover:text-red-400 transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="bg-white rounded-2xl p-4 shadow-soft flex items-center justify-between border border-secondary/10">
+<div class="flex items-center gap-3">
+<div class="w-2 h-10 rounded-full bg-badge-med"></div>
+<div>
+<h3 class="font-medium text-text-light text-lg">Rotina de Yoga</h3>
+<span class="text-xs text-badge-med font-bold uppercase tracking-wide bg-badge-med/10 px-2 py-0.5 rounded-md">Média Prioridade</span>
+</div>
+</div>
+<button class="text-text-light/40 hover:text-red-400 transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</div>
+<div class="bg-card-light/50 rounded-3xl p-5 border-2 border-dashed border-secondary/20">
+<label class="block text-sm font-medium text-text-light mb-2">Novo Objetivo</label>
+<input class="w-full bg-input-bg border-none rounded-xl px-4 py-3.5 text-text-light placeholder-text-light/40 shadow-sm focus:ring-2 focus:ring-secondary/50 mb-4 text-base" placeholder="Ex: Aprender meditação..." type="text"/>
+<label class="block text-sm font-medium text-text-light mb-3">Prioridade</label>
+<div class="grid grid-cols-3 gap-2 mb-6">
+<label class="cursor-pointer group">
+<input checked="" class="peer sr-only" name="priority" type="radio"/>
+<div class="flex flex-col items-center justify-center py-2 rounded-xl border border-transparent bg-white shadow-sm peer-checked:bg-badge-high/10 peer-checked:border-badge-high peer-checked:text-badge-high text-text-light/60 transition-all hover:bg-white/80">
+<span class="w-3 h-3 rounded-full bg-badge-high mb-1"></span>
+<span class="text-xs font-bold">Alta</span>
+</div>
+</label>
+<label class="cursor-pointer group">
+<input class="peer sr-only" name="priority" type="radio"/>
+<div class="flex flex-col items-center justify-center py-2 rounded-xl border border-transparent bg-white shadow-sm peer-checked:bg-badge-med/10 peer-checked:border-badge-med peer-checked:text-badge-med text-text-light/60 transition-all hover:bg-white/80">
+<span class="w-3 h-3 rounded-full bg-badge-med mb-1"></span>
+<span class="text-xs font-bold">Média</span>
+</div>
+</label>
+<label class="cursor-pointer group">
+<input class="peer sr-only" name="priority" type="radio"/>
+<div class="flex flex-col items-center justify-center py-2 rounded-xl border border-transparent bg-white shadow-sm peer-checked:bg-badge-low/10 peer-checked:border-badge-low peer-checked:text-badge-low text-text-light/60 transition-all hover:bg-white/80">
+<span class="w-3 h-3 rounded-full bg-badge-low mb-1"></span>
+<span class="text-xs font-bold">Baixa</span>
+</div>
+</label>
+</div>
+<button class="w-full py-3.5 rounded-xl border-2 border-secondary text-secondary font-bold text-sm uppercase tracking-wide hover:bg-secondary hover:text-white transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">add</span>
+                Adicionar objetivo
+            </button>
+</div>
+</main>
+<div class="fixed bottom-0 w-full bg-background-light/95 backdrop-blur-xl border-t border-secondary/10 px-6 py-6 pb-10 z-40">
+<button class="w-full bg-primary text-text-light font-display font-bold text-lg py-4 rounded-full shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:translate-y-[-2px] transition-all flex items-center justify-center gap-2">
+            Começar minha jornada
+            <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+
+</body></html>

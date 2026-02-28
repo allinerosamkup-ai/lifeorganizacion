@@ -1,9 +1,0 @@
-# Repositórios de referência clonados do GitHub
-
-# Este diretório contém repositórios clonados para uso como referência:
-# - insights-lm/ - Padrões Lovable+Supabase+n8n
-# - next-stripe/ - Fluxo Auth+Stripe+Supabase
-# - peri/ - Algoritmo de ciclo menstrual
-# - launch-mvp/ - Triggers + Edge Functions
-
-# Execute: python execution/clone_references.py para clonar os repositórios

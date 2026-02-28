@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Daily Vertical Agenda</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ee2b5b",
+                        "primary-soft": "#fce9ef", 
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221015",
+                        "calendar-blue": "#93c5fd", // Soft blue for G-Cal
+                        "calendar-fill": "#fdfbf7", // Beige fill
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        "soft": "0 4px 20px -2px rgba(238, 43, 91, 0.08)",
+                        "card": "0 2px 12px -2px rgba(0, 0, 0, 0.05)"
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Hide scrollbar for clean look */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Dashed line generator */
+        .dashed-line {
+            background-image: linear-gradient(to bottom, #e5e7eb 50%, transparent 50%);
+            background-size: 2px 20px;
+            background-repeat: repeat-y;
+        }
+        .dark .dashed-line {
+            background-image: linear-gradient(to bottom, #374151 50%, transparent 50%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen flex flex-col antialiased selection:bg-primary selection:text-white">
+<!-- Header Section -->
+<header class="sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-stone-200 dark:border-stone-800 transition-colors">
+<div class="px-5 pt-12 pb-4">
+<div class="flex items-center justify-between mb-4">
+<div>
+<h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Today, Oct 24</h1>
+<p class="text-stone-500 dark:text-stone-400 text-sm font-medium">Keep your rhythm steady</p>
+</div>
+<button class="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 shadow-sm hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-stone-600 dark:text-stone-300">calendar_month</span>
+</button>
+</div>
+<!-- Cycle Status Pill -->
+<div class="flex items-center gap-3">
+<div class="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 dark:bg-primary/20 rounded-full border border-primary/20">
+<span class="material-symbols-outlined text-primary text-[18px]">water_drop</span>
+<span class="text-primary font-bold text-sm">Follicular Phase</span>
+<span class="w-1 h-1 rounded-full bg-primary/40 mx-1"></span>
+<span class="text-primary/80 font-medium text-xs uppercase tracking-wide">High Energy</span>
+</div>
+</div>
+</div>
+<!-- Day of Week Scroller (Visual Context) -->
+<div class="flex justify-between px-5 pb-4 mt-2 overflow-x-auto no-scrollbar gap-2">
+<div class="flex flex-col items-center justify-center min-w-[50px] h-[70px] rounded-2xl bg-transparent text-stone-400">
+<span class="text-xs font-medium">Mon</span>
+<span class="text-lg font-semibold">21</span>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[50px] h-[70px] rounded-2xl bg-transparent text-stone-400">
+<span class="text-xs font-medium">Tue</span>
+<span class="text-lg font-semibold">22</span>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[50px] h-[70px] rounded-2xl bg-transparent text-stone-400">
+<span class="text-xs font-medium">Wed</span>
+<span class="text-lg font-semibold">23</span>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[50px] h-[70px] rounded-2xl bg-primary text-white shadow-lg shadow-primary/30 transform scale-105">
+<span class="text-xs font-medium opacity-90">Thu</span>
+<span class="text-xl font-bold">24</span>
+<span class="w-1.5 h-1.5 bg-white rounded-full mt-1"></span>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[50px] h-[70px] rounded-2xl bg-transparent text-stone-400">
+<span class="text-xs font-medium">Fri</span>
+<span class="text-lg font-semibold">25</span>
+</div>
+<div class="flex flex-col items-center justify-center min-w-[50px] h-[70px] rounded-2xl bg-transparent text-stone-400">
+<span class="text-xs font-medium">Sat</span>
+<span class="text-lg font-semibold">26</span>
+</div>
+</div>
+</header>
+<!-- Main Content: Vertical Agenda -->
+<main class="flex-1 relative px-5 pt-6 pb-24 overflow-y-auto w-full max-w-lg mx-auto">
+<!-- Current Time Indicator Line (Absolute positioning simulation) -->
+<div class="absolute left-0 right-0 top-[380px] z-10 flex items-center pointer-events-none px-4">
+<div class="w-14 text-right pr-3 text-primary font-bold text-xs">11:45</div>
+<div class="flex-1 h-[2px] bg-primary relative">
+<div class="absolute -left-1 -top-[3px] w-2 h-2 rounded-full bg-primary shadow-sm"></div>
+</div>
+</div>
+<div class="relative grid grid-cols-[50px_1fr] gap-4 min-h-screen">
+<!-- Timeline Axis -->
+<div class="absolute left-[50px] top-2 bottom-0 w-[1px] bg-stone-200 dark:bg-stone-800"></div>
+<!-- 06:00 -->
+<div class="text-right text-xs font-medium text-stone-400 py-4 h-24">06:00</div>
+<div class="py-2 h-24 border-b border-stone-100 dark:border-stone-800/50"></div>
+<!-- 07:00 - Morning Routine (App Task) -->
+<div class="text-right text-xs font-medium text-stone-400 py-4 h-32">07:00</div>
+<div class="relative py-1 h-32">
+<div class="h-full w-full bg-white dark:bg-stone-800 border-l-4 border-primary rounded-r-2xl rounded-bl-lg shadow-card p-4 flex flex-col justify-between group hover:shadow-soft transition-all duration-300">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-slate-800 dark:text-slate-100 text-base leading-tight">Morning Routine</h3>
+<p class="text-xs text-stone-500 mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">timer</span> 1h 00m
+                            </p>
+</div>
+<span class="material-symbols-outlined text-primary/40 group-hover:text-primary transition-colors">self_improvement</span>
+</div>
+<div class="flex items-center gap-2 mt-2">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-300 text-[10px] font-bold uppercase tracking-wider border border-orange-100 dark:border-orange-800/30">
+<span class="material-symbols-outlined text-[12px]">bolt</span> Medium
+                        </span>
+</div>
+</div>
+</div>
+<!-- 08:00 -->
+<div class="text-right text-xs font-medium text-stone-400 py-4 h-24">08:00</div>
+<div class="py-2 h-24 border-b border-stone-100 dark:border-stone-800/50"></div>
+<!-- 09:00 - Team Sync (G-Cal) -->
+<div class="text-right text-xs font-medium text-stone-400 py-4 h-40">09:00</div>
+<div class="relative py-1 h-40">
+<!-- G-Cal Event Style: Blue outline, beige fill -->
+<div class="h-full w-full bg-calendar-fill dark:bg-stone-800/80 border-2 border-calendar-blue/30 dark:border-calendar-blue/20 rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden">
+<!-- Google G Watermark -->
+<div class="absolute -right-4 -bottom-4 opacity-5 pointer-events-none">
+<span class="material-symbols-outlined text-[80px]">calendar_today</span>
+</div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Weekly Team Sync</h3>
+<div class="w-6 h-6 rounded-full bg-calendar-blue/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-calendar-blue text-[14px]">videocam</span>
+</div>
+</div>
+<p class="text-xs text-stone-500 mb-2">Google Calendar • via Zoom</p>
+</div>
+<div class="flex flex-wrap gap-2 relative z-10 mt-auto">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-300 text-[10px] font-bold uppercase tracking-wider border border-red-100 dark:border-red-800/30">
+<span class="material-symbols-outlined text-[12px]">bolt</span> High Energy
+                        </span>
+<div class="flex -space-x-2">
+<img alt="Team member avatar" class="w-6 h-6 rounded-full border-2 border-white dark:border-stone-800" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbEflDxl6bQNhik_Y61zLVvBSGVO27BqiVbD3Q8Q7QGspab0PQAHRD2NqJxtSWpq269FFI19eyosHYB6KgbwQ7cKlyzeozFNqV0LJCqRZU_DjsTQiFcPwVNHgd1sRqukjEhKHH_BgBZt3fMsuSH2Nr5bv9btDxxo_QmKqZ_3lk15m7EvDNuIrV8zICKJUb82ImsUNmz30yCOSKtyRvORFK4IiKQxZVjkp8b7WXaAAsXVjjaWWjOS8Eg166mEX-nth-xuh4xGYsoYbI"/>
+<img alt="Team member avatar" class="w-6 h-6 rounded-full border-2 border-white dark:border-stone-800" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAu-sBbVK1J8LMNUEFitoDC0SfNRZajNX8lXjlqMDTQCoaEWMOCFdEM4_Do68-yIVFNz3kE3A337WRG4d6UWKkN7zBFIdyPjRTwNejPNjjHY6cVqxnbv5AWNQFTe_ZtiQEjG7FQIoWRceE64I_Nzj0CHK9JlCzrD_0aUz5bNGHj0ch3GT7_qQZOmc5cW0eW8PnhKZC-H3iZr0QwXFWfATwU5XtLM7CbvbR9z5sWJWYpgDt5kcosdC8voA1DBTFX_aBEONNqm6gQWDJp"/>
+<div class="w-6 h-6 rounded-full border-2 border-white dark:border-stone-800 bg-stone-200 text-[9px] flex items-center justify-center font-bold text-stone-600">+3</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 10:30 Gap -->
+<div class="text-right text-xs font-medium text-stone-400 py-2 h-16"></div>
+<div class="py-2 h-16 border-b border-stone-100 dark:border-stone-800/50"></div>
+<!-- 11:00 -->
+<div class="text-right text-xs font-medium text-stone-400 py-4 h-24">11:00</div>
+<div class="py-2 h-24 border-b border-stone-100 dark:border-stone-800/50"></div>
+<!-- 12:00 Lunch (Restorative) -->
+<div class="text-right text-xs font-medium text-stone-400 py-4 h-24">12:00</div>
+<div class="relative py-1 h-24">
+<div class="h-full w-full bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/30 rounded-2xl p-3 flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-800/40 flex items-center justify-center text-emerald-600 dark:text-emerald-300 shrink-0">
+<span class="material-symbols-outlined">restaurant</span>
+</div>
+<div>
+<h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm">Lunch Break</h3>
+<p class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Restorative Time</p>
+</div>
+</div>
+</div>
+<!-- 13:00 -->
+<div class="text-right text-xs font-medium text-stone-400 py-4 h-24">13:00</div>
+<div class="py-2 h-24 border-b border-stone-100 dark:border-stone-800/50"></div>
+<!-- 14:00 - Deep Work (App Task) -->
+<div class="text-right text-xs font-medium text-stone-400 py-4 h-32">14:00</div>
+<div class="relative py-1 h-32">
+<div class="h-full w-full bg-white dark:bg-stone-800 border-l-4 border-primary rounded-r-2xl rounded-bl-lg shadow-card p-4 flex flex-col justify-between group hover:shadow-soft transition-all duration-300">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-slate-800 dark:text-slate-100 text-base leading-tight">Design System Update</h3>
+<p class="text-xs text-stone-500 mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">timer</span> 1h 00m
+                            </p>
+</div>
+<span class="material-symbols-outlined text-primary/40 group-hover:text-primary transition-colors">design_services</span>
+</div>
+<div class="flex items-center gap-2 mt-2">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-300 text-[10px] font-bold uppercase tracking-wider border border-purple-100 dark:border-purple-800/30">
+<span class="material-symbols-outlined text-[12px]">psychology</span> Focus
+                        </span>
+</div>
+</div>
+</div>
+<!-- 15:00 -->
+<div class="text-right text-xs font-medium text-stone-400 py-4 h-24">15:00</div>
+<div class="py-2 h-24 border-b border-stone-100 dark:border-stone-800/50"></div>
+<!-- 16:00 -->
+<div class="text-right text-xs font-medium text-stone-400 py-4 h-24">16:00</div>
+<div class="relative py-1 h-24">
+<!-- Empty slot visual suggestion -->
+<div class="h-full w-full border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-2xl flex items-center justify-center group cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors">
+<span class="text-stone-400 text-sm font-medium group-hover:text-stone-500 flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">add</span> Free Slot
+                    </span>
+</div>
+</div>
+<!-- 17:00 -->
+<div class="text-right text-xs font-medium text-stone-400 py-4 h-24">17:00</div>
+<div class="py-2 h-24 border-b border-stone-100 dark:border-stone-800/50"></div>
+<!-- 18:00 -->
+<div class="text-right text-xs font-medium text-stone-400 py-4 h-24">18:00</div>
+<div class="relative py-1 h-24">
+<div class="h-full w-full bg-calendar-fill dark:bg-stone-800/80 border-2 border-calendar-blue/30 dark:border-calendar-blue/20 rounded-2xl p-3 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-500 shrink-0">
+<span class="material-symbols-outlined">directions_car</span>
+</div>
+<div>
+<h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm">Commute / Podcast</h3>
+<p class="text-xs text-stone-500">Google Calendar</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Button -->
+<div class="fixed bottom-24 right-5 z-40">
+<button class="w-16 h-16 rounded-full bg-primary text-white shadow-xl shadow-primary/40 flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 group">
+<span class="material-symbols-outlined text-[32px] group-hover:rotate-90 transition-transform duration-300">add</span>
+</button>
+</div>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-background-dark/95 border-t border-stone-200 dark:border-stone-800 pb-5 pt-3 backdrop-blur-md">
+<div class="flex justify-around items-end">
+<a class="flex flex-col items-center gap-1 text-primary w-16" href="#">
+<span class="material-symbols-outlined fill-current" style="font-variation-settings: 'FILL' 1;">calendar_view_day</span>
+<span class="text-[10px] font-bold">Agenda</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-stone-400 hover:text-primary transition-colors w-16 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">book</span>
+<span class="text-[10px] font-medium">Journal</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-stone-400 hover:text-primary transition-colors w-16 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">insights</span>
+<span class="text-[10px] font-medium">Insights</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-stone-400 hover:text-primary transition-colors w-16 group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">settings</span>
+<span class="text-[10px] font-medium">Settings</span>
+</a>
+</div>
+</nav>
+<!-- Subtle Background Texture Overlay -->
+<div class="fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05] z-0 mix-blend-multiply dark:mix-blend-overlay" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');">
+</div>
+</body></html>

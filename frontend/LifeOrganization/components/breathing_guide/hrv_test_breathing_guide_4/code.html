@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Assistant Chat Warm Theme</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Playfair+Display:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#D88B8B", // Soft warm pink for accents/buttons
+                        secondary: "#C07A7A", // Slightly darker pink for text/icons
+                        "background-warm": "#FDFBF7", // Warm beige background
+                        "chat-user": "#FCE4E4", // Soft pink user bubble
+                        "chat-ai": "#FFFAF5", // Off-white AI bubble
+                        "input-bg": "#FFFFFF",
+                        "text-main": "#5D4037", // Warm brown text
+                        "text-sub": "#8D6E63", // Lighter brown text
+                        "badge-bg": "#EFEBE9", // Warm grey/beige for badge
+                        "border-subtle": "#E8E0D5",
+                    },
+                    fontFamily: {
+                        sans: ['"DM Sans"', 'sans-serif'],
+                        display: ['"Playfair Display"', 'serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(93, 64, 55, 0.05)',
+                        'float': '0 8px 30px rgba(93, 64, 55, 0.08)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-warm text-text-main font-sans h-screen w-full flex flex-col overflow-hidden">
+<div class="w-full h-12 flex justify-between items-end px-6 pb-2 z-20 shrink-0 bg-background-warm">
+<span class="text-xs font-medium opacity-80 text-text-main">9:41</span>
+<div class="flex gap-1.5 items-center text-text-main">
+<span class="material-symbols-outlined text-[18px] opacity-80">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[18px] opacity-80">wifi</span>
+<span class="material-symbols-outlined text-[18px] opacity-80">battery_full</span>
+</div>
+</div>
+<header class="w-full px-6 py-4 shrink-0 flex items-center justify-between border-b border-border-subtle bg-background-warm z-10">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-2xl">smart_toy</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h1 class="text-xl font-display font-bold text-text-main">Assistente IA</h1>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-badge-bg text-text-sub border border-border-subtle/50">GPT-4o</span>
+</div>
+<p class="text-xs text-text-sub">Online agora</p>
+</div>
+</div>
+<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors text-text-sub">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</header>
+<main class="flex-1 overflow-y-auto px-4 py-6 hide-scrollbar flex flex-col gap-6">
+<div class="flex justify-center">
+<span class="text-xs font-medium text-text-sub/60 bg-black/5 px-3 py-1 rounded-full">Hoje, 9:41 AM</span>
+</div>
+<div class="flex gap-3 max-w-[85%]">
+<div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary shrink-0 mt-1">
+<span class="material-symbols-outlined text-lg">smart_toy</span>
+</div>
+<div class="flex flex-col gap-1">
+<div class="bg-chat-ai border border-border-subtle p-4 rounded-2xl rounded-tl-none shadow-sm text-sm leading-relaxed text-text-main">
+<p>Bom dia! Percebi que você está no dia 14 do seu ciclo (Ovulação). Sua energia deve estar alta hoje! 🌸</p>
+<p class="mt-2">Como posso ajudar a aproveitar esse pico de produtividade?</p>
+</div>
+<span class="text-[10px] text-text-sub ml-1">09:42</span>
+</div>
+</div>
+<div class="flex gap-3 max-w-[85%] self-end flex-row-reverse">
+<div class="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center overflow-hidden shrink-0 mt-1">
+<img alt="User" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCO2-pD6T5YZMEQSJS4Y9EglML97qKB_6X_7AUQjsNQYacyl2NESrqYh38enOHVqPNSjkvSFdKlO74bsku0jvqweRkgMLMVXBFUKNCSE6BkKu6QgiJo57AaNlnKBD_2v2M_YejPmIai7qApTBTclNHvpV11ieCM_zQ0ExjMbH90Ve_ke30d6Bvbrm0ElUeKzlHfnz-XY9JRzZ076TSYby_ElKxLFoPUn_ghDyWCLul6-FAB_0ytFJhom5kUeEXlrYV6_cfRHJYEVvNT"/>
+</div>
+<div class="flex flex-col gap-1 items-end">
+<div class="bg-chat-user p-4 rounded-2xl rounded-tr-none shadow-sm text-sm leading-relaxed text-text-main">
+<p>Oi! Estou me sentindo ótima mesmo. Tenho muitas reuniões hoje.</p>
+</div>
+<span class="text-[10px] text-text-sub mr-1">09:43</span>
+</div>
+</div>
+<div class="flex gap-3 max-w-[85%]">
+<div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary shrink-0 mt-1">
+<span class="material-symbols-outlined text-lg">smart_toy</span>
+</div>
+<div class="flex flex-col gap-1">
+<div class="bg-chat-ai border border-border-subtle p-4 rounded-2xl rounded-tl-none shadow-sm text-sm leading-relaxed text-text-main">
+<p class="mb-2">Isso é excelente! Aproveite para:</p>
+<ul class="list-disc pl-4 space-y-1 text-text-sub">
+<li>Liderar as conversas difíceis</li>
+<li>Fazer networking</li>
+<li>Brainstorming de novas ideias</li>
+</ul>
+</div>
+<span class="text-[10px] text-text-sub ml-1">09:43</span>
+</div>
+</div>
+</main>
+<div class="w-full shrink-0 bg-background-warm pt-2 pb-6 px-4 z-20">
+<div class="flex gap-2 overflow-x-auto hide-scrollbar mb-3 px-1">
+<button class="whitespace-nowrap px-4 py-2 bg-white border border-primary/20 rounded-full text-xs font-medium text-text-main shadow-sm hover:bg-primary/5 transition-colors active:scale-95">
+                ✨ Como está meu ciclo?
+            </button>
+<button class="whitespace-nowrap px-4 py-2 bg-white border border-primary/20 rounded-full text-xs font-medium text-text-main shadow-sm hover:bg-primary/5 transition-colors active:scale-95">
+                📝 Crie uma tarefa
+            </button>
+<button class="whitespace-nowrap px-4 py-2 bg-white border border-primary/20 rounded-full text-xs font-medium text-text-main shadow-sm hover:bg-primary/5 transition-colors active:scale-95">
+                🥗 Sugestão de almoço
+            </button>
+</div>
+<div class="flex items-end gap-2 bg-white rounded-[24px] p-2 shadow-soft border border-border-subtle">
+<button class="p-2 text-text-sub hover:text-primary transition-colors rounded-full hover:bg-background-warm shrink-0">
+<span class="material-symbols-outlined text-xl">add_circle</span>
+</button>
+<textarea class="w-full bg-transparent border-0 focus:ring-0 text-sm text-text-main placeholder-text-sub/50 resize-none py-2.5 max-h-24 hide-scrollbar" placeholder="Digite sua mensagem..." rows="1"></textarea>
+<button class="p-2 bg-primary text-white rounded-full shadow-md hover:bg-secondary transition-colors shrink-0 flex items-center justify-center w-10 h-10 transform active:scale-95">
+<span class="material-symbols-outlined text-[20px] ml-0.5">send</span>
+</button>
+</div>
+</div>
+<nav class="w-full bg-white/90 backdrop-blur-md border-t border-border-subtle px-6 py-4 pb-8 flex justify-between items-center shrink-0">
+<button class="flex flex-col items-center gap-1 text-text-sub hover:text-primary transition-colors">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-[10px] font-medium">Hoje</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined fill-1">smart_toy</span>
+<span class="text-[10px] font-medium">IA Chat</span>
+</button>
+<div class="w-8"></div>
+<button class="flex flex-col items-center gap-1 text-text-sub hover:text-primary transition-colors">
+<span class="material-symbols-outlined">spa</span>
+<span class="text-[10px] font-medium">Bem-estar</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-text-sub hover:text-primary transition-colors">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Perfil</span>
+</button>
+</nav>
+<div class="fixed bottom-[90px] left-1/2 -translate-x-1/2 w-14 h-14 bg-background-warm rounded-full flex items-center justify-center z-0 pointer-events-none opacity-0"></div>
+
+</body></html>

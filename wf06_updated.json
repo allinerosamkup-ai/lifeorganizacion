@@ -1,0 +1,374 @@
+{
+  "updatedAt": "2026-02-26T19:02:44.945Z",
+  "createdAt": "2026-02-26T19:02:44.945Z",
+  "id": "73ce635Aw0Y7kyug",
+  "name": "LifeOrganizer — 06 Weekly Learning Engine",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "note-le6",
+      "name": "📋 Documentação",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        80
+      ],
+      "parameters": {
+        "content": "## 🧠 06 — Weekly Learning Engine\n**Trigger:** Cron Sexta-feira 18h00\n\n**Fluxo:** Cron → Buscar dados → Loop → IF ≥ 2 check-ins → Claude Opus (temp 0.3) → Upsert padrões\n\n**Modelo:** claude-opus-4-6 temperature=0.3 (análise estatística rigorosa)\n\n**Output:** tabela weekly_learnings — calibra IA para próximas semanas",
+        "height": 155,
+        "width": 900
+      }
+    },
+    {
+      "id": "cron-le6",
+      "name": "Cron Sexta 18h00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 18 * * 5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "query-le6",
+      "name": "Buscar Dados Aprendizado",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/get_users_weekly_learning_data",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "weeks_back",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "split-le6",
+      "name": "Loop por Usuária",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {
+        "options": {}
+      }
+    },
+    {
+      "id": "if-le6",
+      "name": "Tem ≥ 2 Check-ins?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        900,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.checkins_this_week }}",
+              "rightValue": 2,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "claude-le6",
+      "name": "OpenAI — Motor Aprendizado",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.OPENAI_API_KEY}}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "body": "={{ JSON.stringify({ model: 'gpt-4o', max_tokens: 2000, temperature: 0.3, messages: [{ role: 'system', content: 'Motor analítico especializado em padrões comportamentais femininos. Extrai padrões com rigor estatístico. Prioriza acionabilidade. JSON válido sempre.' }, [{ role: 'user', content: 'MOTOR DE APRENDIZADO — Extraia padrões desta semana.\\n\\nFase dominante: ' + $json.dominant_phase + '\\nCheck-ins: ' + $json.checkins_this_week + '\\nDados check-ins: ' + JSON.stringify($json.checkins_data || []) + '\\nDados tarefas: ' + JSON.stringify($json.tasks_data || []) + '\\nSessões foco: ' + JSON.stringify($json.focus_sessions || []) + '\\n\\nSAÍDA JSON:\\n{\\n  \"phase_patterns\": {\\n    \"folicular\": {\"avg_energy\": N, \"peak_hour\": \"HH:00\", \"success_rate\": N, \"best_task_types\": []},\\n    \"ovulatoria\": {mesmo},\\n    \"luteal\": {mesmo},\\n    \"menstrual\": {mesmo}\\n  },\\n  \"behavioral_patterns\": {\\n    \"best_day_of_week\": \"str\",\\n    \"focus_session_success_rate\": N,\\n    \"procrastination_triggers\": []\\n  },\\n  \"ai_calibration\": {\\n    \"energy_prediction_adjustment\": N,\\n    \"reminder_optimal_time\": \"HH:MM\",\\n    \"reminder_tone_preference\": \"gentle|motivational|data-driven\"\\n  },\\n  \"key_insight_this_week\": \"insight acionável\",\\n  \"confidence_score\": N_0_a_100,\\n  \"prompt_personalization_hints\": [\"hints para melhorar prompts\"]\\n}' }] }) }}",
+        "options": {
+          "timeout": 45000
+        }
+      }
+    },
+    {
+      "id": "code-le6",
+      "name": "Parsear Padrões",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        200
+      ],
+      "parameters": {
+        "jsCode": "const item = $input.item.json;\nconst raw = item.choices?.[0]?.message?.content?.replace(/```json\\n?/g, '').replace(/```/g, '').trim() || '{}';\nlet p;\ntry { p = JSON.parse(raw); } catch(e) { return { json: { error: 'parse_failed', user_id: item.user_id } }; }\nreturn { json: {\n  user_id: item.user_id,\n  phase: item.dominant_phase,\n  patterns: p,\n  week_date: new Date().toISOString().split('T')[0],\n  confidence_score: p.confidence_score || 50\n}};"
+      }
+    },
+    {
+      "id": "upsert-le6",
+      "name": "Upsert Padrões Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1560,
+        200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/weekly_learnings",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates,return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "user_id",
+              "value": "={{ $json.user_id }}"
+            },
+            {
+              "name": "phase",
+              "value": "={{ $json.phase }}"
+            },
+            {
+              "name": "confidence_score",
+              "value": "={{ $json.confidence_score }}"
+            },
+            {
+              "name": "behavioral_patterns",
+              "value": "={{ JSON.stringify($json.patterns.behavioral_patterns || {}) }}"
+            },
+            {
+              "name": "ai_calibration",
+              "value": "={{ JSON.stringify($json.patterns.ai_calibration || {}) }}"
+            },
+            {
+              "name": "prompt_hints",
+              "value": "={{ JSON.stringify($json.patterns.prompt_personalization_hints || []) }}"
+            },
+            {
+              "name": "key_insight",
+              "value": "={{ $json.patterns.key_insight_this_week || null }}"
+            },
+            {
+              "name": "created_at",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "skip-le6",
+      "name": "Skip — Dados Insuficientes",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        420
+      ],
+      "parameters": {}
+    }
+  ],
+  "connections": {
+    "Cron Sexta 18h00": {
+      "main": [
+        [
+          {
+            "node": "Buscar Dados Aprendizado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Dados Aprendizado": {
+      "main": [
+        [
+          {
+            "node": "Loop por Usuária",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop por Usuária": {
+      "main": [
+        [
+          {
+            "node": "Tem ≥ 2 Check-ins?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem ≥ 2 Check-ins?": {
+      "main": [
+        [
+          {
+            "node": "OpenAI — Motor Aprendizado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip — Dados Insuficientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI — Motor Aprendizado": {
+      "main": [
+        [
+          {
+            "node": "Parsear Padrões",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear Padrões": {
+      "main": [
+        [
+          {
+            "node": "Upsert Padrões Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Sao_Paulo",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "75fbe59f-e6a9-4345-b7c6-83d5d54dfe2e",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-02-26T19:02:44.948Z",
+      "createdAt": "2026-02-26T19:02:44.948Z",
+      "role": "workflow:owner",
+      "workflowId": "73ce635Aw0Y7kyug",
+      "projectId": "ZRwIjvHgccCCaLzC",
+      "project": {
+        "updatedAt": "2026-02-23T18:28:02.128Z",
+        "createdAt": "2026-02-23T18:26:39.653Z",
+        "id": "ZRwIjvHgccCCaLzC",
+        "name": "alline izabel rosa <allineizabeldarosa@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "e180afa2-c34c-498f-89b4-95220def0688"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

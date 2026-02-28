@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Register Account - CycleSync</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;family=Playfair+Display:ital,wght@0,600;0,700;1,600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#E17F93", // Warm Pink/Rose (was Rich Purple #7E22CE)
+                        "primary-dark": "#BE5D75", // Darker warm pink
+                        "accent-pink": "#E17F93", // Matching primary for accents
+                        "accent-dark": "#BE5D75",
+                        "background-light": "#FFF5F5", 
+                        "background-dark": "#241A1C", 
+                        "card-light": "#FFFFFF",
+                        "card-dark": "#36272B", 
+                        "text-light": "#5D4037", 
+                        "text-dark": "#FDE8E8", 
+                        "input-light": "#FDF2F4", 
+                        "input-dark": "#453236",
+                        "soft-pink": "#FBCFE8",
+                        "soft-peach": "#FDE68A",
+                        "logo-pink": "#F4AAB9",
+                        "logo-beige": "#E8D3C5",
+                    },
+                    fontFamily: {
+                        display: ["'Playfair Display'", "serif"],
+                        body: ["'Nunito'", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "1rem",
+                        'xl': "1.5rem",
+                        '2xl': "2rem",
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 40px -10px rgba(225, 127, 147, 0.25)', // Updated shadow color to match new primary
+                        'soft-dark': '0 10px 40px -10px rgba(0, 0, 0, 0.5)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            font-family: 'Nunito', sans-serif;
+        }
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center p-4 transition-colors duration-300">
+<div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+<div class="absolute -top-24 -right-24 w-96 h-96 bg-soft-pink/40 dark:bg-primary-dark/20 rounded-full blur-3xl opacity-60 mix-blend-multiply dark:mix-blend-lighten animate-blob"></div>
+<div class="absolute -bottom-32 -left-32 w-80 h-80 bg-logo-pink/20 dark:bg-red-900/30 rounded-full blur-3xl opacity-60 mix-blend-multiply dark:mix-blend-lighten animate-blob animation-delay-2000"></div>
+<div class="absolute top-1/3 left-1/4 w-64 h-64 bg-soft-peach/40 dark:bg-orange-900/20 rounded-full blur-3xl opacity-40 mix-blend-multiply dark:mix-blend-lighten animate-blob animation-delay-4000"></div>
+</div>
+<main class="w-full max-w-md relative z-10">
+<div class="text-center mb-8">
+<div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-logo-pink to-logo-beige shadow-lg mb-4 text-white">
+<span class="material-symbols-outlined text-3xl drop-shadow-sm">spa</span>
+</div>
+<h1 class="font-display text-3xl md:text-4xl font-bold text-text-light dark:text-text-dark mb-2">
+            Começar Jornada
+        </h1>
+<p class="text-text-light/70 dark:text-text-dark/70 text-sm md:text-base">
+            Crie sua conta e sincronize com seu ritmo.
+        </p>
+</div>
+<div class="bg-card-light/90 dark:bg-card-dark/80 backdrop-blur-xl shadow-soft dark:shadow-soft-dark rounded-2xl p-6 md:p-8 border border-white/60 dark:border-white/10">
+<form action="#" class="space-y-5" method="POST">
+<div class="space-y-1">
+<label class="block text-sm font-semibold text-text-light dark:text-text-dark ml-1" for="name">Nome Completo</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-primary dark:text-primary">
+<span class="material-symbols-outlined text-xl">person</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-3 rounded-xl border-none bg-input-light dark:bg-input-dark text-text-light dark:text-text-dark placeholder-text-light/40 dark:placeholder-text-dark/40 focus:ring-2 focus:ring-primary/50 transition-all shadow-sm" id="name" name="name" placeholder="Ex: Victoria Silva" type="text"/>
+</div>
+</div>
+<div class="space-y-1">
+<label class="block text-sm font-semibold text-text-light dark:text-text-dark ml-1" for="email">E-mail</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-primary dark:text-primary">
+<span class="material-symbols-outlined text-xl">mail</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-3 rounded-xl border-none bg-input-light dark:bg-input-dark text-text-light dark:text-text-dark placeholder-text-light/40 dark:placeholder-text-dark/40 focus:ring-2 focus:ring-primary/50 transition-all shadow-sm" id="email" name="email" placeholder="seu@email.com" type="email"/>
+</div>
+</div>
+<div class="space-y-1">
+<label class="block text-sm font-semibold text-text-light dark:text-text-dark ml-1" for="password">Senha</label>
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-primary dark:text-primary">
+<span class="material-symbols-outlined text-xl">lock</span>
+</div>
+<input class="block w-full pl-10 pr-10 py-3 rounded-xl border-none bg-input-light dark:bg-input-dark text-text-light dark:text-text-dark placeholder-text-light/40 dark:placeholder-text-dark/40 focus:ring-2 focus:ring-primary/50 transition-all shadow-sm" id="password" name="password" placeholder="••••••••" type="password"/>
+<div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-text-light/40 dark:text-text-dark/40 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">visibility_off</span>
+</div>
+</div>
+<div class="flex items-center space-x-1 mt-2 px-1">
+<div class="h-1.5 flex-1 rounded-full bg-primary/80"></div>
+<div class="h-1.5 flex-1 rounded-full bg-primary/80"></div>
+<div class="h-1.5 flex-1 rounded-full bg-gray-200 dark:bg-gray-600"></div>
+<div class="h-1.5 flex-1 rounded-full bg-gray-200 dark:bg-gray-600"></div>
+<span class="text-xs text-text-light/60 dark:text-text-dark/60 ml-2">Média</span>
+</div>
+</div>
+<div class="space-y-1">
+<label class="block text-sm font-semibold text-text-light dark:text-text-dark ml-1" for="confirm_password">Confirmar Senha</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-primary dark:text-primary">
+<span class="material-symbols-outlined text-xl">lock_reset</span>
+</div>
+<input class="block w-full pl-10 pr-10 py-3 rounded-xl border-none bg-input-light dark:bg-input-dark text-text-light dark:text-text-dark placeholder-text-light/40 dark:placeholder-text-dark/40 focus:ring-2 focus:ring-primary/50 transition-all shadow-sm" id="confirm_password" name="confirm_password" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<div class="flex items-start mt-4">
+<div class="flex items-center h-5">
+<input class="focus:ring-primary h-4 w-4 text-primary border-gray-300 rounded dark:bg-input-dark dark:border-gray-600" id="terms" name="terms" type="checkbox"/>
+</div>
+<div class="ml-3 text-sm">
+<label class="font-medium text-text-light/70 dark:text-text-dark/70" for="terms">
+                        Li e concordo com os <a class="text-primary hover:text-primary-dark font-bold underline decoration-wavy decoration-1 underline-offset-2" href="#">Termos de Uso</a> e <a class="text-primary hover:text-primary-dark font-bold underline decoration-wavy decoration-1 underline-offset-2" href="#">Política de Privacidade</a>.
+                    </label>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-primary/30 transform transition hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-offset-card-dark flex items-center justify-center gap-2" type="submit">
+<span>Criar conta</span>
+<span class="material-symbols-outlined text-lg">arrow_forward</span>
+</button>
+<div class="relative flex py-2 items-center">
+<div class="flex-grow border-t border-text-light/10 dark:border-text-dark/10"></div>
+<span class="flex-shrink-0 mx-4 text-text-light/40 dark:text-text-dark/40 text-sm">ou continue com</span>
+<div class="flex-grow border-t border-text-light/10 dark:border-text-dark/10"></div>
+</div>
+<button class="w-full bg-white dark:bg-input-dark text-text-light dark:text-text-dark font-semibold py-3.5 px-4 rounded-xl border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-3 shadow-sm" type="button">
+<img alt="Google Logo" class="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9N5XLQXQaG4BRYLfOgoQDuLTJXoaJJWvyjcKOH_rPAP5WtucoTGpY0Hghz3Id9DeMHCpcJWmpDjzepEkzQ0a4vTezqG2cTocfGshNSgqI6n-jAiF8-A9Boji52HsUpLjvPHeLNytC-aT559ozK9qBhXlvAVclYAMuN8RnA21fadLm5BW-N0A9Nk7FDOgdNyHy3dmVqlV6oFWy1KeXsJ5GREeKkfoVFZEU0e8UvvBUcEcBZMZclnH2xR6Nd_2f-hdnPVT0R-VDEtRK"/>
+<span>Google</span>
+</button>
+</form>
+</div>
+<div class="mt-6 text-center">
+<p class="text-text-light/70 dark:text-text-dark/70">
+            Já tem uma conta?
+            <a class="font-bold text-primary hover:text-primary-dark transition-colors inline-flex items-center gap-1 group" href="#">
+                Entrar
+                <span class="material-symbols-outlined text-base group-hover:translate-x-1 transition-transform">chevron_right</span>
+</a>
+</p>
+</div>
+</main>
+<div class="fixed bottom-10 right-4 animate-bounce duration-[3000ms] z-0 pointer-events-none opacity-80">
+<span class="material-symbols-outlined text-4xl text-yellow-300 drop-shadow-lg">light_mode</span>
+</div>
+<div class="fixed top-20 left-4 animate-pulse duration-[4000ms] z-0 pointer-events-none opacity-60">
+<span class="material-symbols-outlined text-3xl text-primary drop-shadow-md">favorite</span>
+</div>
+</body></html>

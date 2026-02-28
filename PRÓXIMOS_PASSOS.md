@@ -5,21 +5,23 @@
 - ✅ Chaves do Supabase configuradas no `.env`
 - ✅ Migration SQL criada e pronta
 - ✅ 4 Edge Functions criadas
-- ⏳ **PRÓXIMO:** Aplicar migration SQL
+- ✅ Migration SQL aplicada com sucesso
 
 ## 📋 Checklist Imediato
 
-### 1. Aplicar Migration SQL ⚠️ IMPORTANTE
+### 1. Aplicar Migration SQL ✅ CONCLUÍDO
 
 **Ação necessária:**
 
 1. Acesse o SQL Editor:
+
    ```
    https://app.supabase.com/project/bmvqtzxdrnbioxhiiosr/sql/new
    ```
 
 2. Abra o arquivo de migration:
-   ```
+
+   ```sql
    supabase/migrations/20240220000001_initial_schema.sql
    ```
 
@@ -32,11 +34,13 @@
 6. Verifique se apareceu: "Success. No rows returned"
 
 7. Verifique as tabelas criadas:
+
    ```
    https://app.supabase.com/project/bmvqtzxdrnbioxhiiosr/editor
    ```
 
 **Tabelas esperadas (7):**
+
 - ✅ profiles
 - ✅ check_ins
 - ✅ tasks
@@ -46,6 +50,7 @@
 - ✅ focus_sessions
 
 **Verificar após aplicar:**
+
 ```bash
 python execution/verify_supabase_setup.py
 ```
@@ -55,11 +60,13 @@ python execution/verify_supabase_setup.py
 ### 2. Verificar Configuração Completa
 
 Execute:
+
 ```bash
 python execution/verify_supabase_setup.py
 ```
 
 Isso vai verificar:
+
 - ✅ Variáveis de ambiente configuradas
 - ✅ Conexão com Supabase funcionando
 - ✅ Tabelas criadas corretamente
@@ -70,13 +77,15 @@ Isso vai verificar:
 
 **Para testar Edge Functions que usam IA (ex: gpt-4o):**
 
-1. Acesse: https://platform.openai.com/
+1. Acesse: <https://platform.openai.com/>
 2. Crie conta ou faça login
 3. Gere API key em API keys
 4. Adicione ao `.env`:
+
    ```env
    OPENAI_API_KEY=sua-chave-aqui
    ```
+
 5. Configure também no Supabase Dashboard:
    - Settings → Edge Functions → Secrets
    - Adicionar: `OPENAI_API_KEY` = sua-chave
@@ -108,22 +117,25 @@ supabase functions deploy update-weekly-learning
 
 ## 🎯 Ordem Recomendada de Execução
 
-### HOJE:
+### HOJE
+
 1. ✅ Aplicar migration SQL
 2. ✅ Verificar tabelas criadas
 3. ✅ Testar conexão
 
-### ESTA SEMANA:
-4. ✅ Obter `OPENAI_API_KEY`
-5. ✅ Deploy das Edge Functions
-6. ✅ Testar Edge Functions (Simulado via CLI Deployment Sucesso)
-7. ✅ Preparação do Frontend Migrando de Stitch HTML
+### ESTA SEMANA
+
+1. ✅ Obter `OPENAI_API_KEY`
+2. ✅ Deploy das Edge Functions
+3. ✅ Testar Edge Functions (Simulado via CLI Deployment Sucesso)
+4. ✅ Preparação do Frontend Migrando de Stitch HTML
 
 ### FASE ATUAL: FASE 4 - Design System e Frontend Base
-- ⏳ Inicializar projeto React/Vite na pasta `frontend`
-- ⏳ Configurar dependências (Tailwind, Lucide)
-- ⏳ Definir `tailwind.config.ts` unificado e variáveis `index.css`
-- ⏳ Componentizar a tela de Welcome e Dashboard
+
+- ✅ Inicializar projeto React/Vite na pasta `frontend`
+- ✅ Configurar dependências (Tailwind, Lucide)
+- ✅ Definir `tailwind.config.ts` unificado e variáveis `index.css`
+- ✅ Componentizar telas derivadas do Stitch (Welcome, Dashboard, Onboarding, Cycle, Profile, Chat, Focus, Sanctuary)
 
 ---
 **ESTADO ATUAL DO APP:** Infraestrutura Backend (Supabase + Edge Functions + N8N Sync) concluída e autenticação pronta. Migração dos arquivos Stitch base para React iniciada.

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Onboarding Preferences Warm Theme</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Playfair+Display:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "warm-bg": "#FFF9F5", // Very light warm beige/off-white
+                        "warm-primary": "#F8BBD0", // Soft pink
+                        "warm-accent": "#EC407A", // Deeper pink for active states
+                        "warm-text": "#5D4037", // Warm brown text
+                        "warm-secondary-text": "#8D6E63", // Lighter brown text
+                        "card-bg": "#FFFFFF",
+                        "border-soft": "#EFEBE9",
+                        "selected-bg": "#FFF0F5", // Very light pink for selected background
+                    },
+                    fontFamily: {
+                        sans: ['"DM Sans"', 'sans-serif'],
+                        display: ['"Playfair Display"', 'serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 8px 30px rgba(0, 0, 0, 0.04)',
+                        'card': '0 2px 10px rgba(93, 64, 55, 0.05)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }.no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }.no-scrollbar {
+            -ms-overflow-style: none;scrollbar-width: none;}
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-warm-bg text-warm-text font-sans h-screen w-full flex flex-col overflow-hidden relative">
+<div class="w-full h-12 flex justify-between items-end px-6 pb-2 z-20 shrink-0">
+<span class="text-xs font-medium opacity-80">9:41</span>
+<div class="flex gap-1.5 items-center">
+<span class="material-symbols-outlined text-[18px] opacity-80">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[18px] opacity-80">wifi</span>
+<span class="material-symbols-outlined text-[18px] opacity-80">battery_full</span>
+</div>
+</div>
+<div class="w-full px-6 pt-2 pb-6">
+<div class="h-1.5 w-full bg-border-soft rounded-full overflow-hidden">
+<div class="h-full bg-warm-primary w-3/4 rounded-full"></div>
+</div>
+</div>
+<header class="px-6 pb-6">
+<p class="text-sm font-medium text-warm-secondary-text uppercase tracking-wider mb-2">Passo 3 de 4</p>
+<h1 class="text-3xl font-display font-semibold text-warm-text leading-tight">
+            Como você pensa melhor?
+        </h1>
+<p class="mt-3 text-warm-secondary-text leading-relaxed">
+            Personalizaremos sua agenda baseada nos seus picos naturais de energia.
+        </p>
+</header>
+<main class="flex-1 overflow-y-auto px-6 pb-32 no-scrollbar">
+<div class="space-y-4">
+<div class="relative group">
+<input checked="" class="peer sr-only" id="morning" type="checkbox"/>
+<label class="block w-full bg-selected-bg border-2 border-warm-primary rounded-2xl p-5 cursor-pointer shadow-card transition-all duration-200" for="morning">
+<div class="flex items-start justify-between">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-warm-accent shadow-sm shrink-0">
+<span class="material-symbols-outlined text-2xl">wb_sunny</span>
+</div>
+<div>
+<h3 class="font-bold text-lg text-warm-text mb-1">Foco máximo de manhã</h3>
+<p class="text-sm text-warm-secondary-text">Ideal para tarefas analíticas e deep work entre 8h e 11h.</p>
+</div>
+</div>
+<div class="w-6 h-6 rounded-full bg-warm-accent flex items-center justify-center text-white shrink-0">
+<span class="material-symbols-outlined text-sm font-bold">check</span>
+</div>
+</div>
+</label>
+</div>
+<div class="relative group">
+<input class="peer sr-only" id="afternoon" type="checkbox"/>
+<label class="block w-full bg-card-bg border-2 border-transparent hover:border-warm-primary/30 rounded-2xl p-5 cursor-pointer shadow-card transition-all duration-200 peer-checked:bg-selected-bg peer-checked:border-warm-primary" for="afternoon">
+<div class="flex items-start justify-between">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-full bg-warm-bg flex items-center justify-center text-warm-secondary-text shadow-sm shrink-0 group-hover:bg-white group-hover:text-warm-accent transition-colors">
+<span class="material-symbols-outlined text-2xl">light_mode</span>
+</div>
+<div>
+<h3 class="font-bold text-lg text-warm-text mb-1">Melhor à tarde</h3>
+<p class="text-sm text-warm-secondary-text">Energia criativa e colaborativa flui melhor após o almoço.</p>
+</div>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-border-soft peer-checked:bg-warm-accent peer-checked:border-warm-accent flex items-center justify-center text-white shrink-0 transition-colors">
+<span class="material-symbols-outlined text-sm font-bold opacity-0 peer-checked:opacity-100">check</span>
+</div>
+</div>
+</label>
+</div>
+<div class="relative group">
+<input class="peer sr-only" id="evening" type="checkbox"/>
+<label class="block w-full bg-card-bg border-2 border-transparent hover:border-warm-primary/30 rounded-2xl p-5 cursor-pointer shadow-card transition-all duration-200 peer-checked:bg-selected-bg peer-checked:border-warm-primary" for="evening">
+<div class="flex items-start justify-between">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-full bg-warm-bg flex items-center justify-center text-warm-secondary-text shadow-sm shrink-0 group-hover:bg-white group-hover:text-warm-accent transition-colors">
+<span class="material-symbols-outlined text-2xl">bedtime</span>
+</div>
+<div>
+<h3 class="font-bold text-lg text-warm-text mb-1">Trabalho bem à noite</h3>
+<p class="text-sm text-warm-secondary-text">Seu pico de produtividade acontece quando o mundo silencia.</p>
+</div>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-border-soft peer-checked:bg-warm-accent peer-checked:border-warm-accent flex items-center justify-center text-white shrink-0 transition-colors">
+<span class="material-symbols-outlined text-sm font-bold opacity-0 peer-checked:opacity-100">check</span>
+</div>
+</div>
+</label>
+</div>
+<div class="relative group">
+<input class="peer sr-only" id="flexible" type="checkbox"/>
+<label class="block w-full bg-card-bg border-2 border-transparent hover:border-warm-primary/30 rounded-2xl p-5 cursor-pointer shadow-card transition-all duration-200 peer-checked:bg-selected-bg peer-checked:border-warm-primary" for="flexible">
+<div class="flex items-start justify-between">
+<div class="flex gap-4">
+<div class="w-12 h-12 rounded-full bg-warm-bg flex items-center justify-center text-warm-secondary-text shadow-sm shrink-0 group-hover:bg-white group-hover:text-warm-accent transition-colors">
+<span class="material-symbols-outlined text-2xl">change_history</span>
+</div>
+<div>
+<h3 class="font-bold text-lg text-warm-text mb-1">Varia com o ciclo</h3>
+<p class="text-sm text-warm-secondary-text">Minha energia muda drasticamente dependendo da fase do ciclo.</p>
+</div>
+</div>
+<div class="w-6 h-6 rounded-full border-2 border-border-soft peer-checked:bg-warm-accent peer-checked:border-warm-accent flex items-center justify-center text-white shrink-0 transition-colors">
+<span class="material-symbols-outlined text-sm font-bold opacity-0 peer-checked:opacity-100">check</span>
+</div>
+</div>
+</label>
+</div>
+</div>
+</main>
+<div class="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-warm-bg via-warm-bg to-transparent pointer-events-none flex justify-center items-end h-32">
+<button class="w-full bg-warm-primary text-warm-text font-bold py-4 px-6 rounded-xl shadow-lg shadow-warm-primary/20 hover:bg-warm-accent hover:text-white transition-all transform active:scale-95 pointer-events-auto flex items-center justify-center gap-2">
+            Continuar
+            <span class="material-symbols-outlined text-xl">arrow_forward</span>
+</button>
+</div>
+
+</body></html>

@@ -1,0 +1,287 @@
+{
+  "updatedAt": "2026-02-26T18:59:30.418Z",
+  "createdAt": "2026-02-26T18:59:30.418Z",
+  "id": "4WCjwjdzrzfISdQN",
+  "name": "LifeOrganizer — 01 Welcome Workflow",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "note-w1",
+      "name": "📋 Documentação",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        80
+      ],
+      "parameters": {
+        "content": "## 🌸 01 — Welcome Workflow\n**Trigger:** Webhook Supabase (pg_net) ao criar nova usuária\n\n**Fluxo:** Webhook → Extrair Dados → Claude Opus → Parsear → WhatsApp + Log\n\n**Vars:** `CLAUDE_API_KEY` · `SUPABASE_URL` · `SUPABASE_SERVICE_KEY`\n`EVOLUTION_API_URL` · `EVOLUTION_API_KEY` · `EVOLUTION_INSTANCE`\n\n**Modelo:** claude-opus-4-6 (primeira impressão = máxima qualidade)",
+        "height": 175,
+        "width": 900
+      }
+    },
+    {
+      "id": "wh-w1",
+      "name": "Webhook Novo Usuário",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        320
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lifeorganizer-new-user",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "set-w1",
+      "name": "Extrair Dados",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        460,
+        320
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "user_id",
+              "value": "={{ $json.body.record.id }}",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "user_email",
+              "value": "={{ $json.body.record.email }}",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "user_name",
+              "value": "={{ $json.body.record.raw_user_meta_data?.full_name || $json.body.record.email.split('@')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "a4",
+              "name": "user_phone",
+              "value": "={{ $json.body.record.raw_user_meta_data?.phone || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "http-claude-w1",
+      "name": "OpenAI — Gerar Boas-Vindas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        320
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.OPENAI_API_KEY}}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "body": "={{ JSON.stringify({ model: 'gpt-4o', max_tokens: 1024, messages: [{ role: 'system', content: 'Você é especialista em copywriting para apps de wellness feminino. Tom: amiga íntima empoderedora. Sempre responde com JSON válido sem markdown.' }, [{ role: 'user', content: 'Crie boas-vindas personalizada para o LifeOrganizer AI (produtividade feminina baseada em ciclo menstrual).\\n\\nNome: ' + $json.user_name + '\\nEmail: ' + $json.user_email + '\\n\\nRetorne JSON:\\n{\\n  \"subject\": \"assunto email (max 50 chars)\",\\n  \"body_html\": \"corpo HTML caloroso (150 palavras, 3 diferenciais: check-in natural, memória adaptativa, biologia aliada)\",\\n  \"whatsapp_message\": \"versão WhatsApp informal emojis (max 60 palavras)\",\\n  \"onboarding_cta\": \"texto botão CTA\"\\n}\\n\\nApenas JSON válido.' }] }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      }
+    },
+    {
+      "id": "code-w1",
+      "name": "Parsear Resposta OpenAI",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        320
+      ],
+      "parameters": {
+        "jsCode": "const body = $input.item.json;\nconst raw = body.choices?.[0]?.message?.content || '{}';\nconst cleaned = raw.replace(/```json\\n?/g, '').replace(/```/g, '').trim();\nlet parsed;\ntry { parsed = JSON.parse(cleaned); } catch(e) {\n  parsed = {\n    subject: 'Bem-vinda ao LifeOrganizer! 🌸',\n    body_html: '<p>Seja bem-vinda! Seu app de produtividade baseado no ciclo está pronto.</p>',\n    whatsapp_message: 'Bem-vinda ao LifeOrganizer! 🌸 Complete o onboarding para ativar sua IA personalizada!',\n    onboarding_cta: 'Começar agora'\n  };\n}\nreturn { json: { ...parsed,\n  user_email: $node['Extrair Dados'].json.user_email,\n  user_name:  $node['Extrair Dados'].json.user_name,\n  user_phone: $node['Extrair Dados'].json.user_phone,\n  user_id:    $node['Extrair Dados'].json.user_id\n}};"
+      }
+    },
+    {
+      "id": "log-w1",
+      "name": "Log Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        420
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/notification_logs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "user_id",
+              "value": "={{ $json.user_id }}"
+            },
+            {
+              "name": "type",
+              "value": "welcome"
+            },
+            {
+              "name": "channel",
+              "value": "whatsapp"
+            },
+            {
+              "name": "sent_at",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "resp-w1",
+      "name": "Responder Webhook OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1340,
+        320
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, workflow: 'welcome', ts: new Date().toISOString() }) }}"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Novo Usuário": {
+      "main": [
+        [
+          {
+            "node": "Extrair Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair Dados": {
+      "main": [
+        [
+          {
+            "node": "OpenAI — Gerar Boas-Vindas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI — Gerar Boas-Vindas": {
+      "main": [
+        [
+          {
+            "node": "Parsear Resposta OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear Resposta OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Log Supabase",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Responder Webhook OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Sao_Paulo",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "748971ad-fae0-46a3-bd52-8bf8a053938f",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-02-26T18:59:30.432Z",
+      "createdAt": "2026-02-26T18:59:30.432Z",
+      "role": "workflow:owner",
+      "workflowId": "4WCjwjdzrzfISdQN",
+      "projectId": "ZRwIjvHgccCCaLzC",
+      "project": {
+        "updatedAt": "2026-02-23T18:28:02.128Z",
+        "createdAt": "2026-02-23T18:26:39.653Z",
+        "id": "ZRwIjvHgccCCaLzC",
+        "name": "alline izabel rosa <allineizabeldarosa@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "e180afa2-c34c-498f-89b4-95220def0688"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

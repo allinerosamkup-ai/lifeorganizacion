@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Today Dashboard Empty State</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&amp;family=Nunito+Sans:wght@300;400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#E09F9F", // Soft pinkish-terracotta
+                        "primary-dark": "#C88585",
+                        "background-light": "#FFF5F5", // Very pale pink background
+                        "background-dark": "#1F1A1C", // Dark warm gray
+                        "surface-light": "#FFFFFF",
+                        "surface-dark": "#2D2628",
+                        "accent-purple": "#D8B4E2",
+                        "accent-green": "#B8E0D2",
+                        "accent-blue": "#B4CBE2",
+                        "text-main-light": "#4A4040",
+                        "text-main-dark": "#EAE0E0",
+                        "text-sub-light": "#8C7A7A",
+                        "text-sub-dark": "#B0A0A0",
+                    },
+                    fontFamily: {
+                        display: ["Playfair Display", "serif"],
+                        sans: ["Nunito Sans", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "1rem",
+                        'xl': '1.5rem',
+                        '2xl': '2rem',
+                        '3xl': '2.5rem',
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 40px -10px rgba(224, 159, 159, 0.15)',
+                        'inner-glow': 'inset 0 2px 4px 0 rgba(255, 255, 255, 0.6)',
+                        'card': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                },
+            },
+        };
+    </script>
+<style>::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .dark .glass-panel {
+            background: rgba(45, 38, 40, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .floating-gradient {
+            background: radial-gradient(circle at 50% 50%, rgba(224, 159, 159, 0.2), transparent 70%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-text-main-light dark:text-text-main-dark font-sans antialiased min-h-screen flex justify-center overflow-hidden">
+<div class="w-full max-w-md h-full min-h-screen relative flex flex-col">
+<div class="fixed top-[-10%] right-[-20%] w-[300px] h-[300px] bg-accent-purple/20 dark:bg-accent-purple/10 rounded-full blur-[80px] -z-10 pointer-events-none"></div>
+<div class="fixed bottom-[10%] left-[-10%] w-[250px] h-[250px] bg-primary/20 dark:bg-primary/10 rounded-full blur-[80px] -z-10 pointer-events-none"></div>
+<header class="px-6 pt-12 pb-4 flex justify-between items-center z-10">
+<div>
+<p class="text-sm font-light text-text-sub-light dark:text-text-sub-dark mb-1">Bom dia, Victoria</p>
+<h1 class="font-display text-2xl font-semibold">Seu Ciclo &amp; Ritmo</h1>
+</div>
+<button class="w-10 h-10 rounded-full bg-white dark:bg-surface-dark shadow-card flex items-center justify-center text-primary dark:text-primary transition-transform active:scale-95">
+<span class="material-icons-round text-xl">notifications_none</span>
+</button>
+</header>
+<main class="flex-1 overflow-y-auto px-6 pb-24 space-y-8 scroll-smooth">
+<section class="relative">
+<div class="glass-panel rounded-3xl p-6 shadow-soft relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-accent-green/20 rounded-full blur-[40px] -z-10"></div>
+<div class="flex items-start justify-between mb-4">
+<div>
+<h2 class="font-display text-xl mb-1">Como você está hoje?</h2>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark font-light">Registre para alinhar sua rotina.</p>
+</div>
+<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-icons-round text-primary text-sm">edit_calendar</span>
+</div>
+</div>
+<div class="flex flex-wrap gap-3 mb-4">
+<button class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-surface-dark border border-transparent active:border-primary/30 shadow-sm transition-all active:scale-95 hover:shadow-md group">
+<span class="text-lg">😴</span>
+<span class="text-sm font-medium text-text-main-light dark:text-text-main-dark group-hover:text-primary transition-colors">Cansada</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-surface-dark border border-transparent active:border-primary/30 shadow-sm transition-all active:scale-95 hover:shadow-md group">
+<span class="text-lg">⚡</span>
+<span class="text-sm font-medium text-text-main-light dark:text-text-main-dark group-hover:text-primary transition-colors">Com energia</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-surface-dark border border-transparent active:border-primary/30 shadow-sm transition-all active:scale-95 hover:shadow-md group">
+<span class="text-lg">🤯</span>
+<span class="text-sm font-medium text-text-main-light dark:text-text-main-dark group-hover:text-primary transition-colors">Estressada</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-surface-dark border border-transparent active:border-primary/30 shadow-sm transition-all active:scale-95 hover:shadow-md group">
+<span class="text-lg">🤢</span>
+<span class="text-sm font-medium text-text-main-light dark:text-text-main-dark group-hover:text-primary transition-colors">Mal-estar</span>
+</button>
+</div>
+<div class="w-full h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent mb-4"></div>
+<div class="flex justify-between items-center">
+<span class="text-xs font-semibold text-primary uppercase tracking-wider">Dia 15 do Ciclo</span>
+<button class="text-xs text-text-sub-light dark:text-text-sub-dark flex items-center gap-1 hover:text-primary transition-colors">
+                            Ver calendário <span class="material-icons-round text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+<section>
+<div class="flex justify-between items-end mb-4 px-1">
+<h3 class="font-display text-lg text-text-main-light dark:text-text-main-dark">Sugestões para a Fase Ovulatória</h3>
+<span class="text-xs text-text-sub-light dark:text-text-sub-dark bg-white/50 dark:bg-surface-dark/50 px-2 py-1 rounded-lg">Fase 3/4</span>
+</div>
+<div class="space-y-4">
+<div class="group bg-white dark:bg-surface-dark rounded-2xl p-5 shadow-card border border-transparent hover:border-accent-purple/30 transition-all cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-accent-purple/20 text-accent-purple flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+<span class="material-icons-round">psychology</span>
+</div>
+<div class="flex-1">
+<h4 class="font-semibold text-text-main-light dark:text-text-main-dark mb-1">Foco e Produtividade</h4>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark leading-relaxed">Sua energia comunicativa está alta. Ótimo momento para reuniões e colaborações.</p>
+</div>
+<span class="material-icons-round text-gray-300 dark:text-gray-600">chevron_right</span>
+</div>
+</div>
+<div class="group bg-white dark:bg-surface-dark rounded-2xl p-5 shadow-card border border-transparent hover:border-primary/30 transition-all cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-primary/20 text-primary flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+<span class="material-icons-round">fitness_center</span>
+</div>
+<div class="flex-1">
+<h4 class="font-semibold text-text-main-light dark:text-text-main-dark mb-1">Movimento Intenso</h4>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark leading-relaxed">Aproveite o pico de estrogênio para treinos mais intensos ou cardio.</p>
+</div>
+<span class="material-icons-round text-gray-300 dark:text-gray-600">chevron_right</span>
+</div>
+</div>
+<div class="group bg-white dark:bg-surface-dark rounded-2xl p-5 shadow-card border border-transparent hover:border-accent-green/30 transition-all cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-accent-green/20 text-green-600 dark:text-green-300 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+<span class="material-icons-round">eco</span>
+</div>
+<div class="flex-1">
+<h4 class="font-semibold text-text-main-light dark:text-text-main-dark mb-1">Nutrição Equilibrada</h4>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark leading-relaxed">Incorpore alimentos ricos em antioxidantes e fibras hoje.</p>
+</div>
+<span class="material-icons-round text-gray-300 dark:text-gray-600">chevron_right</span>
+</div>
+</div>
+</div>
+</section>
+<section class="grid grid-cols-2 gap-4">
+<div class="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-card flex flex-col items-center text-center space-y-2 relative overflow-hidden">
+<div class="absolute -top-6 -right-6 w-16 h-16 bg-accent-blue/20 rounded-full blur-xl"></div>
+<span class="material-icons-round text-accent-blue text-2xl mb-1">water_drop</span>
+<span class="text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-widest">Hidratação</span>
+<span class="text-xl font-display font-medium text-text-main-light dark:text-text-main-dark">1.2L <span class="text-xs text-gray-400">/ 2.5L</span></span>
+</div>
+<div class="bg-white dark:bg-surface-dark rounded-2xl p-4 shadow-card flex flex-col items-center text-center space-y-2 relative overflow-hidden">
+<div class="absolute -top-6 -left-6 w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 rounded-full blur-xl"></div>
+<span class="material-icons-round text-yellow-400 text-2xl mb-1">bedtime</span>
+<span class="text-xs font-semibold text-text-sub-light dark:text-text-sub-dark uppercase tracking-widest">Sono</span>
+<span class="text-xl font-display font-medium text-text-main-light dark:text-text-main-dark">7h 20m</span>
+</div>
+</section>
+</main>
+<nav class="fixed bottom-6 left-1/2 transform -translate-x-1/2 w-[90%] max-w-sm bg-white/90 dark:bg-surface-dark/90 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-none dark:border dark:border-gray-700/50 p-2 z-50">
+<ul class="flex justify-between items-center px-2">
+<li>
+<a class="flex flex-col items-center justify-center w-12 h-12 text-primary" href="#">
+<span class="material-icons-round">spa</span>
+</a>
+</li>
+<li>
+<a class="flex flex-col items-center justify-center w-12 h-12 text-gray-400 dark:text-gray-500 hover:text-primary dark:hover:text-primary transition-colors" href="#">
+<span class="material-icons-round">calendar_today</span>
+</a>
+</li>
+<li class="relative -top-6">
+<a class="flex items-center justify-center w-14 h-14 bg-primary text-white rounded-full shadow-lg hover:bg-primary-dark transition-colors ring-4 ring-background-light dark:ring-background-dark" href="#">
+<span class="material-icons-round text-2xl">add</span>
+</a>
+</li>
+<li>
+<a class="flex flex-col items-center justify-center w-12 h-12 text-gray-400 dark:text-gray-500 hover:text-primary dark:hover:text-primary transition-colors" href="#">
+<span class="material-icons-round">insights</span>
+</a>
+</li>
+<li>
+<a class="flex flex-col items-center justify-center w-12 h-12 text-gray-400 dark:text-gray-500 hover:text-primary dark:hover:text-primary transition-colors" href="#">
+<span class="material-icons-round">menu_book</span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+
+</body></html>

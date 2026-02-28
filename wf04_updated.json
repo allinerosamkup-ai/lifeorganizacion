@@ -1,0 +1,305 @@
+{
+  "updatedAt": "2026-02-26T19:01:12.586Z",
+  "createdAt": "2026-02-26T19:01:12.586Z",
+  "id": "NuCshHPPBMt2JHSo",
+  "name": "LifeOrganizer — 04 Weekly Insights Digest",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "note-wi4",
+      "name": "📋 Documentação",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        80
+      ],
+      "parameters": {
+        "content": "## 📊 04 — Weekly Insights Digest\n**Trigger:** Cron Segunda-feira 07h00\n\n**Fluxo:** Cron → Buscar dados semana → Loop → Claude Opus → WhatsApp + Salvar relatório\n\n**Modelo:** claude-opus-4-6 (análise complexa = qualidade máxima)\n\n**Entrega:** Resumo WhatsApp + notificação push + relatório salvo no Supabase",
+        "height": 155,
+        "width": 900
+      }
+    },
+    {
+      "id": "cron-wi4",
+      "name": "Cron Segunda 07h00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * 1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "query-wi4",
+      "name": "Buscar Dados Semanais",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/get_active_users_weekly_data",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "min_checkins",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "split-wi4",
+      "name": "Loop por Usuária",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {
+        "options": {}
+      }
+    },
+    {
+      "id": "claude-wi4",
+      "name": "OpenAI — Digest Semanal",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        900,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.OPENAI_API_KEY}}"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "body": "={{ JSON.stringify({ model: 'gpt-4o', max_tokens: 2000, messages: [{ role: 'system', content: 'Especialista em análise de dados de bem-estar feminino. Transforma dados em narrativas empoderedoras. Usa coaching positivo baseado em evidências. JSON válido sempre.' }, [{ role: 'user', content: 'Relatório semanal personalizado LifeOrganizer AI.\\n\\nNome: ' + $json.full_name + ' | Fase: ' + $json.current_phase + ' dia ' + $json.day_of_cycle + '\\nCheck-ins: ' + ($json.checkins_this_week || 0) + '/7\\nTarefas completadas: ' + ($json.tasks_completed || 0) + ' | Taxa: ' + ($json.completion_rate || 0) + '%\\nEnergia média: ' + ($json.avg_energy || 'N/A') + '/10\\nSessões foco: ' + ($json.focus_sessions || 0) + ' | Total: ' + ($json.total_focus_minutes || 0) + ' min\\n\\nREGRAS:\\n1. Compare com semanas anteriores\\n2. Correlacione fase do ciclo com performance\\n3. Use números concretos\\n4. Valide conquistas pequenas e grandes\\n\\nSAÍDA JSON:\\n{\\n  \"week_score\": 1_a_10,\\n  \"biggest_win\": \"maior conquista\",\\n  \"key_pattern_discovered\": \"padrão identificado\",\\n  \"next_week_strategy\": \"estratégia próxima semana\",\\n  \"whatsapp_summary\": \"resumo WhatsApp max 80 palavras\",\\n  \"push_title\": \"título push\",\\n  \"push_body\": \"corpo push max 100 chars\"\\n}' }] }) }}",
+        "options": {
+          "timeout": 45000
+        }
+      }
+    },
+    {
+      "id": "code-wi4",
+      "name": "Parsear Digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const item = $input.item.json;\nconst raw = item.choices?.[0]?.message?.content?.replace(/```json\\n?/g, '').replace(/```/g, '').trim() || '{}';\nlet parsed;\ntry { parsed = JSON.parse(raw); } catch(e) {\n  parsed = {\n    week_score: 7,\n    biggest_win: 'Semana completada!',\n    whatsapp_summary: 'Seu resumo semanal está pronto! Abra o app para ver seus insights 📊',\n    push_title: 'Resumo semanal pronto!',\n    push_body: 'Veja como foi sua semana'\n  };\n}\nreturn { json: { user_id: item.id, user_email: item.email, user_phone: item.phone_number, ...parsed }};"
+      }
+    },
+    {
+      "id": "save-wi4",
+      "name": "Salvar Relatório Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1340,
+        400
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/weekly_reports",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SUPABASE_SERVICE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "user_id",
+              "value": "={{ $json.user_id }}"
+            },
+            {
+              "name": "week_score",
+              "value": "={{ $json.week_score }}"
+            },
+            {
+              "name": "biggest_win",
+              "value": "={{ $json.biggest_win }}"
+            },
+            {
+              "name": "key_pattern",
+              "value": "={{ $json.key_pattern_discovered }}"
+            },
+            {
+              "name": "next_week_strategy",
+              "value": "={{ $json.next_week_strategy }}"
+            },
+            {
+              "name": "report_date",
+              "value": "={{ new Date().toISOString().split('T')[0] }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Cron Segunda 07h00": {
+      "main": [
+        [
+          {
+            "node": "Buscar Dados Semanais",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Dados Semanais": {
+      "main": [
+        [
+          {
+            "node": "Loop por Usuária",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop por Usuária": {
+      "main": [
+        [
+          {
+            "node": "OpenAI — Digest Semanal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI — Digest Semanal": {
+      "main": [
+        [
+          {
+            "node": "Parsear Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear Digest": {
+      "main": [
+        [
+          {
+            "node": "Salvar Relatório Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Sao_Paulo",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "224ad2c7-5284-476e-b8e5-549ae9a2d31c",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-02-26T19:01:12.590Z",
+      "createdAt": "2026-02-26T19:01:12.590Z",
+      "role": "workflow:owner",
+      "workflowId": "NuCshHPPBMt2JHSo",
+      "projectId": "ZRwIjvHgccCCaLzC",
+      "project": {
+        "updatedAt": "2026-02-23T18:28:02.128Z",
+        "createdAt": "2026-02-23T18:26:39.653Z",
+        "id": "ZRwIjvHgccCCaLzC",
+        "name": "alline izabel rosa <allineizabeldarosa@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "e180afa2-c34c-498f-89b4-95220def0688"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

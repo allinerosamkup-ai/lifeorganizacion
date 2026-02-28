@@ -1,55 +1,188 @@
-import { Bot, ChevronLeft, Mic, Send, Settings } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Bot, ChevronLeft, Mic, Send, Settings, User } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../lib/AuthContext';
 
-export const AIChat = ({ navigate }: { navigate: (view: string) => void }) => (
-    <div className="min-h-screen flex flex-col bg-orange-50">
-        <div className="bg-orange-200/50 p-4 pt-8 flex items-center justify-between sticky top-0 z-10 backdrop-blur-md">
-            <button onClick={() => navigate('home')} className="w-10 h-10 flex items-center justify-center text-stone-800">
-                <ChevronLeft className="w-6 h-6" />
-            </button>
-            <h1 className="text-xl font-serif text-stone-900 flex items-center gap-2">
-                LifeOrganizer AI <span className="text-lg">🌸</span>
-            </h1>
-            <button className="w-10 h-10 flex items-center justify-center text-stone-800">
-                <Settings className="w-5 h-5" />
-            </button>
-        </div>
+interface Message {
+    id: string;
+    role: 'user' | 'assistant';
+    content: string;
+    timestamp: Date;
+}
 
-        <div className="flex-1 p-4 space-y-6 overflow-y-auto pb-24">
-            <div className="flex gap-3 max-w-[85%]">
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-auto">
-                    <Bot className="w-5 h-5 text-blue-600" />
-                </div>
-                <div className="bg-indigo-100/60 text-stone-800 p-4 rounded-2xl rounded-bl-none shadow-sm">
-                    Good morning, Sarah! How are you feeling today? I've noticed your schedule is a bit busy. Remember to take small breaks. 😊
-                </div>
-            </div>
+export const AIChat = ({ navigate }: { navigate: (view: string) => void }) => {
+    const { user, profile } = useAuth();
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [input, setInput] = useState('');
+    const [isTyping, setIsTyping] = useState(true);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
 
-            <div className="flex justify-end">
-                <div className="bg-orange-200/60 text-stone-800 p-4 rounded-2xl rounded-br-none shadow-sm max-w-[80%]">
-                    Hi! I'm feeling a bit overwhelmed, actually. Maybe I need to adjust my to-do list for today.
-                </div>
-            </div>
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
 
-            <div className="flex gap-3 max-w-[85%]">
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-auto">
-                    <Bot className="w-5 h-5 text-blue-600" />
-                </div>
-                <div className="bg-indigo-100/60 text-stone-800 p-4 rounded-2xl rounded-bl-none shadow-sm">
-                    I understand. Let's look at your tasks. We can prioritize together. Would you like to start with your most important goal or something smaller?
-                </div>
-            </div>
-        </div>
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages, isTyping]);
 
-        <div className="p-4 bg-white/80 backdrop-blur-md border-t border-white/50 sticky bottom-0">
-            <div className="flex items-center gap-3 bg-stone-100/80 rounded-full p-2 pr-3">
-                <button className="w-10 h-10 flex items-center justify-center text-stone-500 shrink-0">
-                    <Mic className="w-5 h-5" />
+    // Initial Greeting
+    useEffect(() => {
+        const sendGreeting = async () => {
+            // Simulate network delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            let greeting = "Olá!";
+            if (profile?.full_name) {
+                const firstName = profile.full_name.split(' ')[0];
+                greeting = `Olá, ${firstName}!`;
+            }
+
+            const welcomeMsg: Message = {
+                id: 'greeting-1',
+                role: 'assistant',
+                content: `${greeting} Como você está se sentindo nas últimas semanas? Conta um pouquinho como tem sido a sua rotina e como eu posso te ajudar a organizar seu dia hoje.`,
+                timestamp: new Date()
+            };
+
+            setMessages([welcomeMsg]);
+            setIsTyping(false);
+        };
+
+        sendGreeting();
+    }, [profile]);
+
+    const handleSend = async () => {
+        if (!input.trim() || !user) return;
+
+        const userMsg: Message = {
+            id: Date.now().toString(),
+            role: 'user',
+            content: input,
+            timestamp: new Date()
+        };
+
+        setMessages(prev => [...prev, userMsg]);
+        setInput('');
+        setIsTyping(true);
+
+        try {
+            const { data, error } = await supabase.functions.invoke('chat-ai', {
+                body: {
+                    message: userMsg.content,
+                    history: messages.map(m => ({ role: m.role, content: m.content }))
+                }
+            });
+
+            if (data && data.analysis) {
+                const aiMsg: Message = {
+                    id: (Date.now() + 1).toString(),
+                    role: 'assistant',
+                    content: data.analysis,
+                    timestamp: new Date()
+                };
+                setMessages(prev => [...prev, aiMsg]);
+            } else {
+                throw new Error(error?.message || 'Failed to get AI response');
+            }
+        } catch (err) {
+            console.error(err);
+            const errorMsg: Message = {
+                id: (Date.now() + 1).toString(),
+                role: 'assistant',
+                content: "Desculpe, estou com dificuldade de me conectar agora. Tente novamente em alguns instantes.",
+                timestamp: new Date()
+            };
+            setMessages(prev => [...prev, errorMsg]);
+        } finally {
+            setIsTyping(false);
+        }
+    };
+
+    return (
+        <div className="min-h-screen flex flex-col bg-orange-50">
+            <div className="bg-orange-200/50 p-4 pt-8 flex items-center justify-between sticky top-0 z-10 backdrop-blur-md shadow-sm">
+                <button onClick={() => navigate('home')} className="w-10 h-10 flex items-center justify-center text-stone-800 hover:bg-white/40 rounded-full transition-colors" title="Voltar">
+                    <ChevronLeft className="w-6 h-6" />
                 </button>
-                <input type="text" placeholder="Type your message..." className="flex-1 bg-transparent border-none focus:outline-none text-stone-800 placeholder:text-stone-400" />
-                <button className="w-10 h-10 rounded-full bg-orange-300 flex items-center justify-center text-white shrink-0 shadow-sm">
-                    <Send className="w-4 h-4 ml-1" />
-                </button>
+                <div className="flex flex-col items-center">
+                    <h1 className="text-xl font-serif text-stone-900 flex items-center gap-2">
+                        LifeOrganizer AI <span className="text-lg">✨</span>
+                    </h1>
+                    <span className="text-xs text-stone-500 font-medium tracking-wider uppercase">Sua Assistente</span>
+                </div>
+                <div className="w-10 h-10 flex items-center justify-center text-stone-800 hover:bg-white/40 rounded-full transition-colors cursor-pointer" title="Configurações">
+                    <Settings className="w-5 h-5" />
+                </div>
+            </div>
+
+            <div className="flex-1 p-4 space-y-6 overflow-y-auto pb-6">
+                {messages.length === 0 && !isTyping && (
+                    <div className="flex flex-col items-center justify-center h-full text-stone-400 opacity-50 space-y-4">
+                        <Bot className="w-16 h-16" />
+                        <p>Inicie uma conversa...</p>
+                    </div>
+                )}
+
+                {messages.map((msg) => (
+                    <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start gap-3'} max-w-[95%] sm:max-w-[85%] ${msg.role === 'user' ? 'ml-auto' : ''}`}>
+                        {msg.role === 'assistant' && (
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-200 to-purple-200 flex items-center justify-center shrink-0 mt-auto shadow-sm border border-white/50">
+                                <Bot className="w-5 h-5 text-indigo-700" />
+                            </div>
+                        )}
+                        <div className={`p-4 rounded-[1.5rem] shadow-sm text-sm sm:text-base leading-relaxed ${msg.role === 'user'
+                            ? 'bg-gradient-to-br from-orange-300 to-orange-200 text-stone-800 rounded-br-md'
+                            : 'bg-white/80 border border-white/60 text-stone-700 rounded-bl-md glass-card-chic'}`}>
+                            {msg.content}
+                        </div>
+                    </div>
+                ))}
+
+                {isTyping && (
+                    <div className="flex gap-3 max-w-[85%] animate-pulse">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-200 to-purple-200 flex items-center justify-center shrink-0 mt-auto shadow-sm border border-white/50">
+                            <Bot className="w-5 h-5 text-indigo-700" />
+                        </div>
+                        <div className="bg-white/60 text-stone-400 p-4 rounded-[1.5rem] rounded-bl-md italic text-sm border border-white/40 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 bg-stone-400/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                            <span className="w-1.5 h-1.5 bg-stone-400/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                            <span className="w-1.5 h-1.5 bg-stone-400/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                        </div>
+                    </div>
+                )}
+                <div ref={messagesEndRef} className="h-4" />
+            </div>
+
+            <div className="p-4 bg-white/90 backdrop-blur-xl border-t border-stone-200/50 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)] pb-safe relative z-20">
+                <div className="flex items-center gap-2 max-w-lg mx-auto bg-stone-100 p-2 pl-4 rounded-full border border-white shadow-inner-sm transition-all focus-within:ring-2 focus-within:ring-orange-200 focus-within:bg-white">
+                    <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                        placeholder="Mensagem ou gravação..."
+                        className="flex-1 bg-transparent border-none focus:outline-none text-stone-700 placeholder:text-stone-400 text-sm sm:text-base"
+                    />
+
+                    {input.trim() ? (
+                        <button
+                            onClick={handleSend}
+                            className="w-11 h-11 rounded-full flex items-center justify-center text-white shrink-0 shadow-md bg-gradient-to-br from-orange-400 to-orange-500 hover:scale-105 transition-all"
+                            title="Enviar"
+                        >
+                            <Send className="w-4 h-4 ml-0.5" />
+                        </button>
+                    ) : (
+                        <button
+                            className="w-11 h-11 flex items-center justify-center text-stone-500 bg-stone-200/80 hover:bg-stone-200 rounded-full shrink-0 transition-colors"
+                            title="Gravar Áudio"
+                        >
+                            <Mic className="w-5 h-5" />
+                        </button>
+                    )}
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
+

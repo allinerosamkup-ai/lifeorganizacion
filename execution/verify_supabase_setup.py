@@ -11,7 +11,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).parent.parent
-ENV_FILE = PROJECT_ROOT / ".env"
+ENV_FILE = PROJECT_ROOT.parent / "global" / "api" / ".env"
 
 def check_env_variables():
     """Verifica se todas as variáveis necessárias estão configuradas."""
@@ -61,27 +61,25 @@ def test_connection():
     
     url = os.getenv("SUPABASE_URL")
     anon_key = os.getenv("SUPABASE_ANON_KEY")
+def check_connection(url, service_key):
+    """Testa a conexão básica com o Supabase usando a chave de serviço."""
+    print("=" * 60)
+    print("TESTE DE CONEXÃO COM SUPABASE")
+    print("=" * 60)
+    print()
     
-    if not url or not anon_key:
-        print("❌ Variáveis não configuradas")
-        return False
+    print(f"🔍 Testando: {url}")
     
     try:
         import requests
         
-        print("=" * 60)
-        print("TESTE DE CONEXÃO COM SUPABASE")
-        print("=" * 60)
-        print()
-        
         headers = {
-            "apikey": anon_key,
-            "Authorization": f"Bearer {anon_key}"
+            "apikey": service_key,
+            "Authorization": f"Bearer {service_key}"
         }
         
-        # Testar endpoint REST
-        test_url = f"{url}/rest/v1/"
-        print(f"🔍 Testando: {url}")
+        # Testar endpoint REST de uma tabela pública (perfis) para validação da chave
+        test_url = f"{url}/rest/v1/profiles?limit=1"
         
         response = requests.get(test_url, headers=headers, timeout=10)
         
@@ -101,16 +99,12 @@ def test_connection():
         print(f"❌ Erro: {str(e)}")
         return False
 
-def check_tables():
+def verify_tables(url, service_key):
     """Verifica se as tabelas foram criadas."""
-    load_dotenv(ENV_FILE)
-    
-    url = os.getenv("SUPABASE_URL")
-    anon_key = os.getenv("SUPABASE_ANON_KEY")
-    
-    if not url or not anon_key:
-        print("❌ Variáveis não configuradas")
-        return False
+    print("=" * 60)
+    print("VERIFICAÇÃO DE TABELAS")
+    print("=" * 60)
+    print()
     
     try:
         import requests
@@ -125,21 +119,19 @@ def check_tables():
             "focus_sessions"
         ]
         
-        print("=" * 60)
-        print("VERIFICAÇÃO DE TABELAS")
-        print("=" * 60)
+        print("🔍 Verificando tabelas no Supabase...")
         print()
         
         headers = {
-            "apikey": anon_key,
-            "Authorization": f"Bearer {anon_key}"
+            "apikey": service_key,
+            "Authorization": f"Bearer {service_key}"
         }
         
         found = []
         missing = []
         
         for table in expected_tables:
-            table_url = f"{url}/rest/v1/{table}?select=id&limit=1"
+            table_url = f"{url}/rest/v1/{table}?limit=1"
             try:
                 response = requests.get(table_url, headers=headers, timeout=5)
                 if response.status_code == 200:
@@ -186,17 +178,25 @@ def main():
         print("⚠️  Configure as variáveis faltantes no arquivo .env")
         return
     
+    load_dotenv(ENV_FILE) # Ensure env vars are loaded for direct access
+    url = os.getenv("SUPABASE_URL")
+    service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    
+    if not url or not service_key:
+        print("❌ Variáveis SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY não configuradas.")
+        return
+    
     print()
     
     # Testar conexão
-    if not test_connection():
+    if not check_connection(url, service_key):
         print("⚠️  Verifique as credenciais do Supabase")
         return
     
     print()
     
     # Verificar tabelas
-    check_tables()
+    verify_tables(url, service_key)
     
     print()
     print("=" * 60)
