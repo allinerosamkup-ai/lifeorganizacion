@@ -5,14 +5,8 @@ import { useAuth } from '../lib/AuthContext';
 import { useEnergyScore } from '../lib/useEnergyScore';
 import { EnergyGauge } from '../components/EnergyGauge';
 import { showToast } from '../components/Toast';
-
-interface Task {
-    id: string;
-    title: string;
-    is_completed: boolean;
-    energy_level: 'low' | 'medium' | 'high';
-    priority: number;
-}
+import type { Task } from '../components/TaskEditModal';
+import { TaskEditModal } from '../components/TaskEditModal';
 
 const MOODS = [
     { key: 'great', emoji: '😊', label: 'Feliz', value: 'great' },
@@ -40,6 +34,7 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
     const [todayCheckInCount, setTodayCheckInCount] = useState(0);
     const [lastCheckInEmoji, setLastCheckInEmoji] = useState<string | null>(null);
     const [quickMoodText, setQuickMoodText] = useState('');
+    const [editingTask, setEditingTask] = useState<Task | null>(null);
     const [isListening, setIsListening] = useState(false);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const recognitionRef = useRef<any>(null);
@@ -83,21 +78,23 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
         if (!user) return;
 
         const mood = MOODS.find(m => m.key === moodKey);
-        if (!mood) return;
+        // If we are submitting a text-only mood with no explicit emoji selected yet, default to neutral
+        const emojiToSave = mood ? mood.emoji : '😐';
+        const scoreToSave = mood ? energyScoreMap[moodKey] || 5 : 5;
 
         const { error } = await supabase
             .from('check_ins')
             .insert([{
                 user_id: user.id,
-                humor_emoji: mood.value,
-                energy_score: energyScoreMap[moodKey] || 5,
+                humor_emoji: emojiToSave,
+                energy_score: scoreToSave,
                 free_text: quickMoodText || null,
                 checked_at: new Date().toISOString(),
             }]);
 
         if (!error) {
             setTodayCheckInCount(prev => prev + 1);
-            setLastCheckInEmoji(mood.value);
+            setLastCheckInEmoji(emojiToSave);
             setQuickMoodText('');
             showToast('Check-in salvo');
 
@@ -107,7 +104,7 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
             // Trigger Edge Function to analyze check-in
             supabase.functions.invoke('process-checkin', {
                 body: {
-                    humor_emoji: mood.value,
+                    humor_emoji: mood?.value || 'neutral',
                     energy_score: energyScoreMap[moodKey] || 5,
                 }
             });
@@ -227,64 +224,87 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
                 )}
 
                 {/* Quick Mood Entry */}
-                <div className="glass-card-chic rounded-2xl p-3 flex items-center gap-2">
-                    <input
-                        type="text"
-                        placeholder="Como você está se sentindo agora?"
-                        value={quickMoodText}
-                        onChange={(e) => setQuickMoodText(e.target.value)}
-                        className="flex-1 bg-transparent text-stone-700 text-sm placeholder:text-stone-400 outline-none px-2"
-                    />
-                    <button
-                        onClick={toggleSpeechToText}
-                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90 ${isListening
-                            ? 'bg-red-100 text-red-600 animate-pulse'
-                            : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
-                            }`}
-                    >
-                        {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                    </button>
-                </div>
+                <form
+                    onSubmit={e => { e.preventDefault(); if (quickMoodText) handleCheckIn('neutral'); }}
+                    className="relative group"
+                >
+                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 rounded-3xl blur-md transition-all group-hover:blur-lg opacity-50"></div>
+                    <div className="relative glass-card-chic rounded-3xl p-2 flex items-center gap-2 transition-all border border-white/80 focus-within:border-emerald-300 shadow-sm focus-within:shadow-md">
+                        <input
+                            type="text"
+                            placeholder="Como você sente sua energia agora?"
+                            value={quickMoodText}
+                            onChange={(e) => setQuickMoodText(e.target.value)}
+                            aria-label="Como você está se sentindo agora?"
+                            className="flex-1 bg-transparent text-stone-700 text-[15px] placeholder:text-stone-400/80 outline-none px-4 py-2 font-medium"
+                        />
+                        <div className="flex shrink-0 items-center pr-1 gap-1">
+                            <button
+                                type="button"
+                                onClick={toggleSpeechToText}
+                                title="Ditar"
+                                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${isListening
+                                    ? 'bg-rose-100 text-rose-500 animate-pulse shadow-inner-sm'
+                                    : 'bg-white/60 text-stone-500 hover:bg-white hover:text-emerald-600 border border-transparent hover:border-white/80 shadow-sm'
+                                    }`}
+                            >
+                                {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={!quickMoodText.trim()}
+                                title="Enviar nota"
+                                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${!quickMoodText.trim() ? 'bg-stone-100/50 text-stone-300' : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-md hover:-translate-y-0.5'}`}
+                            >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                            </button>
+                        </div>
+                    </div>
+                </form>
 
                 {/* Compact Check-in — 3×3 emoji grid */}
-                <div className="glass-card-chic rounded-2xl p-4 space-y-3">
+                <div className="glass-card-chic rounded-3xl p-5 space-y-4">
                     <div className="flex items-center justify-between">
-                        <h2 className="font-serif text-base tracking-tight text-stone-800">
-                            {todayCheckInCount > 0 ? `Check-in (${todayCheckInCount}x hoje)` : 'Check-in'}
+                        <h2 className="font-serif text-lg tracking-tight text-stone-800">
+                            Mood Board {todayCheckInCount > 0 && <span className="text-stone-400 text-xs ml-1 font-sans">({todayCheckInCount}x)</span>}
                         </h2>
                         {todayCheckInCount > 0 && (
-                            <span className="text-emerald-600 text-xs font-semibold flex items-center gap-1">
-                                <Check className="w-3 h-3" /> Último: {lastCheckInEmoji}
-                            </span>
+                            <div className="bg-emerald-100/50 border border-emerald-200/50 px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-inner-sm">
+                                <span className="text-xl leading-none">{lastCheckInEmoji}</span>
+                                <Check className="w-3.5 h-3.5 text-emerald-600" strokeWidth={3} />
+                            </div>
                         )}
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-3">
                         {MOODS.map((mood) => (
                             <button
                                 key={mood.key}
                                 onClick={() => handleCheckIn(mood.key)}
-                                className="flex flex-col items-center rounded-xl p-2 gap-1 bg-white/50 hover:bg-white/80 border border-white/60 transition-all active:scale-95 group"
+                                className="relative overflow-hidden flex flex-col items-center justify-center rounded-2xl py-3 gap-1.5 bg-gradient-to-b from-white/70 to-white/40 hover:from-white hover:to-white/80 border border-white/60 transition-all active:scale-[0.97] group shadow-sm hover:shadow-md"
                             >
-                                <span className="text-xl group-hover:scale-110 transition-transform">{mood.emoji}</span>
-                                <span className="text-[10px] font-medium text-stone-600">{mood.label}</span>
+                                <span className="text-3xl group-hover:scale-110 group-hover:-translate-y-0.5 transition-transform duration-300 drop-shadow-sm">{mood.emoji}</span>
+                                <span className="text-[11px] font-semibold text-stone-600/90 tracking-wide">{mood.label}</span>
                             </button>
                         ))}
                     </div>
                 </div>
 
-                {/* Focus Session - compact 80x80 card */}
+                {/* Focus Session - elegant compact card */}
                 <div
-                    className="bg-gradient-to-br from-emerald-500/80 to-teal-600/80 backdrop-blur-md shadow-md rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:shadow-lg transition-all group active:scale-[0.98]"
+                    className="relative overflow-hidden bg-stone-800 shadow-xl rounded-3xl p-5 flex items-center gap-4 cursor-pointer group active:scale-[0.98] transition-all"
                     onClick={() => navigate('focus')}
                 >
-                    <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
-                        <Clock className="w-6 h-6 text-white/80" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>
+
+                    <div className="w-12 h-12 bg-white/10 border border-white/10 rounded-2xl flex items-center justify-center shrink-0 shadow-inner">
+                        <Clock className="w-6 h-6 text-emerald-300" strokeWidth={2.5} />
                     </div>
-                    <div className="flex-1">
-                        <h2 className="font-serif text-lg text-white tracking-tight">Focus Session</h2>
-                        <p className="text-emerald-50 text-xs opacity-80">Deep work and breathing</p>
+                    <div className="flex-1 relative z-10">
+                        <h2 className="font-serif text-lg text-white tracking-wide">Deep Focus</h2>
+                        <p className="text-stone-400 text-xs font-medium mt-0.5 tracking-wide">Trabalho + Respiração</p>
                     </div>
-                    <button className="bg-white/90 text-emerald-900 px-4 py-2 rounded-full font-semibold text-xs shadow-sm transition-transform active:scale-95">
+                    <button className="relative z-10 bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-[0_0_15px_rgba(16,185,129,0.4)] transition-transform group-hover:scale-105 active:scale-95">
                         Start
                     </button>
                 </div>
@@ -315,17 +335,21 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
                             </div>
                         ) : suggestedTasks.length > 0 ? (
                             suggestedTasks.slice(0, 4).map((task) => (
-                                <div key={task.id} className="glass-card-chic rounded-2xl p-3.5 px-4 flex justify-between items-center group hover:bg-white/60 transition-all">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-2 h-2 rounded-full shadow-inner-sm ${task.energy_level === 'high' ? 'bg-rose-400' :
+                                <div
+                                    key={task.id}
+                                    className="glass-card-chic rounded-2xl p-3.5 px-4 flex justify-between items-center group hover:bg-white/60 transition-all cursor-pointer"
+                                    onClick={() => setEditingTask(task as Task)}
+                                >
+                                    <div className="flex items-center gap-3 w-full pr-2 overflow-hidden">
+                                        <div className={`w-2 h-2 shrink-0 rounded-full shadow-inner-sm ${task.energy_level === 'high' ? 'bg-rose-400' :
                                             task.energy_level === 'medium' ? 'bg-amber-400' : 'bg-emerald-400'
                                             }`}></div>
-                                        <span className="text-stone-700 font-medium text-sm">{task.title}</span>
+                                        <span className="text-stone-700 font-medium text-sm truncate">{task.title}</span>
                                     </div>
                                     <button
                                         title={`Mark ${task.title} as completed`}
-                                        className="w-7 h-7 rounded-full bg-white/50 border border-stone-200/50 flex items-center justify-center shadow-sm cursor-pointer hover:bg-emerald-400 hover:border-emerald-500 transition-all active:scale-90 group/btn"
-                                        onClick={() => toggleTask(task.id)}
+                                        className="w-7 h-7 shrink-0 rounded-full bg-white/50 border border-stone-200/50 flex items-center justify-center shadow-sm cursor-pointer hover:bg-emerald-400 hover:border-emerald-500 transition-all active:scale-90 group/btn"
+                                        onClick={(e) => { e.stopPropagation(); toggleTask(task.id); }}
                                     >
                                         <CheckCircle2 className="w-4 h-4 text-stone-400 group-hover/btn:text-white transition-colors" />
                                     </button>
@@ -339,6 +363,15 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
                     </div>
                 </div>
             </div>
+
+            {/* Edit Modal */}
+            {editingTask && (
+                <TaskEditModal
+                    task={editingTask}
+                    onClose={() => setEditingTask(null)}
+                    onSave={(updatedTask) => setTasks(tasks.map(t => t.id === updatedTask.id ? updatedTask : t))}
+                />
+            )}
         </div>
     );
 };

@@ -145,9 +145,9 @@ export const CycleTracker = ({ navigate }: { navigate: (view: string) => void })
                 <div className="flex justify-between items-center mt-4">
                     <h1 className="text-3xl font-serif text-stone-800 tracking-tight">Ciclo</h1>
                     <div className="flex gap-3">
-                        <div className="w-11 h-11 shadow-glass-inset bg-white/60 backdrop-blur-md rounded-full flex items-center justify-center text-stone-700 cursor-pointer border border-white/80 hover:bg-white/80 transition-all hover:scale-105" onClick={() => navigate('profile')}>
+                        <button type="button" title="Perfil" className="w-11 h-11 shadow-glass-inset bg-white/60 backdrop-blur-md rounded-full flex items-center justify-center text-stone-700 border border-white/80 hover:bg-white/80 transition-all hover:scale-105 active:scale-95" onClick={() => navigate('profile')}>
                             <User className="w-5 h-5" />
-                        </div>
+                        </button>
                     </div>
                 </div>
 

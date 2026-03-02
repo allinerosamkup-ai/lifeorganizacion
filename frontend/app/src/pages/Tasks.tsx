@@ -8,7 +8,9 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 
-interface Task {
+import { TaskEditModal } from '../components/TaskEditModal';
+
+export interface Task {
     id: string;
     title: string;
     description?: string;
@@ -54,8 +56,6 @@ export const Tasks = () => {
 
     // Edit modal state
     const [editingTask, setEditingTask] = useState<Task | null>(null);
-    const [editTitle, setEditTitle] = useState('');
-    const [editNote, setEditNote] = useState('');
 
     const today = format(new Date(), 'yyyy-MM-dd');
     const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
@@ -131,29 +131,6 @@ export const Tasks = () => {
 
     const openEditModal = (task: Task) => {
         setEditingTask(task);
-        setEditTitle(task.title);
-        setEditNote(task.note || '');
-    };
-
-    const saveEdit = async () => {
-        if (!editingTask) return;
-        const { error } = await supabase
-            .from('tasks')
-            .update({
-                title: editTitle.trim(),
-                note: editNote.trim() || null,
-                edited_at: new Date().toISOString(),
-            })
-            .eq('id', editingTask.id);
-
-        if (!error) {
-            setTasks(tasks.map(t => t.id === editingTask.id
-                ? { ...t, title: editTitle.trim(), note: editNote.trim() || undefined, edited_at: new Date().toISOString() }
-                : t
-            ));
-            setEditingTask(null);
-            showToast('Tarefa atualizada');
-        }
     };
 
     const toggleSubtask = async (taskId: string, subtaskId: string) => {
@@ -236,49 +213,49 @@ export const Tasks = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 pb-28">
+        <div className="min-h-screen bg-gradient-to-br from-orange-50/50 via-rose-50/50 to-purple-50/50 pb-28">
             {/* Header */}
-            <div className="bg-white/70 backdrop-blur-xl pt-12 pb-3 px-5 sticky top-0 z-20 border-b border-white/50">
-                <div className="flex items-center justify-between mb-3">
+            <div className="bg-white/60 backdrop-blur-2xl pt-14 pb-4 px-6 sticky top-0 z-30 border-b border-white/80 shadow-[0_4px_30px_rgba(0,0,0,0.03)] transition-all">
+                <div className="flex items-center justify-between mb-4">
                     <div>
-                        <h1 className="text-2xl font-serif text-stone-800">Tarefas</h1>
+                        <h1 className="text-3xl font-serif text-stone-800 tracking-tight">Tarefas</h1>
                         {currentPhase && (
                             <span
-                                className="text-[10px] font-semibold px-2 py-0.5 rounded-full mt-1 inline-block"
+                                className="text-[11px] font-bold px-2.5 py-1 rounded-full mt-1.5 inline-flex items-center gap-1 shadow-sm border border-black/5"
                                 style={{ background: phaseMap[currentPhase].bg, color: phaseMap[currentPhase].color }}
                             >
-                                {phaseMap[currentPhase].icon} {phaseMap[currentPhase].label}
+                                <span className="text-sm">{phaseMap[currentPhase].icon}</span> {phaseMap[currentPhase].label}
                             </span>
                         )}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2.5">
                         <button
                             type="button"
                             title="Filtrar tarefas"
                             onClick={() => setShowFilters(f => !f)}
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${filterEnergy ? 'bg-orange-400 text-white shadow-md' : 'bg-white/60 text-stone-500 border border-white/80'}`}
+                            className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all active:scale-[0.95] ${filterEnergy ? 'bg-orange-400 text-white shadow-lg shadow-orange-400/30' : 'bg-white/80 text-stone-600 hover:bg-white border border-white hover:shadow-md'}`}
                         >
-                            <Filter className="w-5 h-5" />
+                            <Filter className="w-5 h-5" strokeWidth={2.5} />
                         </button>
                         <button
                             type="button"
                             title="Adicionar tarefa"
                             onClick={() => setShowAddModal(true)}
-                            className="w-10 h-10 rounded-xl bg-orange-400 text-white flex items-center justify-center shadow-md hover:bg-orange-500 transition-all"
+                            className="w-11 h-11 rounded-2xl bg-stone-800 text-white flex items-center justify-center shadow-lg shadow-stone-800/20 hover:-translate-y-0.5 hover:bg-stone-900 transition-all active:scale-[0.95]"
                         >
-                            <Plus className="w-5 h-5" />
+                            <Plus className="w-5 h-5" strokeWidth={2.5} />
                         </button>
                     </div>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-1">
+                <div className="flex bg-stone-100/50 p-1 rounded-2xl">
                     {tabs.map(t => (
                         <button
                             type="button"
                             key={t.id}
                             onClick={() => setTab(t.id)}
-                            className={`flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all ${tab === t.id ? 'bg-orange-400 text-white shadow-sm' : 'text-stone-500 hover:bg-white/50'}`}
+                            className={`flex-1 py-2 text-[13px] font-bold rounded-xl transition-all ${tab === t.id ? 'bg-white text-stone-800 shadow-sm border border-stone-200/50' : 'text-stone-500 hover:text-stone-700 hover:bg-white/40'}`}
                         >
                             {t.label}
                         </button>
@@ -318,19 +295,21 @@ export const Tasks = () => {
             )}
 
             {/* Task List */}
-            <div className="p-5 space-y-3">
+            <div className="p-4 px-5 space-y-4">
                 {loading ? (
-                    <div className="space-y-3">
-                        {[1, 2, 3].map(i => <div key={i} className="h-20 bg-white/40 rounded-2xl animate-pulse" />)}
+                    <div className="space-y-4">
+                        {[1, 2, 3].map(i => <div key={i} className="h-24 bg-white/40 rounded-3xl animate-pulse" />)}
                     </div>
                 ) : filtered.length === 0 ? (
-                    <div className="text-center py-16">
-                        <p className="text-4xl mb-3 opacity-60">{tab === 'completed' ? '🏆' : '🌸'}</p>
-                        <p className="font-serif text-lg text-stone-700 mb-1">
-                            {tab === 'completed' ? 'Nenhuma tarefa concluída' : 'Sem tarefas aqui'}
+                    <div className="text-center py-20 px-8 flex flex-col items-center">
+                        <div className="w-20 h-20 bg-white/50 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                            <span className="text-4xl drop-shadow-sm">{tab === 'completed' ? '🏆' : '✨'}</span>
+                        </div>
+                        <p className="font-serif text-xl tracking-tight text-stone-800 mb-1">
+                            {tab === 'completed' ? 'Nenhuma concluída' : 'Tudo limpo por aqui'}
                         </p>
-                        <p className="text-sm text-stone-400">
-                            {tab === 'completed' ? 'Complete suas primeiras tarefas!' : 'Adicione uma tarefa para começar'}
+                        <p className="text-[13px] text-stone-500 max-w-[200px] leading-relaxed">
+                            {tab === 'completed' ? 'Suas vitórias aparecerão aqui.' : 'Aproveite o momento ou adicione uma nova tarefa.'}
                         </p>
                     </div>
                 ) : filtered.map(task => {
@@ -339,8 +318,10 @@ export const Tasks = () => {
                     const subDone = task.subtasks?.filter(s => s.is_completed).length || 0;
 
                     return (
-                        <div key={task.id} className={`glass-card-chic rounded-2xl p-4 transition-all ${task.is_completed ? 'opacity-60' : ''}`}>
-                            <div className="flex gap-3 items-start">
+                        <div key={task.id} className={`relative glass-card-chic rounded-3xl p-5 border border-white/60 hover:border-white shadow-sm hover:shadow-md transition-all active:scale-[0.99] group ${task.is_completed ? 'opacity-60 grayscale-[0.2]' : ''}`}>
+                            <div className="absolute inset-0 bg-gradient-to-r from-white/40 to-transparent rounded-3xl pointer-events-none"></div>
+
+                            <div className="relative flex gap-3.5 items-start">
                                 <button
                                     type="button"
                                     title={task.is_completed ? 'Desmarcar tarefa' : 'Concluir tarefa'}
@@ -448,11 +429,11 @@ export const Tasks = () => {
 
             {/* Add Task Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-stone-900/30 backdrop-blur-sm z-50 flex items-end justify-center">
-                    <div className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10 shadow-2xl">
+                <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-md z-[100] flex items-end sm:items-center justify-center p-2 sm:p-4">
+                    <div className="bg-white/90 backdrop-blur-xl border border-white/50 rounded-[2rem] w-full max-w-md p-6 shadow-2xl animate-fade-in-up">
                         <div className="flex justify-between items-center mb-5">
                             <h2 className="text-xl font-serif text-stone-800">Nova Tarefa</h2>
-                            <button type="button" onClick={() => setShowAddModal(false)} className="w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center text-stone-500">
+                            <button type="button" title="Fechar" onClick={() => setShowAddModal(false)} className="w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center text-stone-500">
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
@@ -461,9 +442,9 @@ export const Tasks = () => {
                                 type="text"
                                 value={newTitle}
                                 onChange={e => setNewTitle(e.target.value)}
-                                placeholder="Título da tarefa..."
+                                placeholder="O que você precisa fazer?"
                                 autoFocus
-                                className="w-full bg-stone-50 border border-stone-200 rounded-xl py-3 px-4 text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-300"
+                                className="w-full bg-white/70 border border-white/60 shadow-inner-sm rounded-2xl py-3.5 px-4 text-stone-800 placeholder:text-stone-400 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-400/50 transition-all"
                             />
                             <div>
                                 <p className="text-[10px] font-bold text-stone-400 uppercase mb-2">Energia</p>
@@ -499,9 +480,9 @@ export const Tasks = () => {
                                 type="button"
                                 onClick={addTask}
                                 disabled={!newTitle.trim()}
-                                className="w-full py-3.5 bg-orange-400 text-white rounded-xl font-semibold hover:bg-orange-500 transition-all disabled:opacity-50 shadow-md"
+                                className="w-full mt-2 py-3.5 bg-emerald-500 text-white rounded-2xl font-bold shadow-lg shadow-emerald-500/30 hover:bg-emerald-600 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:shadow-none active:scale-[0.98]"
                             >
-                                Adicionar Tarefa
+                                Criar Tarefa
                             </button>
                         </div>
                     </div>
@@ -510,45 +491,11 @@ export const Tasks = () => {
 
             {/* Edit Task Modal */}
             {editingTask && (
-                <div className="fixed inset-0 bg-stone-900/30 backdrop-blur-sm z-50 flex items-end justify-center">
-                    <div className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10 shadow-2xl">
-                        <div className="flex justify-between items-center mb-5">
-                            <h2 className="text-xl font-serif text-stone-800">Editar Tarefa</h2>
-                            <button type="button" onClick={() => setEditingTask(null)} className="w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center text-stone-500">
-                                <X className="w-4 h-4" />
-                            </button>
-                        </div>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="text-[10px] font-bold text-stone-400 uppercase mb-1 block">Título</label>
-                                <input
-                                    type="text"
-                                    value={editTitle}
-                                    onChange={e => setEditTitle(e.target.value)}
-                                    className="w-full bg-stone-50 border border-stone-200 rounded-xl py-3 px-4 text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-300"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-[10px] font-bold text-stone-400 uppercase mb-1 block">Notas</label>
-                                <textarea
-                                    value={editNote}
-                                    onChange={e => setEditNote(e.target.value)}
-                                    rows={3}
-                                    placeholder="Adicione observações, humor ao fazer, esforço..."
-                                    className="w-full bg-stone-50 border border-stone-200 rounded-xl py-3 px-4 text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-300 resize-none"
-                                />
-                            </div>
-                            <button
-                                type="button"
-                                onClick={saveEdit}
-                                disabled={!editTitle.trim()}
-                                className="w-full py-3.5 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-all active:scale-[0.98] disabled:opacity-50 shadow-md"
-                            >
-                                Salvar Alterações
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <TaskEditModal
+                    task={editingTask}
+                    onClose={() => setEditingTask(null)}
+                    onSave={(updatedTask) => setTasks(tasks.map(t => t.id === updatedTask.id ? updatedTask : t))}
+                />
             )}
         </div>
     );

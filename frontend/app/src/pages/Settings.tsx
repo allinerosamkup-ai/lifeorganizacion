@@ -1,55 +1,16 @@
 import { useState } from "react";
 import { usePushNotifications } from "../lib/usePushNotifications";
 import { useAuth } from "../lib/AuthContext";
-
-const SectionHeader = ({ title, back }: { title: string; back: () => void }) => (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-        <button onClick={back} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "#4A2E26" }}>←</button>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: "#4A2E26", fontWeight: 700 }}>{title}</h2>
-    </div>
-);
-
-// ─── TOKENS ──────────────────────────────────────────────────────────────────
-const T = {
-    peach: "#F2A58E", rose: "#E891A8", lavender: "#C4A8E0", mint: "#8FCFB8",
-    text: "#4A2E26", textMid: "#9B6E62", textLight: "#C4A090",
-    menstrual: "#E8606A", folicular: "#5FBF8A", ovulatoria: "#F0C04A", luteal: "#9B7DE0",
-};
-
-const Toggle = ({ value, onChange, color = T.rose }: { value: boolean, onChange: (v: boolean) => void, color?: string }) => (
-    <button onClick={() => onChange(!value)} style={{
-        width: 52, height: 28, borderRadius: 99, border: "none", cursor: "pointer",
-        background: value ? `linear-gradient(135deg, ${T.peach}, ${color})` : "rgba(155,110,98,0.2)",
-        position: "relative", transition: "background 0.3s", flexShrink: 0
-    }}>
-        <div style={{
-            position: "absolute", top: 3, width: 22, height: 22, borderRadius: "50%", background: "white",
-            transition: "left 0.3s cubic-bezier(0.34,1.56,0.64,1)", left: value ? 27 : 3,
-            boxShadow: "0 2px 6px rgba(0,0,0,0.2)"
-        }} />
-    </button>
-);
-
-const Sparkles = () => (
-    <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
-        {["✦", "✧", "⋆"].map((s, i) => (
-            <span key={i} style={{
-                position: "absolute", fontSize: `${10 + (i % 3) * 4}px`, opacity: 0.18,
-                left: `${8 + i * 30}%`, top: `${10 + i * 20}%`, color: [T.peach, T.rose, T.lavender][i % 3],
-                animation: `float ${3 + i * 0.5}s ease-in-out infinite`
-            }}>{s}</span>
-        ))}
-    </div>
-);
+import { ChevronLeft, ChevronRight, User, CreditCard, Calendar, Bell, BellOff, LogOut, Sparkles } from "lucide-react";
 
 interface SettingItem {
-    icon: string;
+    icon: React.ReactNode;
     label: string;
     sub: string;
     onPress: () => void;
     arrow?: boolean;
     danger?: boolean;
-    badge?: { text: string; color: string };
+    badge?: { text: string; color: string; bg: string };
 }
 
 interface SettingSection {
@@ -58,7 +19,7 @@ interface SettingSection {
 }
 
 export const Settings = ({ navigate }: { navigate?: (view: string) => void }) => {
-    const { user } = useAuth();
+    const { user, signOut } = useAuth();
     const { status: pushStatus, loading: pushLoading, requestPermission, sendTestNotification } = usePushNotifications(user?.id);
     const [calConnected, setCalConnected] = useState(true);
     const [, setCalConnecting] = useState(false);
@@ -72,42 +33,55 @@ export const Settings = ({ navigate }: { navigate?: (view: string) => void }) =>
     };
 
     if (section === "calendar") return (
-        <div className="scroll-area page-enter" style={{ minHeight: "100vh", padding: "56px 24px 40px", paddingBottom: 100 }}>
-            <SectionHeader title="📅 Google Calendar" back={() => setSection(null)} />
-            <div className="glass" style={{ padding: 20, marginBottom: 16 }}>
-                <div style={{ display: "flex", gap: 14, alignItems: "center", marginBottom: 16 }}>
-                    <div style={{
-                        width: 48, height: 48, borderRadius: 14, background: "rgba(95,191,138,0.15)",
-                        display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24
-                    }}>📅</div>
-                    <div style={{ flex: 1 }}>
-                        <p style={{ fontSize: 16, fontWeight: 700, color: T.text }}>{calConnected ? "Conectado" : "Desconectado"}</p>
-                        <p style={{ fontSize: 13, color: calConnected ? T.folicular : T.textLight }}>
-                            {calConnected ? "✓ Sincronizando automaticamente" : "Clique para conectar"}
-                        </p>
-                    </div>
-                    <Toggle value={calConnected} onChange={v => { if (!v) setCalConnected(false); else handleConnect(); }} color={T.folicular} />
+        <div className="min-h-screen bg-gradient-to-br from-stone-50 via-orange-50 to-pink-50 pb-24 relative overflow-hidden">
+            <div className="p-6 pt-14 space-y-6 max-w-lg mx-auto relative z-10">
+                <div className="flex items-center gap-4 mb-6">
+                    <button type="button" onClick={() => setSection(null)} className="w-10 h-10 flex items-center justify-center bg-white/60 hover:bg-white rounded-full shadow-sm text-stone-700 transition-all active:scale-95" title="Voltar">
+                        <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <h2 className="font-serif text-2xl text-stone-800 tracking-tight">Google Calendar</h2>
                 </div>
-                {calConnected && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                        {[
-                            { label: "Cor por fase do ciclo", desc: "Eventos coloridos automaticamente" },
-                            { label: "Sincronizar tarefas", desc: "Tarefas com data viram eventos" },
-                            { label: "Importar eventos", desc: "Eventos do Calendar viram tarefas" },
-                        ].map((item, i) => (
-                            <div key={i} style={{
-                                display: "flex", justifyContent: "space-between", padding: "10px 0",
-                                borderTop: "1px solid rgba(155,110,98,0.08)", alignItems: "center"
-                            }}>
-                                <div>
-                                    <p style={{ fontSize: 14, color: T.text }}>{item.label}</p>
-                                    <p style={{ fontSize: 12, color: T.textLight }}>{item.desc}</p>
-                                </div>
-                                <span style={{ color: T.folicular, fontSize: 16 }}>✓</span>
-                            </div>
-                        ))}
+
+                <div className="glass-card-chic rounded-[2rem] p-6 shadow-3d border border-white/60">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="w-14 h-14 rounded-2xl bg-emerald-100/50 flex items-center justify-center text-3xl shadow-inner-sm">
+                            📅
+                        </div>
+                        <div className="flex-1">
+                            <p className="font-semibold text-lg text-stone-800">{calConnected ? "Conectado" : "Desconectado"}</p>
+                            <p className="text-sm font-medium text-stone-500">
+                                {calConnected ? "Sincronizando perfeitamente" : "Clique para conectar sua conta"}
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            title={calConnected ? "Desconectar" : "Conectar"}
+                            onClick={() => { if (!calConnected) handleConnect(); else setCalConnected(false); }}
+                            className={`relative w-14 h-8 rounded-full transition-all duration-300 ease-spring ${calConnected ? 'bg-gradient-to-r from-emerald-400 to-emerald-500 shadow-md shadow-emerald-500/20' : 'bg-stone-300'}`}
+                        >
+                            <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-sm transition-all duration-300 ease-spring ${calConnected ? 'left-[calc(100%-1.625rem)]' : 'left-1'}`} />
+                        </button>
                     </div>
-                )}
+                    {calConnected && (
+                        <div className="space-y-4 pt-4 border-t border-stone-200/50">
+                            {[
+                                { label: "Cor por fase do ciclo", desc: "Eventos coloridos automaticamente" },
+                                { label: "Sincronizar tarefas", desc: "Tarefas com data viram eventos" },
+                                { label: "Importar eventos", desc: "Eventos do Calendar viram tarefas" },
+                            ].map((item, i) => (
+                                <div key={i} className="flex justify-between items-center bg-white/40 p-4 rounded-xl border border-white/40 hover:bg-white/60 transition-colors">
+                                    <div>
+                                        <p className="text-sm font-semibold text-stone-800">{item.label}</p>
+                                        <p className="text-xs text-stone-500">{item.desc}</p>
+                                    </div>
+                                    <div className="w-5 h-5 rounded-full bg-emerald-400 flex items-center justify-center text-white">
+                                        <span className="text-xs font-bold">✓</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
@@ -116,10 +90,10 @@ export const Settings = ({ navigate }: { navigate?: (view: string) => void }) =>
         {
             title: "CONTA",
             items: [
-                { icon: "👤", label: "Meu perfil", sub: "Usuária Airia Flow", onPress: () => navigate?.("profile"), arrow: true },
+                { icon: <User className="w-5 h-5" />, label: "Meu perfil", sub: "Usuária Airia Flow", onPress: () => navigate?.("profile"), arrow: true },
                 {
-                    icon: "💳", label: "Plano Pro", sub: "Gerenciar assinatura", onPress: () => { }, arrow: true,
-                    badge: { text: "Pro ⭐", color: T.rose }
+                    icon: <CreditCard className="w-5 h-5" />, label: "Plano Pro", sub: "Gerenciar assinatura", onPress: () => { }, arrow: true,
+                    badge: { text: "Pro ⭐", color: "text-purple-600", bg: "bg-purple-100" }
                 },
             ]
         },
@@ -127,7 +101,7 @@ export const Settings = ({ navigate }: { navigate?: (view: string) => void }) =>
             title: "INTEGRAÇÃO",
             items: [
                 {
-                    icon: "📅", label: "Google Calendar", sub: calConnected ? "Conectado ✓" : "Não conectado",
+                    icon: <Calendar className="w-5 h-5" />, label: "Google Calendar", sub: calConnected ? "Conectado ✓" : "Não conectado",
                     onPress: () => setSection("calendar"), arrow: true
                 },
             ]
@@ -136,12 +110,12 @@ export const Settings = ({ navigate }: { navigate?: (view: string) => void }) =>
             title: "NOTIFICAÇÕES",
             items: [
                 {
-                    icon: pushStatus === "granted" ? "🔔" : "🔕",
+                    icon: pushStatus === "granted" ? <Bell className="w-5 h-5 text-emerald-600" /> : <BellOff className="w-5 h-5 text-stone-400" />,
                     label: "Notificações push",
                     sub: pushStatus === "granted"
                         ? "Ativadas ✓ — toque para testar"
                         : pushStatus === "denied"
-                            ? "Bloqueadas — ative nas configurações do celular"
+                            ? "Bloqueadas — ative nas configurações"
                             : pushStatus === "unsupported"
                                 ? "Não suportado neste navegador"
                                 : pushLoading ? "Solicitando permissão…" : "Toque para ativar lembretes",
@@ -153,49 +127,65 @@ export const Settings = ({ navigate }: { navigate?: (view: string) => void }) =>
             ]
         },
         {
-            title: "SOBRE",
+            title: "SESSÃO",
             items: [
-                { icon: "🚪", label: "Sair da conta", sub: "", onPress: () => navigate?.("login"), danger: true },
+                { icon: <LogOut className="w-5 h-5 text-rose-500" />, label: "Sair da conta", sub: "", onPress: () => signOut?.(), danger: true },
             ]
         },
     ];
 
     return (
-        <div className="scroll-area page-enter" style={{ minHeight: "100vh", paddingBottom: 100 }}>
-            <div style={{ padding: "56px 24px 20px", position: "relative" }}>
-                <Sparkles />
-                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 700, color: T.text }}>Configurações ⚙️</h1>
-            </div>
-            <div style={{ padding: "0 20px", display: "flex", flexDirection: "column", gap: 20 }}>
-                {sections.map((sec, si) => (
-                    <div key={si}>
-                        <p style={{ fontSize: 11, fontWeight: 700, color: T.textLight, letterSpacing: 1, marginBottom: 8, paddingLeft: 4 }}>{sec.title}</p>
-                        <div className="glass" style={{ padding: "4px 16px" }}>
-                            {sec.items.map((item, ii) => (
-                                <button key={ii} onClick={item.onPress}
-                                    style={{
-                                        display: "flex", gap: 14, alignItems: "center", padding: "14px 0", width: "100%",
-                                        borderBottom: ii < sec.items.length - 1 ? "1px solid rgba(155,110,98,0.08)" : "none",
-                                        background: "none", border: "none", cursor: "pointer", textAlign: "left"
-                                    }}>
-                                    <span style={{ fontSize: 22, width: 32, textAlign: "center" }}>{item.icon}</span>
-                                    <div style={{ flex: 1 }}>
-                                        <p style={{ fontSize: 15, fontWeight: 500, color: item.danger ? "#E05050" : T.text }}>{item.label}</p>
-                                        {item.sub && <p style={{ fontSize: 12, color: T.textLight, marginTop: 2 }}>{item.sub}</p>}
-                                    </div>
-                                    {item.badge && (
-                                        <span style={{
-                                            fontSize: 11, padding: "3px 10px", borderRadius: 99, fontWeight: 700,
-                                            background: `${item.badge.color}20`, color: item.badge.color
-                                        }}>{item.badge.text}</span>
-                                    )}
-                                    {item.arrow && <span style={{ color: T.textLight, fontSize: 18 }}>›</span>}
-                                </button>
-                            ))}
+        <div className="min-h-screen bg-gradient-to-br from-stone-50 via-orange-50 to-pink-50 pb-24 relative overflow-hidden">
+            <div className="absolute top-[-5%] right-[-10%] w-96 h-96 bg-purple-300/20 rounded-full mix-blend-multiply filter blur-[100px] animate-pulse"></div>
+
+            <div className="p-6 pt-12 relative z-10 max-w-lg mx-auto space-y-6">
+                <div className="relative mb-8">
+                    <Sparkles className="absolute -top-4 -left-2 w-6 h-6 text-orange-400/80 animate-pulse" />
+                    <Sparkles className="absolute top-4 right-0 w-4 h-4 text-pink-400/80 animate-pulse" style={{ animationDelay: '1s' }} />
+                    <h1 className="font-serif text-4xl font-bold text-stone-800 tracking-tight flex items-center gap-3">
+                        Configurações <span className="text-3xl drop-shadow-sm">⚙️</span>
+                    </h1>
+                </div>
+
+                <div className="space-y-6">
+                    {sections.map((sec, si) => (
+                        <div key={si} className="space-y-2">
+                            <p className="text-xs font-bold text-stone-400 tracking-widest pl-4 uppercase">{sec.title}</p>
+                            <div className="glass-card-chic rounded-3xl overflow-hidden shadow-sm border border-white/60">
+                                {sec.items.map((item, ii) => (
+                                    <button
+                                        type="button"
+                                        key={ii}
+                                        onClick={item.onPress}
+                                        className={`w-full flex items-center justify-between p-4 bg-white/40 hover:bg-white/70 transition-colors text-left group ${ii < sec.items.length - 1 ? 'border-b border-stone-200/50' : ''}`}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-inner-sm transition-colors ${item.danger ? 'bg-rose-100/50 text-rose-600' : 'bg-white/60 text-stone-500 group-hover:text-purple-500'}`}>
+                                                {item.icon}
+                                            </div>
+                                            <div>
+                                                <p className={`text-base font-semibold ${item.danger ? 'text-rose-600' : 'text-stone-800'}`}>
+                                                    {item.label}
+                                                </p>
+                                                {item.sub && <p className="text-xs font-medium text-stone-500 mt-0.5">{item.sub}</p>}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            {item.badge && (
+                                                <span className={`text-[10px] font-bold px-2.5 py-1.5 rounded-full ${item.badge.bg} ${item.badge.color}`}>
+                                                    {item.badge.text}
+                                                </span>
+                                            )}
+                                            {item.arrow && <ChevronRight className="w-5 h-5 text-stone-400 group-hover:text-stone-600 transition-colors" />}
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
         </div>
     );
 };
+

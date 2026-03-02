@@ -164,8 +164,8 @@ Formate como lista simples de exercícios com duração. Máximo 5 exercícios. 
                 {/* Energy-based recommendation */}
                 {!energyLoading && energy && (
                     <div className={`rounded-2xl p-4 border ${energy.energy_level === 'high' ? 'bg-emerald-50/80 border-emerald-200/60' :
-                            energy.energy_level === 'medium' ? 'bg-amber-50/80 border-amber-200/60' :
-                                'bg-red-50/80 border-red-200/60'
+                        energy.energy_level === 'medium' ? 'bg-amber-50/80 border-amber-200/60' :
+                            'bg-red-50/80 border-red-200/60'
                         }`}>
                         <div className="flex items-center gap-2 mb-1">
                             {energy.energy_level === 'high' ? <Flame className="w-4 h-4 text-emerald-600" /> :
@@ -194,14 +194,15 @@ Formate como lista simples de exercícios com duração. Máximo 5 exercícios. 
                         {availableExercises.map((option) => (
                             <button
                                 key={option.label}
+                                title={option.label}
                                 onClick={() => startQuickExercise(option)}
-                                className={`flex items-center gap-2 p-3 rounded-xl border transition-all active:scale-95 ${option.intensity === 'intense' ? 'bg-orange-50/80 border-orange-200/60 hover:bg-orange-100/80' :
-                                        option.intensity === 'moderate' ? 'bg-amber-50/80 border-amber-200/60 hover:bg-amber-100/80' :
-                                            'bg-white/60 border-white/80 hover:bg-white/90'
+                                className={`flex items-center gap-2 p-3 rounded-2xl border transition-all hover:-translate-y-0.5 active:scale-95 shadow-sm hover:shadow-md ${option.intensity === 'intense' ? 'bg-orange-50/80 border-orange-200/60 hover:bg-orange-100/80 text-orange-700' :
+                                    option.intensity === 'moderate' ? 'bg-amber-50/80 border-amber-200/60 hover:bg-amber-100/80 text-amber-700' :
+                                        'bg-white/80 border-white hover:bg-white text-stone-700'
                                     }`}
                             >
-                                <span className="text-lg">{option.icon}</span>
-                                <span className="text-xs font-medium text-stone-700 text-left">{option.label}</span>
+                                <span className="text-xl drop-shadow-sm">{option.icon}</span>
+                                <span className="text-[13px] font-semibold text-left leading-tight">{option.label}</span>
                             </button>
                         ))}
                     </div>
@@ -210,21 +211,22 @@ Formate como lista simples de exercícios com duração. Máximo 5 exercícios. 
                 {/* Custom AI Request */}
                 <div className="space-y-3">
                     <h2 className="font-serif text-lg text-stone-800">Peça à IA</h2>
-                    <div className="glass-card-chic rounded-2xl p-3 flex items-center gap-2">
+                    <div className="glass-card-chic rounded-2xl p-2.5 flex items-center gap-2 border border-white/60 shadow-inner-sm">
                         <input
                             type="text"
-                            placeholder="Ex: Um treino de corrida emocionante de 20 min"
+                            placeholder="Ex: Treino rápido de 15 min..."
                             value={customRequest}
                             onChange={(e) => setCustomRequest(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && generateAIPlan()}
-                            className="flex-1 bg-transparent text-stone-700 text-sm placeholder:text-stone-400 outline-none px-2"
+                            className="flex-1 bg-transparent text-stone-800 text-sm placeholder:text-stone-400 font-medium outline-none px-3"
                         />
                         <button
+                            title="Gerar plano com IA"
                             onClick={generateAIPlan}
                             disabled={generating || !customRequest.trim()}
-                            className="w-9 h-9 rounded-full bg-purple-500 text-white flex items-center justify-center transition-all active:scale-90 disabled:opacity-40"
+                            className="w-10 h-10 rounded-xl bg-purple-500 text-white flex items-center justify-center transition-all hover:bg-purple-600 hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:hover:translate-y-0 shadow-md shadow-purple-500/20"
                         >
-                            <Send className="w-4 h-4" />
+                            <Send className="w-4 h-4 ml-0.5" />
                         </button>
                     </div>
 
@@ -279,8 +281,16 @@ Formate como lista simples de exercícios com duração. Máximo 5 exercícios. 
                             </div>
                         ))
                     ) : (
-                        <div className="text-center py-6 glass-card-chic rounded-2xl border-dashed border-2 border-white/40">
-                            <p className="text-stone-500 font-medium text-sm">Nenhum exercício registrado ainda.</p>
+                        <div className="text-center py-16 px-6 flex flex-col items-center">
+                            <div className="w-16 h-16 bg-white/50 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                                <span className="text-3xl drop-shadow-sm">💤</span>
+                            </div>
+                            <p className="font-serif text-[17px] tracking-tight text-stone-800 mb-1">
+                                Nenhum exercício ainda
+                            </p>
+                            <p className="text-[13px] text-stone-500 max-w-[200px] leading-relaxed">
+                                Comece um treino rápido ou peça uma sugestão para a IA.
+                            </p>
                         </div>
                     )}
                 </div>

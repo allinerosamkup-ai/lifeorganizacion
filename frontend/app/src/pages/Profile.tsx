@@ -98,24 +98,25 @@ export const Profile = () => {
                         { icon: <Lock className="w-5 h-5" />, label: 'Privacy' },
                         { icon: <HelpCircle className="w-5 h-5" />, label: 'Help & Support' },
                     ].map((item, i) => (
-                        <div key={i} className="flex items-center justify-between p-4 bg-white/40 hover:bg-white/70 rounded-2xl transition-all cursor-pointer shadow-sm border border-white/50 group">
+                        <button type="button" key={i} className="w-full flex items-center justify-between p-4 bg-white/40 hover:bg-white/70 rounded-2xl transition-all cursor-pointer shadow-sm border border-white/50 group">
                             <div className="flex items-center gap-4 text-stone-700">
                                 <div className="bg-white/60 p-2 rounded-xl shadow-inner-sm text-stone-500 group-hover:text-purple-500 transition-colors">{item.icon}</div>
                                 <span className="font-semibold">{item.label}</span>
                             </div>
                             <ChevronRight className="w-5 h-5 text-stone-400 border border-stone-200 rounded-full bg-white flex items-center justify-center p-0.5" />
-                        </div>
+                        </button>
                     ))}
 
-                    <div
+                    <button
+                        type="button"
                         onClick={signOut}
-                        className="flex items-center justify-between p-4 bg-red-50/50 hover:bg-red-100/80 rounded-2xl transition-all cursor-pointer text-red-600 mt-6 border border-red-100 group shadow-sm"
+                        className="w-full flex items-center justify-between p-4 bg-red-50/50 hover:bg-red-100/80 rounded-2xl transition-all cursor-pointer text-red-600 mt-6 border border-red-100 group shadow-sm text-left"
                     >
                         <div className="flex items-center gap-4">
                             <div className="bg-white/80 p-2 rounded-xl shadow-inner-sm group-hover:bg-red-200 group-hover:text-red-700 transition-colors"><LogOut className="w-5 h-5" /></div>
                             <span className="font-bold">Log out</span>
                         </div>
-                    </div>
+                    </button>
                 </div>
 
             </div>

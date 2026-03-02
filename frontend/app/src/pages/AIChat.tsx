@@ -122,16 +122,18 @@ export const AIChat = ({ navigate }: { navigate: (view: string) => void }) => {
                     </h1>
                     <span className="text-xs text-stone-500 font-medium tracking-wider uppercase">Sua Assistente</span>
                 </div>
-                <div className="w-10 h-10 flex items-center justify-center text-stone-800 hover:bg-white/40 rounded-full transition-colors cursor-pointer" title="Configurações">
+                <button type="button" onClick={() => navigate('settings')} className="w-10 h-10 flex items-center justify-center text-stone-800 hover:bg-white/40 rounded-full transition-colors cursor-pointer" title="Configurações">
                     <Settings className="w-5 h-5" />
-                </div>
+                </button>
             </div>
 
             <div className="flex-1 p-4 space-y-6 overflow-y-auto pb-6">
                 {messages.length === 0 && !isTyping && (
-                    <div className="flex flex-col items-center justify-center h-full text-stone-400 opacity-50 space-y-4">
-                        <Bot className="w-16 h-16" />
-                        <p>Inicie uma conversa...</p>
+                    <div className="flex flex-col items-center justify-center h-full text-stone-500 opacity-80 space-y-5 animate-fade-in-up">
+                        <div className="w-20 h-20 bg-white/60 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg shadow-orange-500/10 border border-white">
+                            <Bot className="w-10 h-10 text-orange-500" />
+                        </div>
+                        <p className="font-serif text-lg tracking-tight">Como posso ajudar hoje?</p>
                     </div>
                 )}
 
@@ -165,8 +167,8 @@ export const AIChat = ({ navigate }: { navigate: (view: string) => void }) => {
                                                         <div className="flex items-center justify-between">
                                                             <span className="font-semibold text-stone-700 text-sm">{task.title}</span>
                                                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${task.energy_level === 'high' ? 'bg-emerald-100 text-emerald-700' :
-                                                                    task.energy_level === 'medium' ? 'bg-amber-100 text-amber-700' :
-                                                                        'bg-rose-100 text-rose-700'
+                                                                task.energy_level === 'medium' ? 'bg-amber-100 text-amber-700' :
+                                                                    'bg-rose-100 text-rose-700'
                                                                 }`}>
                                                                 {task.energy_level === 'high' ? 'Alta Energia' :
                                                                     task.energy_level === 'medium' ? 'Média Energia' : 'Baixa Energia'}

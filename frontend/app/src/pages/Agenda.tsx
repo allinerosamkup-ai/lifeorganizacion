@@ -37,6 +37,30 @@ export const Agenda = () => {
     const [isSplitting, setIsSplitting] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [showAddForm, setShowAddForm] = useState(false);
+    const [energyHistory, setEnergyHistory] = useState<Record<string, { energy_level: string, total_score: number }>>({});
+
+    // Fetch energy history for calendar colors
+    useEffect(() => {
+        const fetchEnergy = async () => {
+            if (!user) return;
+            const start = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
+            const end = format(endOfMonth(currentMonth), 'yyyy-MM-dd');
+
+            const { data } = await supabase
+                .from('daily_energy')
+                .select('date, energy_level, total_score')
+                .eq('user_id', user.id)
+                .gte('date', start)
+                .lte('date', end);
+
+            if (data) {
+                const historyMap: Record<string, { energy_level: string, total_score: number }> = {};
+                data.forEach(d => { historyMap[d.date] = { energy_level: d.energy_level, total_score: d.total_score }; });
+                setEnergyHistory(historyMap);
+            }
+        };
+        fetchEnergy();
+    }, [user, currentMonth]);
 
     // Generate calendar days for current month view
     const calendarDays = useMemo(() => {
@@ -61,18 +85,17 @@ export const Agenda = () => {
         return 'luteal';
     };
 
-    const phaseColors: Record<string, string> = {
-        menstrual: 'bg-rose-200/60',
-        folicular: 'bg-emerald-200/60',
-        ovulatoria: 'bg-amber-200/60',
-        luteal: 'bg-purple-200/60',
-    };
-
     const phaseLabels: Record<string, { icon: string; label: string; color: string }> = {
         menstrual: { icon: '🌙', label: 'Menstrual', color: 'text-rose-600 bg-rose-50' },
         folicular: { icon: '🌱', label: 'Folicular', color: 'text-emerald-600 bg-emerald-50' },
         ovulatoria: { icon: '☀️', label: 'Ovulação', color: 'text-amber-600 bg-amber-50' },
         luteal: { icon: '🍂', label: 'Lútea', color: 'text-purple-600 bg-purple-50' },
+    };
+
+    const energyColors: Record<string, string> = {
+        low: 'bg-red-200/60 text-red-800',
+        medium: 'bg-amber-200/60 text-amber-800',
+        high: 'bg-emerald-200/60 text-emerald-800',
     };
 
     // Fetch tasks for selected date
@@ -284,7 +307,7 @@ Retorne APENAS um JSON array de objetos com esta estrutura exata, sem texto adic
                 </div>
 
                 {/* Month Calendar */}
-                <div className="glass-card-chic rounded-3xl p-5 shadow-3d">
+                <div className="glass-card-chic rounded-3xl p-5 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-white/80">
                     <div className="flex justify-between items-center mb-4">
                         <button type="button" title="Mês anterior" onClick={() => setCurrentMonth(m => subMonths(m, 1))} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-stone-100/50">
                             <ChevronLeft className="w-5 h-5 text-stone-500" />
@@ -307,10 +330,12 @@ Retorne APENAS um JSON array de objetos com esta estrutura exata, sem texto adic
                     {/* Calendar grid */}
                     <div className="grid grid-cols-7 gap-1">
                         {calendarDays.map((date, i) => {
+                            const dateStr = format(date, 'yyyy-MM-dd');
                             const isSelected = isSameDay(date, selectedDate);
                             const isCurrentMonth = isSameMonth(date, currentMonth);
-                            const phase = getCyclePhaseForDate(date);
-                            const phaseColor = phase ? phaseColors[phase] : '';
+
+                            const dayEnergy = energyHistory[dateStr]?.energy_level;
+                            const energyColorClass = dayEnergy ? energyColors[dayEnergy] : '';
 
                             return (
                                 <button
@@ -319,8 +344,8 @@ Retorne APENAS um JSON array de objetos com esta estrutura exata, sem texto adic
                                     onClick={() => setSelectedDate(date)}
                                     className={`w-full aspect-square rounded-xl flex items-center justify-center text-sm font-medium transition-all
                                         ${!isCurrentMonth ? 'opacity-30' : ''}
-                                        ${isSelected ? 'bg-orange-400 text-white shadow-md scale-110 z-10' : `${phaseColor} hover:bg-white/50`}
-                                        ${isToday(date) && !isSelected ? 'ring-2 ring-orange-300' : ''}
+                                        ${isSelected ? 'bg-stone-800 text-white shadow-md scale-110 z-10' : `${energyColorClass} hover:bg-stone-200/50`}
+                                        ${isToday(date) && !isSelected ? 'ring-2 ring-stone-400' : ''}
                                     `}
                                 >
                                     {format(date, 'd')}
@@ -329,19 +354,20 @@ Retorne APENAS um JSON array de objetos com esta estrutura exata, sem texto adic
                         })}
                     </div>
 
-                    {/* Phase legend */}
-                    <div className="flex justify-center gap-3 mt-4 flex-wrap">
-                        {[
-                            { label: 'Menstrual', color: 'bg-rose-300' },
-                            { label: 'Folicular', color: 'bg-emerald-300' },
-                            { label: 'Ovulação', color: 'bg-amber-300' },
-                            { label: 'Lútea', color: 'bg-purple-300' },
-                        ].map(p => (
-                            <div key={p.label} className="flex items-center gap-1">
-                                <div className={`w-2.5 h-2.5 rounded-full ${p.color}`} />
-                                <span className="text-[10px] text-stone-500 font-medium">{p.label}</span>
-                            </div>
-                        ))}
+                    {/* Energy legend */}
+                    <div className="flex justify-center gap-4 mt-6">
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                            <span className="text-[10px] text-stone-500 font-semibold uppercase tracking-wider">Alta</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                            <span className="text-[10px] text-stone-500 font-semibold uppercase tracking-wider">Média</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                            <span className="text-[10px] text-stone-500 font-semibold uppercase tracking-wider">Baixa</span>
+                        </div>
                     </div>
                 </div>
 
@@ -359,8 +385,9 @@ Retorne APENAS um JSON array de objetos com esta estrutura exata, sem texto adic
                     </div>
                     <button
                         type="button"
+                        title={showAddForm ? "Cancelar" : "Adicionar tarefa"}
                         onClick={() => setShowAddForm(!showAddForm)}
-                        className="w-10 h-10 rounded-full bg-orange-400 text-white flex items-center justify-center shadow-md hover:bg-orange-500 transition-all"
+                        className="w-11 h-11 rounded-2xl bg-stone-800 text-white flex items-center justify-center shadow-lg shadow-stone-800/20 hover:-translate-y-0.5 hover:bg-stone-900 transition-all active:scale-[0.95]"
                     >
                         {showAddForm ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                     </button>
@@ -405,10 +432,11 @@ Retorne APENAS um JSON array de objetos com esta estrutura exata, sem texto adic
                         </div>
                     ) : tasks.length > 0 ? (
                         tasks.map(task => (
-                            <div key={task.id} className={`glass-card-chic rounded-2xl p-4 space-y-3 transition-all ${task.is_completed ? 'opacity-60' : ''}`}>
-                                <div className="flex justify-between items-start gap-3">
-                                    <div className="flex gap-3 flex-1 cursor-pointer" onClick={() => toggleTask(task.id)}>
-                                        <button type="button" className={`mt-0.5 w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all ${task.is_completed ? 'bg-emerald-400 text-white' : 'border-2 border-stone-300 hover:border-emerald-400'}`}>
+                            <div key={task.id} className={`relative glass-card-chic border border-white/60 hover:border-white rounded-3xl p-5 shadow-sm hover:shadow-md transition-all active:scale-[0.99] ${task.is_completed ? 'opacity-60 grayscale-[0.2]' : ''}`}>
+                                <div className="absolute inset-0 bg-gradient-to-r from-white/40 to-transparent rounded-3xl pointer-events-none"></div>
+                                <div className="relative flex justify-between items-start gap-4">
+                                    <div className="flex gap-3 flex-1 cursor-pointer group" onClick={() => toggleTask(task.id)}>
+                                        <button type="button" title={task.is_completed ? "Desmarcar tarefa" : "Concluir tarefa"} className={`mt-0.5 w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all ${task.is_completed ? 'bg-emerald-400 text-white' : 'border-2 border-stone-300 group-hover:border-emerald-400'}`}>
                                             {task.is_completed && <CheckCircle2 className="w-4 h-4" />}
                                         </button>
                                         <div className="flex-1">
@@ -431,7 +459,7 @@ Retorne APENAS um JSON array de objetos com esta estrutura exata, sem texto adic
                                                 type="button"
                                                 onClick={() => splitTaskWithAI(task)}
                                                 disabled={isSplitting === task.id}
-                                                className="p-1.5 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors disabled:opacity-50"
+                                                className="p-2 w-8 h-8 flex items-center justify-center rounded-xl bg-purple-50 text-purple-500 hover:bg-purple-100 hover:text-purple-700 transition-all active:scale-[0.9] disabled:opacity-50 shadow-sm"
                                                 title="Dividir com IA"
                                             >
                                                 {isSplitting === task.id ? <Wand2 className="w-4 h-4 animate-spin" /> : <SplitSquareHorizontal className="w-4 h-4" />}
@@ -440,7 +468,7 @@ Retorne APENAS um JSON array de objetos com esta estrutura exata, sem texto adic
                                         <button
                                             type="button"
                                             onClick={() => deleteTask(task.id)}
-                                            className="p-1.5 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 transition-colors"
+                                            className="p-2 w-8 h-8 flex items-center justify-center rounded-xl bg-rose-50 text-rose-400 hover:bg-rose-100 hover:text-rose-600 transition-all active:scale-[0.9] shadow-sm"
                                             title="Excluir"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -477,9 +505,16 @@ Retorne APENAS um JSON array de objetos com esta estrutura exata, sem texto adic
                             </div>
                         ))
                     ) : (
-                        <div className="text-center py-10 glass-card-chic rounded-2xl border-dashed border-2 border-white/40">
-                            <p className="text-stone-500 font-medium text-sm mb-2">Nenhuma tarefa para este dia</p>
-                            <p className="text-stone-400 text-xs">Adicione manualmente ou use o Smart Entry</p>
+                        <div className="text-center py-20 px-8 flex flex-col items-center">
+                            <div className="w-20 h-20 bg-white/50 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                                <span className="text-4xl drop-shadow-sm">🗓️</span>
+                            </div>
+                            <p className="font-serif text-xl tracking-tight text-stone-800 mb-1">
+                                Dia livre de tarefas
+                            </p>
+                            <p className="text-[13px] text-stone-500 max-w-[200px] leading-relaxed">
+                                Adicione manualmente ou use o Smart Entry.
+                            </p>
                         </div>
                     )}
                 </div>
