@@ -1,0 +1,25 @@
+(node:45672) ESLintIgnoreWarning: The ".eslintignore" file is no longer supported. Switch to using the "ignores" property in "eslint.config.js": https://eslint.org/docs/latest/use/configure/migration-guide#ignoring-files
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+C:\Users\allin\lifeorganizacion\frontend\app\dev-dist\workbox-c5fd805d.js
+    52:7   error    Definition for rule '@typescript-eslint/ban-types' was not found                @typescript-eslint/ban-types
+   419:5   error    Definition for rule '@typescript-eslint/ban-types' was not found                @typescript-eslint/ban-types
+   435:5   warning  Unused eslint-disable directive (no problems were reported)
+   752:11  error    Definition for rule '@typescript-eslint/no-unsafe-member-access' was not found  @typescript-eslint/no-unsafe-member-access
+   754:13  error    Definition for rule '@typescript-eslint/no-unsafe-assignment' was not found     @typescript-eslint/no-unsafe-assignment
+   948:11  error    Definition for rule '@typescript-eslint/no-unsafe-assignment' was not found     @typescript-eslint/no-unsafe-assignment
+   964:13  error    Definition for rule '@typescript-eslint/no-unsafe-assignment' was not found     @typescript-eslint/no-unsafe-assignment
+   970:13  warning  Unused eslint-disable directive (no problems were reported)
+  1257:5   error    Definition for rule '@typescript-eslint/ban-types' was not found                @typescript-eslint/ban-types
+  1275:5   error    Definition for rule '@typescript-eslint/ban-types' was not found                @typescript-eslint/ban-types
+  2631:35  warning  Unused eslint-disable directive (no problems were reported)
+  3415:11  warning  Unused eslint-disable directive (no problems were reported)
+  3935:9   error    Definition for rule '@typescript-eslint/no-unsafe-return' was not found         @typescript-eslint/no-unsafe-return
+  3982:9   error    Definition for rule '@typescript-eslint/no-unsafe-return' was not found         @typescript-eslint/no-unsafe-return
+
+C:\Users\allin\lifeorganizacion\frontend\app\src\lib\AuthContext.tsx
+  114:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+Ô£û 15 problems (11 errors, 4 warnings)
+  0 errors and 4 warnings potentially fixable with the `--fix` option.
+

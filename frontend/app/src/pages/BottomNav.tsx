@@ -1,33 +1,37 @@
 import {
     Home as HomeIcon, Calendar as CalendarIcon,
-    MessageCircle, User, CalendarDays
+    MessageCircle, Dumbbell, Settings as SettingsIcon, CheckSquare
 } from 'lucide-react';
 
 export const BottomNav = ({ current, navigate }: { current: string, navigate: (view: string) => void }) => {
-    if (['login', 'onboarding-1', 'onboarding-2', 'onboarding-3', 'sanctuary', 'focus', 'chat'].includes(current)) return null;
+    if (['login', 'onboarding-1', 'onboarding-2', 'onboarding-3', 'sanctuary'].includes(current)) return null;
 
     return (
-        <div className="absolute bottom-0 w-full bg-white/80 backdrop-blur-xl border-t border-white/50 flex justify-around py-4 pb-8 px-4 z-50 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-            <button onClick={() => navigate('home')} className={`flex flex-col items-center gap-1 ${current === 'home' ? 'text-emerald-600' : 'text-stone-400'}`}>
+        <nav className="w-full bg-white/80 backdrop-blur-xl border-t border-white/50 flex justify-around py-3 pb-6 px-4 z-50 shrink-0 shadow-[0_-4px_20px_rgba(0,0,0,0.04)]">
+            <button onClick={() => navigate('home')} className={`flex flex-col items-center gap-1 transition-all active:scale-90 ${current === 'home' ? 'text-emerald-600' : 'text-stone-400'}`}>
                 <HomeIcon className={`w-6 h-6 ${current === 'home' ? 'fill-emerald-600/20' : ''}`} />
                 <span className="text-[10px] font-medium">Home</span>
             </button>
-            <button onClick={() => navigate('agenda')} className={`flex flex-col items-center gap-1 ${current === 'agenda' ? 'text-blue-500' : 'text-stone-400'}`}>
-                <CalendarDays className={`w-6 h-6 ${current === 'agenda' ? 'fill-blue-500/20' : ''}`} />
+            <button onClick={() => navigate('agenda')} className={`flex flex-col items-center gap-1 transition-all active:scale-90 ${current === 'agenda' ? 'text-blue-500' : 'text-stone-400'}`}>
+                <CalendarIcon className={`w-6 h-6 ${current === 'agenda' ? 'fill-blue-500/20' : ''}`} />
                 <span className="text-[10px] font-medium">Agenda</span>
             </button>
-            <button onClick={() => navigate('cycle')} className={`flex flex-col items-center gap-1 ${current === 'cycle' ? 'text-pink-500' : 'text-stone-400'}`}>
-                <CalendarIcon className={`w-6 h-6 ${current === 'cycle' ? 'fill-pink-500/20' : ''}`} />
-                <span className="text-[10px] font-medium">Cycle</span>
+            <button onClick={() => navigate('exercises')} className={`flex flex-col items-center gap-1 transition-all active:scale-90 ${current === 'exercises' ? 'text-purple-500' : 'text-stone-400'}`}>
+                <Dumbbell className={`w-6 h-6 ${current === 'exercises' ? 'fill-purple-500/20' : ''}`} />
+                <span className="text-[10px] font-medium">Exercícios</span>
             </button>
-            <button onClick={() => navigate('chat')} className={`flex flex-col items-center gap-1 ${current === 'chat' ? 'text-orange-500' : 'text-stone-400'}`}>
+            <button onClick={() => navigate('tasks')} className={`flex flex-col items-center gap-1 transition-all active:scale-90 ${current === 'tasks' ? 'text-rose-500' : 'text-stone-400'}`}>
+                <CheckSquare className={`w-6 h-6 ${current === 'tasks' ? 'fill-rose-500/20' : ''}`} />
+                <span className="text-[10px] font-medium">Tasks</span>
+            </button>
+            <button onClick={() => navigate('chat')} className={`flex flex-col items-center gap-1 transition-all active:scale-90 ${current === 'chat' ? 'text-orange-500' : 'text-stone-400'}`}>
                 <MessageCircle className={`w-6 h-6 ${current === 'chat' ? 'fill-orange-500/20' : ''}`} />
                 <span className="text-[10px] font-medium">Journal</span>
             </button>
-            <button onClick={() => navigate('profile')} className={`flex flex-col items-center gap-1 ${current === 'profile' ? 'text-purple-500' : 'text-stone-400'}`}>
-                <User className={`w-6 h-6 ${current === 'profile' ? 'fill-purple-500/20' : ''}`} />
-                <span className="text-[10px] font-medium">Profile</span>
+            <button onClick={() => navigate('settings')} className={`flex flex-col items-center gap-1 transition-all active:scale-90 ${current === 'settings' ? 'text-stone-600' : 'text-stone-400'}`}>
+                <SettingsIcon className={`w-6 h-6 ${current === 'settings' ? 'fill-stone-600/20' : ''}`} />
+                <span className="text-[10px] font-medium">Settings</span>
             </button>
-        </div>
+        </nav>
     );
 };

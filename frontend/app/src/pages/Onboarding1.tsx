@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Calendar as CalendarIcon, Minus, Plus } from 'lucide-react';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const Onboarding1 = ({ onNext }: { onNext: (data: any) => void }) => {
     const [lastPeriod, setLastPeriod] = useState(new Date().toISOString().split('T')[0]);
     const [cycleLength, setCycleLength] = useState(28);

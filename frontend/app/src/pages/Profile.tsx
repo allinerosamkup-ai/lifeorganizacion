@@ -17,7 +17,7 @@ export const Profile = () => {
                 <div className="text-center mt-8 mb-6 relative">
                     <Sparkles className="absolute -top-2 left-6 w-6 h-6 text-orange-400 opacity-60 animate-pulse" />
                     <Sparkles className="absolute top-8 right-6 w-4 h-4 text-pink-400 opacity-40 animate-pulse animation-delay-2000" />
-                    <h1 className="text-2xl font-serif text-stone-900 drop-shadow-sm">LifeOrganizer AI</h1>
+                    <h1 className="text-2xl font-serif text-stone-900 drop-shadow-sm">Airia Flow</h1>
                     <h2 className="text-4xl font-serif text-stone-800 tracking-tight mt-1">Profile & Analytics</h2>
                 </div>
 

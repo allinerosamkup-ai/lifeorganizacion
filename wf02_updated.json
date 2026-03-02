@@ -132,33 +132,41 @@
     {
       "id": "claude-d2",
       "name": "OpenAI — Mensagem Personalizada",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
       "position": [
         1120,
         200
       ],
       "parameters": {
-        "method": "POST",
-        "url": "https://api.openai.com/v1/chat/completions",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
+        "resource": "chat",
+        "operation": "complete",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT_4O_MINI"
+        },
+        "messages": {
+          "values": [
             {
-              "name": "Authorization",
-              "value": "Bearer {{$env.OPENAI_API_KEY}}"
+              "role": "system",
+              "content": "Especialista em comunicação empática para apps de saúde feminina. Nunca usa linguagem de pressão ou culpa. JSON válido sempre."
             },
             {
-              "name": "content-type",
-              "value": "application/json"
+              "role": "user",
+              "content": "={{ 'Lembrete de check-in personalizado WhatsApp.\\n\\nNome: ' + ($json.full_name || $json.email.split('@')[0]) + '\\nFase: ' + $json.current_phase + ' dia ' + $json.day_of_cycle + '\\nStreak: ' + $json.streak_days + ' dias\\n\\nREGRAS:\\n- MENSTRUAL: gentil, auto-cuidado, sem pressão\\n- FOLICULAR: energético, criatividade\\n- OVULATÓRIA: confiante, conexões\\n- LUTEAL: acolhedor, valida cansaço\\n\\nSAÍDA JSON:\\n{\"message\": \"msg principal (max 50 palavras)\", \"message_variant_b\": \"variante A/B\"}' }}"
             }
           ]
         },
-        "sendBody": true,
-        "contentType": "raw",
-        "body": "={{ JSON.stringify({ model: 'gpt-4o-mini', max_tokens: 400, messages: [{ role: 'system', content: 'Especialista em comunicação empática para apps de saúde feminina. Nunca usa linguagem de pressão ou culpa. JSON válido sempre.' }, [{ role: 'user', content: 'Lembrete de check-in personalizado WhatsApp.\\n\\nNome: ' + ($json.full_name || $json.email.split('@')[0]) + '\\nFase: ' + $json.current_phase + ' dia ' + $json.day_of_cycle + '\\nStreak: ' + $json.streak_days + ' dias\\n\\nREGRAS:\\n- MENSTRUAL: gentil, auto-cuidado, sem pressão\\n- FOLICULAR: energético, criatividade\\n- OVULATÓRIA: confiante, conexões\\n- LUTEAL: acolhedor, valida cansaço\\n\\nSAÍDA JSON:\\n{\"message\": \"msg principal (max 50 palavras)\", \"message_variant_b\": \"variante A/B\"}' }] }) }}",
         "options": {
-          "timeout": 20000
+          "maxTokens": 400
+        }
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "ZkkWmphHZJ5zpOXp",
+          "name": "OpenAI API"
         }
       }
     },

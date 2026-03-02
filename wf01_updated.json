@@ -82,33 +82,41 @@
     {
       "id": "http-claude-w1",
       "name": "OpenAI — Gerar Boas-Vindas",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
       "position": [
         680,
         320
       ],
       "parameters": {
-        "method": "POST",
-        "url": "https://api.openai.com/v1/chat/completions",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
+        "resource": "chat",
+        "operation": "complete",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT_4O"
+        },
+        "messages": {
+          "values": [
             {
-              "name": "Authorization",
-              "value": "Bearer {{$env.OPENAI_API_KEY}}"
+              "role": "system",
+              "content": "Você é especialista em copywriting para apps de wellness feminino. Tom: amiga íntima empoderedora. Sempre responde com JSON válido sem markdown."
             },
             {
-              "name": "content-type",
-              "value": "application/json"
+              "role": "user",
+              "content": "={{ 'Crie boas-vindas personalizada para o LifeOrganizer AI (produtividade feminina baseada em ciclo menstrual).\\n\\nNome: ' + $json.user_name + '\\nEmail: ' + $json.user_email + '\\n\\nRetorne JSON:\\n{\\n  \"subject\": \"assunto email (max 50 chars)\",\\n  \"body_html\": \"corpo HTML caloroso (150 palavras, 3 diferenciais: check-in natural, memória adaptativa, biologia aliada)\",\\n  \"whatsapp_message\": \"versão WhatsApp informal emojis (max 60 palavras)\",\\n  \"onboarding_cta\": \"texto botão CTA\"\\n}\\n\\nApenas JSON válido.' }}"
             }
           ]
         },
-        "sendBody": true,
-        "contentType": "raw",
-        "body": "={{ JSON.stringify({ model: 'gpt-4o', max_tokens: 1024, messages: [{ role: 'system', content: 'Você é especialista em copywriting para apps de wellness feminino. Tom: amiga íntima empoderedora. Sempre responde com JSON válido sem markdown.' }, [{ role: 'user', content: 'Crie boas-vindas personalizada para o LifeOrganizer AI (produtividade feminina baseada em ciclo menstrual).\\n\\nNome: ' + $json.user_name + '\\nEmail: ' + $json.user_email + '\\n\\nRetorne JSON:\\n{\\n  \"subject\": \"assunto email (max 50 chars)\",\\n  \"body_html\": \"corpo HTML caloroso (150 palavras, 3 diferenciais: check-in natural, memória adaptativa, biologia aliada)\",\\n  \"whatsapp_message\": \"versão WhatsApp informal emojis (max 60 palavras)\",\\n  \"onboarding_cta\": \"texto botão CTA\"\\n}\\n\\nApenas JSON válido.' }] }) }}",
         "options": {
-          "timeout": 30000
+          "maxTokens": 1024
+        }
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "ZkkWmphHZJ5zpOXp",
+          "name": "OpenAI API"
         }
       }
     },

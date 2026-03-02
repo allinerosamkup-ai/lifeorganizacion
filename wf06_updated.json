@@ -132,33 +132,42 @@
     {
       "id": "claude-le6",
       "name": "OpenAI — Motor Aprendizado",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
       "position": [
         1120,
         200
       ],
       "parameters": {
-        "method": "POST",
-        "url": "https://api.openai.com/v1/chat/completions",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
+        "resource": "chat",
+        "operation": "complete",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT_4O"
+        },
+        "messages": {
+          "values": [
             {
-              "name": "Authorization",
-              "value": "Bearer {{$env.OPENAI_API_KEY}}"
+              "role": "system",
+              "content": "Motor analítico especializado em padrões comportamentais femininos. Extrai padrões com rigor estatístico. Prioriza acionabilidade. JSON válido sempre."
             },
             {
-              "name": "content-type",
-              "value": "application/json"
+              "role": "user",
+              "content": "={{ 'MOTOR DE APRENDIZADO — Extraia padrões desta semana.\\n\\nFase dominante: ' + $json.dominant_phase + '\\nCheck-ins: ' + $json.checkins_this_week + '\\nDados check-ins: ' + JSON.stringify($json.checkins_data || []) + '\\nDados tarefas: ' + JSON.stringify($json.tasks_data || []) + '\\nSessões foco: ' + JSON.stringify($json.focus_sessions || []) + '\\n\\nSAÍDA JSON:\\n{\\n  \"phase_patterns\": {\\n    \"folicular\": {\"avg_energy\": N, \"peak_hour\": \"HH:00\", \"success_rate\": N, \"best_task_types\": []},\\n    \"ovulatoria\": {mesmo},\\n    \"luteal\": {mesmo},\\n    \"menstrual\": {mesmo}\\n  },\\n  \"behavioral_patterns\": {\\n    \"best_day_of_week\": \"str\",\\n    \"focus_session_success_rate\": N,\\n    \"procrastination_triggers\": []\\n  },\\n  \"ai_calibration\": {\\n    \"energy_prediction_adjustment\": N,\\n    \"reminder_optimal_time\": \"HH:MM\",\\n    \"reminder_tone_preference\": \"gentle|motivational|data-driven\"\\n  },\\n  \"key_insight_this_week\": \"insight acionável\",\\n  \"confidence_score\": N_0_a_100,\\n  \"prompt_personalization_hints\": [\"hints para melhorar prompts\"]\\n}' }}"
             }
           ]
         },
-        "sendBody": true,
-        "contentType": "raw",
-        "body": "={{ JSON.stringify({ model: 'gpt-4o', max_tokens: 2000, temperature: 0.3, messages: [{ role: 'system', content: 'Motor analítico especializado em padrões comportamentais femininos. Extrai padrões com rigor estatístico. Prioriza acionabilidade. JSON válido sempre.' }, [{ role: 'user', content: 'MOTOR DE APRENDIZADO — Extraia padrões desta semana.\\n\\nFase dominante: ' + $json.dominant_phase + '\\nCheck-ins: ' + $json.checkins_this_week + '\\nDados check-ins: ' + JSON.stringify($json.checkins_data || []) + '\\nDados tarefas: ' + JSON.stringify($json.tasks_data || []) + '\\nSessões foco: ' + JSON.stringify($json.focus_sessions || []) + '\\n\\nSAÍDA JSON:\\n{\\n  \"phase_patterns\": {\\n    \"folicular\": {\"avg_energy\": N, \"peak_hour\": \"HH:00\", \"success_rate\": N, \"best_task_types\": []},\\n    \"ovulatoria\": {mesmo},\\n    \"luteal\": {mesmo},\\n    \"menstrual\": {mesmo}\\n  },\\n  \"behavioral_patterns\": {\\n    \"best_day_of_week\": \"str\",\\n    \"focus_session_success_rate\": N,\\n    \"procrastination_triggers\": []\\n  },\\n  \"ai_calibration\": {\\n    \"energy_prediction_adjustment\": N,\\n    \"reminder_optimal_time\": \"HH:MM\",\\n    \"reminder_tone_preference\": \"gentle|motivational|data-driven\"\\n  },\\n  \"key_insight_this_week\": \"insight acionável\",\\n  \"confidence_score\": N_0_a_100,\\n  \"prompt_personalization_hints\": [\"hints para melhorar prompts\"]\\n}' }] }) }}",
         "options": {
-          "timeout": 45000
+          "maxTokens": 2000,
+          "temperature": 0.3
+        }
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "ZkkWmphHZJ5zpOXp",
+          "name": "OpenAI API"
         }
       }
     },

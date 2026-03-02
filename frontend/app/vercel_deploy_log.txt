@@ -1,0 +1,48 @@
+Retrieving projectÔÇª
+Deploying allinerosamkup-8162s-projects/app
+Uploading [--------------------] (0.0B/14.8KB)
+Uploading [=======-------------] (5.7KB/14.8KB)
+Uploading [============--------] (9.1KB/14.8KB)
+Uploading [===============-----] (11.7KB/14.8KB)
+Uploading [====================] (14.8KB/14.8KB)
+Inspect: https://vercel.com/allinerosamkup-8162s-projects/app/D8VggvDDrmE2Pbw8mkGLzBHhhn7K [3s]
+Production: https://app-elcivrc3h-allinerosamkup-8162s-projects.vercel.app [3s]
+Building...
+Building...
+Building: Running build in Portland, USA (West) ÔÇô pdx1
+Building: Build machine configuration: 2 cores, 8 GB
+Building: Retrieving list of deployment files...
+Building: Downloading 87 deployment files...
+Building: Restored build cache from previous deployment (A7a96WSHGSwAYpzhzCv4y6LgVNuC)
+Building: Running "vercel build"
+Building: Vercel CLI 50.23.2
+Building: Installing dependencies...
+Building: up to date in 1s
+Building: 153 packages are looking for funding
+Building: run `npm fund` for details
+Building: Running "npm run build"
+Building: > app@0.0.0 build
+Building: > tsc -b && vite build
+Building: vite v7.3.1 building client environment for production...
+Building: transforming...
+Building: Ô£ô 2609 modules transformed.
+Building: rendering chunks...
+Building: computing gzip size...
+Building: dist/registerSW.js                0.13 kB
+Building: dist/manifest.webmanifest         1.22 kB
+Building: dist/index.html                   2.78 kB Ôöé gzip:   0.91 kB
+Building: dist/assets/index-BUpb466u.css   62.39 kB Ôöé gzip:  10.82 kB
+Building: dist/assets/index-BMgyLYOr.js   488.52 kB Ôöé gzip: 139.09 kB
+Building: Ô£ô built in 4.69s
+Building: PWA v1.2.0
+Building: mode      generateSW
+Building: precache  36 entries (973.99 KiB)
+Building: files generated
+Building: dist/sw.js
+Building: dist/workbox-b51dd497.js
+Building: Build Completed in /vercel/output [14s]
+Building: Deploying outputs...
+[2K[1A[2K[GProduction: https://app-elcivrc3h-allinerosamkup-8162s-projects.vercel.app [24s]
+Completing...
+Aliased: https://app-rouge-nine-87.vercel.app [24s]
+https://app-elcivrc3h-allinerosamkup-8162s-projects.vercel.app

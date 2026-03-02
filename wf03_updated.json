@@ -100,33 +100,41 @@
     {
       "id": "claude-c3",
       "name": "OpenAI — Alerta de Fase",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
       "position": [
         900,
         300
       ],
       "parameters": {
-        "method": "POST",
-        "url": "https://api.openai.com/v1/chat/completions",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
+        "resource": "chat",
+        "operation": "complete",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT_4O"
+        },
+        "messages": {
+          "values": [
             {
-              "name": "Authorization",
-              "value": "Bearer {{$env.OPENAI_API_KEY}}"
+              "role": "system",
+              "content": "Especialista em saúde hormonal feminina e produtividade baseada em ciclo. Cada fase é um superpoder diferente. JSON válido sempre."
             },
             {
-              "name": "content-type",
-              "value": "application/json"
+              "role": "user",
+              "content": "={{ 'Alerta de transição de fase para o LifeOrganizer AI.\\n\\nUsuária: ' + $json.full_name + '\\nFase ATUAL: ' + $json.current_phase + ' dia ' + $json.day_of_cycle + '\\nPróxima fase: ' + $json.next_phase + ' em ' + $json.days_until_transition + ' dia(s)\\n\\nSAÍDA JSON:\\n{\\n  \"notification_title\": \"título push (max 45 chars)\",\\n  \"notification_body\": \"corpo push (max 100 chars)\",\\n  \"whatsapp_message\": \"WhatsApp max 100 palavras com \\\\n entre parágrafos\",\\n  \"biological_insight\": \"insight científico acessível\",\\n  \"affirmation\": \"afirmação motivacionalüaníca\"\\n}' }}"
             }
           ]
         },
-        "sendBody": true,
-        "contentType": "raw",
-        "body": "={{ JSON.stringify({ model: 'gpt-4o', max_tokens: 1200, messages: [{ role: 'system', content: 'Especialista em saúde hormonal feminina e produtividade baseada em ciclo. Cada fase é um superpoder diferente. JSON válido sempre.' }, [{ role: 'user', content: 'Alerta de transição de fase para o LifeOrganizer AI.\\n\\nUsuária: ' + $json.full_name + '\\nFase ATUAL: ' + $json.current_phase + ' dia ' + $json.day_of_cycle + '\\nPróxima fase: ' + $json.next_phase + ' em ' + $json.days_until_transition + ' dia(s)\\n\\nSAÍDA JSON:\\n{\\n  \"notification_title\": \"título push (max 45 chars)\",\\n  \"notification_body\": \"corpo push (max 100 chars)\",\\n  \"whatsapp_message\": \"WhatsApp max 100 palavras com \\\\n entre parágrafos\",\\n  \"biological_insight\": \"insight científico acessível\",\\n  \"affirmation\": \"afirmação motivacionalüaníca\"\\n}' }] }) }}",
         "options": {
-          "timeout": 30000
+          "maxTokens": 1200
+        }
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "ZkkWmphHZJ5zpOXp",
+          "name": "OpenAI API"
         }
       }
     },

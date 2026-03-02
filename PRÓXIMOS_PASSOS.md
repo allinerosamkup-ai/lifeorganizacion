@@ -1,4 +1,4 @@
-# 🚀 Próximos Passos - LifeOrganizer AI
+# 🚀 Próximos Passos - Airia Flow
 
 ## ✅ Status Atual
 

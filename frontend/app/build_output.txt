@@ -2,5 +2,12 @@
 > app@0.0.0 build
 > tsc -b && vite build
 
-src/App.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
-src/App.tsx(518,18): error TS6133: 'navigate' is declared but its value is never read.
+src/App.tsx(92,35): error TS2322: Type '{ navigate: Dispatch<SetStateAction<string>>; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'navigate' does not exist on type 'IntrinsicAttributes'.
+src/pages/Agenda.tsx(29,24): error TS6133: 'navigate' is declared but its value is never read.
+src/pages/CycleTracker.tsx(3,32): error TS6133: 'Droplet' is declared but its value is never read.
+src/pages/CycleTracker.tsx(3,41): error TS6133: 'Zap' is declared but its value is never read.
+src/pages/CycleTracker.tsx(3,52): error TS6133: 'Settings' is declared but its value is never read.
+src/pages/CycleTracker.tsx(9,48): error TS6133: 'isSameDay' is declared but its value is never read.
+src/pages/CycleTracker.tsx(36,12): error TS6133: 'showSymptomModal' is declared but its value is never read.
+src/pages/CycleTracker.tsx(97,15): error TS6133: 'metabolicContext' is declared but its value is never read.

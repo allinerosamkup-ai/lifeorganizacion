@@ -31,18 +31,18 @@ serve(async (req) => {
     // Se não tiver auth header, usar service role (para cron jobs)
     const supabaseClient = authHeader
       ? createClient(
-          Deno.env.get('SUPABASE_URL') ?? '',
-          Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-          {
-            global: {
-              headers: { Authorization: authHeader },
-            },
-          }
-        )
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        {
+          global: {
+            headers: { Authorization: authHeader },
+          },
+        }
+      )
       : createClient(
-          Deno.env.get('SUPABASE_URL') ?? '',
-          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-        )
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      )
 
     // Obter user_id do request ou do auth
     let userId: string | null = null
@@ -59,16 +59,16 @@ serve(async (req) => {
     }
 
     // Calcular semana (segunda a domingo)
-    const targetDate = requestData.week_start 
+    const targetDate = requestData.week_start
       ? new Date(requestData.week_start)
       : new Date()
-    
+
     // Ajustar para segunda-feira da semana
     const dayOfWeek = targetDate.getDay()
     const diff = targetDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
     const weekStart = new Date(targetDate.setDate(diff))
     weekStart.setHours(0, 0, 0, 0)
-    
+
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekEnd.getDate() + 6)
     weekEnd.setHours(23, 59, 59, 999)
@@ -91,9 +91,9 @@ serve(async (req) => {
 
     if (!checkins || checkins.length === 0) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: 'No check-ins found for this week' 
+        JSON.stringify({
+          success: false,
+          message: 'No check-ins found for this week'
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -132,8 +132,8 @@ serve(async (req) => {
     // Calcular métricas
     const completedTasks = tasks?.filter(t => t.is_completed) || []
     const totalTasks = tasks?.length || 0
-    const successRate = totalTasks > 0 
-      ? (completedTasks.length / totalTasks) * 100 
+    const successRate = totalTasks > 0
+      ? (completedTasks.length / totalTasks) * 100
       : 0
 
     const avgEnergyScore = checkins.length > 0
@@ -149,17 +149,76 @@ serve(async (req) => {
       }
     })
     const peakHour = Object.entries(hourCounts)
-      .sort(([, a], [, b]) => b - a)[0]?.[0] 
+      .sort(([, a], [, b]) => b - a)[0]?.[0]
       ? parseInt(Object.entries(hourCounts).sort(([, a], [, b]) => b - a)[0][0])
       : 10 // Default: 10h
 
+    // --- AI Calibration Logic ---
+    const openAiApiKey = Deno.env.get('OPENAI_API_KEY')
+    let calibrationInsights = []
+
+    if (openAiApiKey && checkins.length > 0) {
+      try {
+        const aiContext = {
+          user_id: userId,
+          phase: predominantPhase,
+          success_rate: Math.round(successRate),
+          avg_energy: Math.round(avgEnergyScore),
+          daily_logs: checkins.map(c => ({
+            date: c.date,
+            energy: c.energy_score,
+            humor: c.humor_emoji,
+            text: c.free_text
+          })),
+          tasks_summary: tasks?.map(t => ({
+            title: t.title,
+            completed: t.is_completed,
+            energy: t.energy_level
+          }))
+        }
+
+        const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openAiApiKey}`,
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: [
+              {
+                role: 'system',
+                content: 'Você é o Analista de Dados Científico do LifeOrganizer AI. Sua missão é identificar padrões SUTIS e NÃO ÓBVIOS entre o comportamento da usuária, seu ciclo menstrual e sua produtividade real.'
+              },
+              {
+                role: 'user',
+                content: `Analise os dados da semana e gere 3 insights cirúrgicos de calibração para o futuro. 
+                Seja específico (ex: "Foco cai drasticamente após as 16h em dias de cansaço na fase luteal").
+                Retorne um JSON com a chave "insights" contendo um array de strings curtas.
+                Dados: ${JSON.stringify(aiContext)}`
+              }
+            ],
+            response_format: { type: "json_object" }
+          })
+        })
+
+        if (aiResponse.ok) {
+          const aiData = await aiResponse.json()
+          calibrationInsights = JSON.parse(aiData.choices[0].message.content).insights || []
+        }
+      } catch (err) {
+        console.error('AI Calibration failed:', err)
+      }
+    }
+
     // Criar objeto de aprendizado
-    const learning: WeeklyLearning = {
+    const learning: WeeklyLearning & { calibration_insights: string[] } = {
       phase: predominantPhase,
       success_rate: Math.round(successRate * 100) / 100,
       peak_hour: peakHour,
-      avg_tasks_completed: Math.round((completedTasks.length / 7) * 100) / 100, // Média por dia
+      avg_tasks_completed: Math.round((completedTasks.length / 7) * 100) / 100,
       avg_energy_score: Math.round(avgEnergyScore * 100) / 100,
+      calibration_insights: calibrationInsights
     }
 
     // Salvar em weekly_learnings
@@ -193,9 +252,9 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error:', error)
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: false,
-        error: error.message 
+        error: error.message
       }),
       {
         status: 400,

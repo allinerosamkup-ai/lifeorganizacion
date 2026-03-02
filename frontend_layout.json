@@ -1,0 +1,95 @@
+{
+    "project": "LifeOrganizer AI",
+    "version": "2.0",
+    "layout_direction": {
+        "aesthetic": "Dynamic Glassmorphism 2.0",
+        "objective": "Well-being, cortisol reduction, premium user experience",
+        "primary_stack": [
+            "React",
+            "TypeScript",
+            "Tailwind CSS",
+            "Framer Motion"
+        ],
+        "visual_elements": [
+            "3D animations (Three.js/Spline)",
+            "Soft gradients",
+            "Subtle micro-interactions"
+        ]
+    },
+    "pages": [
+        {
+            "name": "Welcome",
+            "file": "Welcome.tsx",
+            "description": "Initial screen for the application."
+        },
+        {
+            "name": "Login",
+            "file": "Login.tsx",
+            "description": "Authentication screen with email/password and social login options."
+        },
+        {
+            "name": "Onboarding",
+            "steps": [
+                {
+                    "name": "Onboarding1",
+                    "file": "Onboarding1.tsx",
+                    "description": "Introduction to the app's concepts."
+                },
+                {
+                    "name": "Onboarding2",
+                    "file": "Onboarding2.tsx",
+                    "description": "Profile setup and basic data collection."
+                },
+                {
+                    "name": "Onboarding3",
+                    "file": "Onboarding3.tsx",
+                    "description": "Final setup and permissions."
+                }
+            ]
+        },
+        {
+            "name": "Home",
+            "file": "Home.tsx",
+            "description": "Main landing page after login."
+        },
+        {
+            "name": "Dashboard",
+            "file": "Dashboard.tsx",
+            "description": "Overview of daily tasks, energy levels, and cycle phase."
+        },
+        {
+            "name": "Agenda",
+            "file": "Agenda.tsx",
+            "description": "Calendar view for managing tasks and appointments."
+        },
+        {
+            "name": "CycleTracker",
+            "file": "CycleTracker.tsx",
+            "description": "Detailed tracking of the menstrual cycle and related symptoms."
+        },
+        {
+            "name": "AIChat",
+            "file": "AIChat.tsx",
+            "description": "Conversational interface for AI assistance."
+        },
+        {
+            "name": "FocusSession",
+            "file": "FocusSession.tsx",
+            "description": "Dedicated screen for focus tasks with Pomodoro-like functionality."
+        },
+        {
+            "name": "Profile",
+            "file": "Profile.tsx",
+            "description": "User profile settings and history."
+        },
+        {
+            "name": "Sanctuary",
+            "file": "Sanctuary.tsx",
+            "description": "A place for meditation, breathing exercises, and relaxation."
+        }
+    ],
+    "navigation": {
+        "component": "BottomNav.tsx",
+        "structure": "Persistant bottom navigation bar across main app pages."
+    }
+}

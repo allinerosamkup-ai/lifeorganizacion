@@ -3,6 +3,7 @@ import { Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const Onboarding3 = ({ data, onComplete }: { data: any, onComplete: () => void }) => {
     const { user, refreshProfile } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,9 +30,10 @@ export const Onboarding3 = ({ data, onComplete }: { data: any, onComplete: () =>
 
             await refreshProfile();
             onComplete();
-        } catch (error: any) {
+        } catch (error) {
+            const err = error as Error;
             console.error('Error completing onboarding:', error);
-            alert(`Erro ao salvar perfil: ${error.message || 'Erro desconhecido'}`);
+            alert(`Erro ao salvar perfil: ${err.message || 'Erro desconhecido'}`);
         } finally {
             setIsSubmitting(false);
         }
@@ -47,7 +49,7 @@ export const Onboarding3 = ({ data, onComplete }: { data: any, onComplete: () =>
             <h1 className="text-4xl font-serif text-white mb-6 drop-shadow-sm">Almost there...</h1>
 
             <div className="space-y-6 text-stone-800 text-lg leading-relaxed">
-                <p>LifeOrganizer AI is finalizing your personalized plan.</p>
+                <p>Airia Flow is finalizing your personalized plan.</p>
                 <p>Your guide is ready to sync with your unique cycle and daily habits, creating a sanctuary just for you.</p>
             </div>
 

@@ -10,6 +10,7 @@ const GOALS_CONFIG = [
     { id: 'sleep', label: 'Sleep Routine', icon: <Moon className="w-8 h-8" />, color: 'bg-yellow-200/60' },
 ];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const Onboarding2 = ({ onNext }: { onNext: (data: any) => void }) => {
     const [selectedGoals, setSelectedGoals] = useState<string[]>(['skincare', 'meditation', 'hydration']);
 

@@ -26,6 +26,7 @@ interface CheckinResponse {
     description: string
     energy_level: 'low' | 'medium' | 'high'
     priority: number
+    ai_reasoning?: string
   }>
   cycle_phase?: string
 }
@@ -137,6 +138,7 @@ serve(async (req) => {
           success_rate: learnings[0].success_rate,
           peak_hour: learnings[0].peak_hour,
           avg_energy: learnings[0].avg_energy_score,
+          calibration_insights: learnings[0].calibration_insights || [],
         } : null,
       },
     }
@@ -154,7 +156,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${openAiApiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
@@ -167,12 +169,13 @@ serve(async (req) => {
 Contexto completo disponível da usuária:
 ${JSON.stringify(contextPayload, null, 2)}
 
-Com base nisso, forneça uma análise estruturada:
-1. Uma análise breve e direta (em português) focada em produtividade, reconhecendo o nível de energia e o estado biológico, mas sugerindo uma postura realista de como operar hoje.
-2. O "Orçamento de Energia" previsto para hoje (de 1 a 10). Se estiver baixo (ex: TPM/Menstrual com sono ruim), a energia será baixa.
-3. 3-5 sugestões de tarefas adaptadas estritamente ao nível de energia:
+Com base nisso, forneça uma análise estruturada e EXTREMAMENTE PERSONALIZADA (evite generalidades):
+1. Uma análise breve e direta (em português) focada em produtividade. Se houver descompasso entre a fase biológica e o humor relatado (ex: fase folicular com humor péssimo), a IA deve priorizar o humor real em vez da teoria biológica, sugerindo ajustes de rota. Use as "calibration_insights" para validar tendências passadas.
+2. O "Orçamento de Energia" previsto para hoje (de 1 a 10). Seja conservador se os sinais forem negativos.
+3. 3-5 sugestões de tarefas adaptadas estritamente ao nível de energia e aos aprendizados históricos:
    - Dia de energia BAIXA: Sugerir apenas tarefas de manutenção rotineira, organização leve ou descanso planejado.
    - Dia de energia ALTA: Sugerir tarefas analíticas, difíceis e trabalho criativo intenso.
+   - EXPLIQUE o motivo de cada sugestão (ex: "Sugerido porque você costuma performar melhor hoje").
 
 Retorne APENAS um JSON válido com a exata estrutura abaixo:
 {
@@ -243,9 +246,10 @@ Retorne APENAS um JSON válido com a exata estrutura abaixo:
     )
 
   } catch (error) {
-    console.error('Error:', error)
+    const message = error instanceof Error ? error.message : String(error)
+    console.error('Error:', message)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: message }),
       {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

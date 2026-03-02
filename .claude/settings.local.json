@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(python3:*)",
+      "Bash(done)",
+      "Bash(node fix_workflows.js:*)",
+      "Bash(node upload_workflows.js:*)",
+      "Skill(agent-browser)",
+      "Skill(agent-browser:*)",
+      "Bash(npx vercel:*)",
+      "mcp__claude_ai_Supabase__execute_sql",
+      "mcp__claude_ai_Supabase__list_extensions",
+      "mcp__claude_ai_Supabase__list_migrations"
+    ]
+  }
+}

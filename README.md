@@ -1,10 +1,11 @@
-# LifeOrganizer AI
+# Airia Flow
 
 Sistema Operacional Pessoal Adaptativo que combina rastreamento do ciclo menstrual, qualidade do sono e padrões de humor para gerar sugestões de tarefas inteligentes via IA.
 
 ## 🎯 Visão Geral
 
 O LifeOrganizer AI aprende o ritmo biológico da usuária e agenda tarefas nos momentos ideais de energia, baseado em:
+
 - **Fase do ciclo menstrual:** Fase folicular = criatividade alta, fase luteal = tarefas de rotina, menstrual = descanso
 - **Check-in diário:** Análise em linguagem natural que reajusta toda a agenda
 - **Memória adaptativa:** Sistema aprende padrões e melhora sugestões ao longo do tempo
@@ -58,13 +59,16 @@ python execution/clone_references.py
 
 ### 2. Configurar Supabase
 
-1. Criar projeto em https://supabase.com
+1. Criar projeto em <https://supabase.com>
 2. Aplicar migration inicial:
+
    ```bash
    # Via SQL Editor no dashboard ou
    supabase db push
    ```
+
 3. Configurar variáveis de ambiente no `.env`:
+
    ```env
    SUPABASE_URL=https://seu-projeto.supabase.co
    SUPABASE_ANON_KEY=sua-anon-key
@@ -76,6 +80,7 @@ Veja `directives/supabase-setup.md` para guia completo.
 ### 3. Próximos Passos
 
 Seguir as fases do plano em ordem:
+
 1. ✅ FASE 1: Setup de Infraestrutura
 2. 🔄 FASE 2: Configuração Supabase
 3. ⏳ FASE 3: Edge Functions Essenciais

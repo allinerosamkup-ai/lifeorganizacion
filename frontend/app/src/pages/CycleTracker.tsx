@@ -1,242 +1,363 @@
-import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Droplet, Edit2, Settings, User, Zap } from 'lucide-react';
-
-
+import { useState, useMemo, useEffect } from 'react';
+import {
+    ChevronLeft, ChevronRight, User
+} from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
+import {
+    format, addMonths, subMonths, startOfMonth, endOfMonth,
+    startOfWeek, endOfWeek, eachDayOfInterval,
+    isSameMonth, isToday
+} from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
-interface CycleRecord {
-    period_start_date?: string;
-    [key: string]: unknown;
-}
+const phaseInfo: Record<string, { label: string; icon: string; color: string; bg: string; tip: string }> = {
+    menstrual: {
+        label: 'Fase Menstrual', icon: '🌙', color: 'text-rose-600', bg: 'bg-rose-200/60',
+        tip: 'Priorize descanso e tarefas leves. Seu corpo está se renovando.'
+    },
+    folicular: {
+        label: 'Fase Folicular', icon: '🌱', color: 'text-emerald-600', bg: 'bg-emerald-200/60',
+        tip: 'Energia crescente! Ótimo momento para planejamento e projetos novos.'
+    },
+    ovulatoria: {
+        label: 'Ovulação', icon: '☀️', color: 'text-amber-600', bg: 'bg-amber-200/60',
+        tip: 'Pico de energia e comunicação. Ideal para reuniões e apresentações.'
+    },
+    luteal: {
+        label: 'Fase Lútea', icon: '🍂', color: 'text-purple-600', bg: 'bg-purple-200/60',
+        tip: 'Foco em finalizar tarefas e autocuidado. Evite sobrecarga.'
+    },
+};
 
 export const CycleTracker = ({ navigate }: { navigate: (view: string) => void }) => {
-    const { profile } = useAuth();
-    const [showModal, setShowModal] = useState(false);
-    const [cycleData, setCycleData] = useState<CycleRecord[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [phaseName, setPhaseName] = useState('Checking...');
+    const { user, profile } = useAuth();
+    const [currentMonth, setCurrentMonth] = useState(new Date());
+    const loading = !profile;
+    const [selectedFlow, setSelectedFlow] = useState<string | null>(null);
+    const [crampLevel, setCrampLevel] = useState(0);
+    const [headacheLevel, setHeadacheLevel] = useState(0);
+    const [selectedMood, setSelectedMood] = useState<string | null>(null);
+    const [saving, setSaving] = useState(false);
+    const [energyHistory, setEnergyHistory] = useState<Record<string, { energy_level: string, total_score: number }>>({});
 
+    // Fetch energy history when month changes
     useEffect(() => {
-        const isMounted = true;
+        const fetchEnergy = async () => {
+            if (!user) return;
+            const start = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
+            const end = format(endOfMonth(currentMonth), 'yyyy-MM-dd');
 
-        if (!profile) {
-            // Avoid setting state synchronously block rendering
-            setTimeout(() => {
-                if (isMounted) setLoading(false);
-            }, 0);
-            return;
-        }
+            const { data } = await supabase
+                .from('daily_energy')
+                .select('date, energy_level, total_score')
+                .eq('user_id', user.id)
+                .gte('date', start)
+                .lte('date', end);
 
-        const calculatePhase = () => {
-            if (profile.last_period_start) {
-                const lastPeriod = new Date(profile.last_period_start);
-                const today = new Date();
-                const cycleLength = profile.cycle_length || 28;
-                const daysDiff = Math.floor((today.getTime() - lastPeriod.getTime()) / (1000 * 3600 * 24));
-
-                // Day in cycle (handles multiple cycles if period wasn't logged recently)
-                const dayInCycle = ((daysDiff % cycleLength) + cycleLength) % cycleLength;
-
-                if (dayInCycle < 5) setPhaseName('Menstrual Phase');
-                else if (dayInCycle < 13) setPhaseName('Follicular Phase');
-                else if (dayInCycle < 16) setPhaseName('Ovulation');
-                else setPhaseName('Luteal Phase');
-
-                setCycleData([{ period_start_date: profile.last_period_start }]);
-            } else {
-                setPhaseName('Track your cycle');
+            if (data) {
+                const historyMap: Record<string, { energy_level: string, total_score: number }> = {};
+                data.forEach(d => { historyMap[d.date] = { energy_level: d.energy_level, total_score: d.total_score }; });
+                setEnergyHistory(historyMap);
             }
-            setLoading(false);
+        };
+        fetchEnergy();
+    }, [user, currentMonth]);
+
+    // Calculate cycle phase for a given date
+    const getCyclePhaseForDate = (date: Date) => {
+        if (!profile?.last_period_start) return null;
+        const lastPeriod = new Date(profile.last_period_start);
+        const cycleLength = profile.cycle_length || 28;
+        const daysDiff = Math.floor((date.getTime() - lastPeriod.getTime()) / (1000 * 3600 * 24));
+        const dayInCycle = ((daysDiff % cycleLength) + cycleLength) % cycleLength;
+
+        if (dayInCycle < 5) return 'menstrual';
+        if (dayInCycle < 13) return 'folicular';
+        if (dayInCycle < 16) return 'ovulatoria';
+        return 'luteal';
+    };
+
+    const getDayInCycle = () => {
+        if (!profile?.last_period_start) return null;
+        const lastPeriod = new Date(profile.last_period_start);
+        const cycleLength = profile.cycle_length || 28;
+        const daysDiff = Math.floor((new Date().getTime() - lastPeriod.getTime()) / (1000 * 3600 * 24));
+        return ((daysDiff % cycleLength) + cycleLength) % cycleLength + 1;
+    };
+
+    // Generate calendar days
+    const calendarDays = useMemo(() => {
+        const monthStart = startOfMonth(currentMonth);
+        const monthEnd = endOfMonth(currentMonth);
+        const start = startOfWeek(monthStart, { weekStartsOn: 1 });
+        const end = endOfWeek(monthEnd, { weekStartsOn: 1 });
+        return eachDayOfInterval({ start, end });
+    }, [currentMonth]);
+
+    const currentPhase = getCyclePhaseForDate(new Date());
+    const dayInCycle = getDayInCycle();
+    const phase = currentPhase ? phaseInfo[currentPhase] : null;
+
+    const phaseColors: Record<string, string> = {
+        menstrual: 'bg-rose-200/60',
+        folicular: 'bg-emerald-200/60',
+        ovulatoria: 'bg-amber-200/60',
+        luteal: 'bg-purple-200/60',
+    };
+
+    // Save symptoms
+    const saveSymptoms = async () => {
+        if (!user) return;
+        setSaving(true);
+
+        const moodMap: Record<string, string> = { '🌩️': 'bad', '🌸': 'neutral', '☀️': 'great' };
+
+        const metabolicContext = {
+            flow: selectedFlow,
+            cramps: crampLevel,
+            headache: headacheLevel,
+            mood_detail: selectedMood,
         };
 
-        calculatePhase();
-    }, [profile]);
+        await supabase.from('check_ins').upsert({
+            user_id: user.id,
+            date: format(new Date(), 'yyyy-MM-dd'),
+            humor_emoji: selectedMood ? moodMap[selectedMood] || 'neutral' : null,
+            cycle_phase: currentPhase,
+            cycle_day: dayInCycle,
+            metabolic_context: metabolicContext,
+        }, { onConflict: 'user_id,date' });
+
+        setSaving(false);
+        setSelectedFlow(null);
+        setCrampLevel(0);
+        setHeadacheLevel(0);
+        setSelectedMood(null);
+    };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-pink-50 via-rose-50 to-orange-100 pb-24 relative overflow-hidden">
-            {/* Ambient Depth Backgrounds */}
-            <div className="absolute top-[-5%] left-[-10%] w-96 h-96 bg-pink-300/20 rounded-full mix-blend-multiply filter blur-[100px] animate-pulse"></div>
-            <div className="absolute bottom-[10%] right-[-10%] w-80 h-80 bg-orange-300/20 rounded-full mix-blend-multiply filter blur-[100px] animate-pulse animation-delay-2000"></div>
+        <div className="min-h-screen bg-gradient-to-br from-pink-50 via-rose-50 to-orange-100 pb-28 relative overflow-hidden">
+            <div className="absolute top-[-5%] left-[-10%] w-96 h-96 bg-pink-300/20 rounded-full mix-blend-multiply filter blur-[100px] animate-pulse" />
+            <div className="absolute bottom-[10%] right-[-10%] w-80 h-80 bg-orange-300/20 rounded-full mix-blend-multiply filter blur-[100px] animate-pulse" />
 
             <div className="p-6 space-y-6 max-w-lg mx-auto relative z-10">
                 <div className="flex justify-between items-center mt-4">
-                    <h1 className="text-4xl font-serif text-stone-800 tracking-tight">
-                        {loading ? 'Checking...' : cycleData.length > 0 ? phaseName : 'Track your cycle'}
-                    </h1>
-
+                    <h1 className="text-3xl font-serif text-stone-800 tracking-tight">Ciclo</h1>
                     <div className="flex gap-3">
                         <div className="w-11 h-11 shadow-glass-inset bg-white/60 backdrop-blur-md rounded-full flex items-center justify-center text-stone-700 cursor-pointer border border-white/80 hover:bg-white/80 transition-all hover:scale-105" onClick={() => navigate('profile')}>
                             <User className="w-5 h-5" />
                         </div>
-                        <div className="w-11 h-11 shadow-glass-inset bg-white/60 backdrop-blur-md rounded-full flex items-center justify-center text-stone-700 cursor-pointer border border-white/80 hover:bg-white/80 transition-all hover:scale-105">
-                            <Settings className="w-5 h-5" />
+                    </div>
+                </div>
+
+                {/* Current Phase Card */}
+                {phase && (
+                    <div className="glass-card-chic rounded-3xl p-6 shadow-3d space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-stone-500 font-medium">Fase Atual</p>
+                                <h2 className={`text-2xl font-serif ${phase.color}`}>{phase.icon} {phase.label}</h2>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-3xl font-serif text-stone-800">{dayInCycle}</p>
+                                <p className="text-xs text-stone-400 font-medium">dia do ciclo</p>
+                            </div>
+                        </div>
+                        <p className="text-sm text-stone-600 leading-relaxed">{phase.tip}</p>
+
+                        {/* Cycle progress bar */}
+                        <div className="pt-2">
+                            <div className="flex gap-0.5 h-2 rounded-full overflow-hidden">
+                                <div className="bg-rose-300 flex-[5]" />
+                                <div className="bg-emerald-300 flex-[8]" />
+                                <div className="bg-amber-300 flex-[3]" />
+                                <div className="bg-purple-300 flex-[12]" />
+                            </div>
+                            <div className="flex justify-between mt-1">
+                                <span className="text-[9px] text-stone-400">Menstrual</span>
+                                <span className="text-[9px] text-stone-400">Folicular</span>
+                                <span className="text-[9px] text-stone-400">Ovulação</span>
+                                <span className="text-[9px] text-stone-400">Lútea</span>
+                            </div>
+                            {/* Current day marker */}
+                            {dayInCycle && profile?.cycle_length && (
+                                <div className="relative h-0 -mt-5">
+                                    <div
+                                        className="absolute top-0 w-0.5 h-4 bg-stone-800 rounded-full"
+                                        style={{ left: `${(dayInCycle / profile.cycle_length) * 100}%` }}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
-                </div>
+                )}
 
-                <div className="glass-card-chic rounded-3xl p-6 shadow-3d space-y-4">
-                    <h2 className="font-serif text-xl tracking-tight text-stone-800">Cycle Overview</h2>
-                    <div className="flex items-end justify-between h-32 gap-1.5 px-2">
-                        {[40, 50, 60, 40, 80, 70, 60, 50, 40, 30].map((h, i) => (
-                            <div
-                                key={i}
-                                className={`w-full rounded-t-xl transition-all duration-700 ${i === 4 ? 'bg-gradient-to-t from-pink-400 to-rose-300 shadow-glow scale-110 z-10' : i < 4 ? 'bg-gradient-to-t from-purple-300/60 to-purple-200/60 shadow-inner' : 'bg-gradient-to-t from-orange-300/60 to-orange-200/60 shadow-inner'} h-[${h}%]`}
-                            ></div>
-
-                        ))}
+                {!profile?.last_period_start && !loading && (
+                    <div className="glass-card-chic rounded-3xl p-6 shadow-3d text-center">
+                        <p className="text-lg font-serif text-stone-700 mb-2">Configure seu ciclo</p>
+                        <p className="text-sm text-stone-500 mb-4">Vá para configurações e insira a data do seu último período.</p>
+                        <button type="button" onClick={() => navigate('settings')} className="px-6 py-2.5 bg-pink-400 text-white rounded-xl font-semibold">
+                            Ir para Configurações
+                        </button>
                     </div>
-                    <div className="flex justify-between text-xs font-semibold text-stone-500 uppercase tracking-wider mt-2">
-                        <span>Previous</span>
-                        <span>Upcoming</span>
-                    </div>
-                </div>
+                )}
 
+                {/* Calendar */}
                 <div className="glass-card-chic rounded-3xl p-6 shadow-3d">
-                    <div className="flex justify-between items-center mb-6">
-                        <button className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-stone-100/50 transition-colors"><ChevronLeft className="w-5 h-5 text-stone-500" /></button>
-                        <h2 className="font-serif text-xl tracking-tight text-stone-800">November 2024</h2>
-                        <button className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-stone-100/50 transition-colors"><ChevronRight className="w-5 h-5 text-stone-500" /></button>
+                    <div className="flex justify-between items-center mb-4">
+                        <button type="button" title="Mês anterior" onClick={() => setCurrentMonth(m => subMonths(m, 1))} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-stone-100/50 transition-colors">
+                            <ChevronLeft className="w-5 h-5 text-stone-500" />
+                        </button>
+                        <h2 className="font-serif text-lg text-stone-800 capitalize">
+                            {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
+                        </h2>
+                        <button type="button" title="Próximo mês" onClick={() => setCurrentMonth(m => addMonths(m, 1))} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-stone-100/50 transition-colors">
+                            <ChevronRight className="w-5 h-5 text-stone-500" />
+                        </button>
                     </div>
-                    <div className="grid grid-cols-7 gap-y-4 text-center mb-6">
-                        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-                            <div key={i} className="text-xs font-semibold text-stone-400 uppercase">{d}</div>
+
+                    <div className="grid grid-cols-7 gap-y-2 text-center mb-4">
+                        {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map((d, i) => (
+                            <div key={i} className="text-[10px] font-bold text-stone-400 uppercase">{d}</div>
                         ))}
-                        {/* Empty slots */}
-                        <div /><div /><div />
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-pink-300/40 text-stone-700 shadow-inner-sm">1</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-pink-300/40 text-stone-700 shadow-inner-sm">2</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-pink-300/40 text-stone-700 shadow-inner-sm">3</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-pink-300/40 text-stone-700 shadow-inner-sm">4</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-pink-300/40 text-stone-700 shadow-inner-sm">5</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-pink-300/40 text-stone-700 shadow-inner-sm">6</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-pink-300/40 text-stone-700 shadow-inner-sm">7</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-emerald-200/60 text-stone-800 shadow-inner-sm">8</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-emerald-200/60 text-stone-800 shadow-inner-sm">9</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-emerald-200/60 text-stone-800 shadow-inner-sm">10</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-emerald-200/60 text-stone-800 shadow-inner-sm">11</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-orange-200/60 text-stone-800 shadow-inner-sm">12</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-orange-200/60 text-stone-800 shadow-inner-sm">13</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-orange-200/60 text-stone-800 shadow-inner-sm">14</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-rose-400 text-white font-bold shadow-md shadow-pink-300/50 scale-110">15</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-orange-200/60 text-stone-800 shadow-inner-sm">16</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-orange-200/60 text-stone-800 shadow-inner-sm">17</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-orange-200/60 text-stone-800 shadow-inner-sm">18</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-orange-200/60 text-stone-800 shadow-inner-sm">19</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-orange-200/60 text-stone-800 shadow-inner-sm">20</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-orange-200/60 text-stone-800 shadow-inner-sm">21</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-orange-200/60 text-stone-800 shadow-inner-sm">22</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-orange-200/60 text-stone-800 shadow-inner-sm">23</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-orange-200/60 text-stone-800 shadow-inner-sm">24</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-orange-200/60 text-stone-800 shadow-inner-sm">25</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-orange-200/60 text-stone-800 shadow-inner-sm">26</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-orange-200/60 text-stone-800 shadow-inner-sm">27</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-orange-200/60 text-stone-800 shadow-inner-sm">28</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-orange-200/60 text-stone-800 shadow-inner-sm">29</div>
-                        <div className="w-9 h-9 mx-auto flex items-center justify-center rounded-full bg-orange-200/60 text-stone-800 shadow-inner-sm">30</div>
+                        {calendarDays.map((date, i) => {
+                            const dateStr = format(date, 'yyyy-MM-dd');
+                            const isCurrentMonth = isSameMonth(date, currentMonth);
+                            const phaseForDay = getCyclePhaseForDate(date);
+                            const energyForDay = energyHistory[dateStr];
+
+                            let bgColor = 'bg-stone-50 text-stone-700';
+                            if (energyForDay?.energy_level === 'high') bgColor = 'bg-emerald-200/60 text-emerald-800';
+                            else if (energyForDay?.energy_level === 'medium') bgColor = 'bg-amber-200/60 text-amber-800';
+                            else if (energyForDay?.energy_level === 'low') bgColor = 'bg-rose-200/60 text-rose-800';
+
+                            return (
+                                <div key={i} className="flex flex-col items-center gap-0.5">
+                                    <div
+                                        className={`w-9 h-9 flex items-center justify-center rounded-full text-sm font-medium transition-all relative
+                                            ${!isCurrentMonth ? 'opacity-20' : ''}
+                                            ${isToday(date) ? 'ring-2 ring-stone-400 ring-offset-2 font-bold scale-110' : ''}
+                                            ${bgColor}
+                                        `}
+                                    >
+                                        {format(date, 'd')}
+                                    </div>
+                                    {/* Secondary indicator: Cycle Phase Dot */}
+                                    {phaseForDay && isCurrentMonth && (
+                                        <div className={`w-1.5 h-1.5 rounded-full ${phaseColors[phaseForDay].replace('bg-', 'bg-').replace('/60', '')} opacity-60`} />
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
-                    <button className="glass-button w-full text-stone-700 py-3.5 rounded-2xl font-semibold flex items-center justify-center gap-2">
-                        Edit Dates <Edit2 className="w-4 h-4 ml-1" />
-                    </button>
+
+                    {/* Energy legend */}
+                    <div className="flex justify-center gap-4 flex-wrap border-t border-stone-200/50 pt-4 mb-2">
+                        <div className="flex items-center gap-1">
+                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                            <span className="text-[10px] text-stone-500 font-medium">Alta Energia</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                            <span className="text-[10px] text-stone-500 font-medium">Média Energia</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <div className="w-2.5 h-2.5 rounded-full bg-rose-400" />
+                            <span className="text-[10px] text-stone-500 font-medium">Baixa Energia</span>
+                        </div>
+                    </div>
+                    {/* Cycle Legend */}
+                    <div className="flex justify-center gap-3 flex-wrap opacity-60">
+                        {Object.entries(phaseInfo).map(([key, info]) => (
+                            <div key={key} className="flex items-center gap-1">
+                                <div className={`w-1.5 h-1.5 rounded-full ${phaseColors[key].replace('/60', '')}`} />
+                                <span className="text-[9px] text-stone-500">{info.label.replace('Fase ', '')}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
-                <div className="glass-card-chic rounded-3xl p-6 shadow-3d space-y-6">
-                    <h2 className="font-serif text-xl tracking-tight text-stone-800">Symptoms Tracker</h2>
+                {/* Symptoms Tracker */}
+                <div className="glass-card-chic rounded-3xl p-6 shadow-3d space-y-5">
+                    <h2 className="font-serif text-xl tracking-tight text-stone-800">Sintomas de Hoje</h2>
 
-                    <div className="space-y-5">
+                    <div className="space-y-4">
                         <div className="flex items-center gap-4">
-                            <span className="w-24 text-sm font-semibold text-stone-600 tracking-wide">Flow</span>
-                            <div className="flex-1 flex justify-between items-center bg-white/40 p-2 rounded-2xl shadow-inner-sm">
-                                <Droplet className="w-5 h-5 text-pink-400" />
-                                <div className="flex-1 h-1.5 bg-pink-100/50 mx-3 rounded-full relative">
-                                    <div className="absolute left-1/2 top-1/2 -translate-y-1/2 w-4 h-4 bg-white border border-pink-200 rounded-full shadow-md"></div>
-                                </div>
-                                <div className="flex gap-[-2px]"><Droplet className="w-5 h-5 text-rose-500" /><Droplet className="w-5 h-5 text-rose-500" /></div>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <span className="w-24 text-sm font-semibold text-stone-600 tracking-wide">Cramps</span>
-                            <div className="flex-1 flex justify-between items-center bg-white/40 p-2 py-3 rounded-2xl shadow-inner-sm">
-                                <span className="text-xs font-bold text-stone-400 pl-2">Mild</span>
-                                <div className="flex-1 h-1.5 bg-pink-100/50 mx-3 rounded-full relative">
-                                    <div className="absolute left-3/4 top-1/2 -translate-y-1/2 w-4 h-4 bg-white border border-pink-200 rounded-full shadow-md"></div>
-                                </div>
-                                <span className="text-xs font-bold text-stone-400 pr-2">Severe</span>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <span className="w-24 text-sm font-semibold text-stone-600 tracking-wide leading-tight">Dor de<br />Cabeça</span>
-                            <div className="flex-1 flex justify-between items-center bg-white/40 p-2 py-3 rounded-2xl shadow-inner-sm">
-                                <span className="text-xs font-bold text-stone-400 pl-2">Mild</span>
-                                <div className="flex-1 h-1.5 bg-pink-100/50 mx-3 rounded-full relative">
-                                    <div className="absolute left-1/4 top-1/2 -translate-y-1/2 w-4 h-4 bg-white border border-pink-200 rounded-full shadow-md"></div>
-                                </div>
-                                <span className="text-xs font-bold text-stone-400 pr-2">Severe</span>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <span className="w-24 text-sm font-semibold text-stone-600 tracking-wide">Mood</span>
+                            <span className="w-20 text-sm font-semibold text-stone-600">Fluxo</span>
                             <div className="flex-1 flex gap-2">
-                                <div className="bg-white/40 shadow-inner-sm p-3 rounded-2xl flex-1 flex items-center justify-center cursor-pointer hover:bg-white/60 transition-colors"><span className="text-xl">🌩️</span></div>
-                                <div className="bg-pink-100/60 shadow-inner p-3 rounded-2xl flex-1 flex items-center justify-center cursor-pointer border border-pink-200/50"><span className="text-xl">🌸</span></div>
-                                <div className="bg-white/40 shadow-inner-sm p-3 rounded-2xl flex-1 flex items-center justify-center cursor-pointer hover:bg-white/60 transition-colors"><span className="text-xl">☀️</span></div>
+                                {['Leve', 'Médio', 'Intenso'].map(level => (
+                                    <button
+                                        type="button"
+                                        key={level}
+                                        onClick={() => setSelectedFlow(selectedFlow === level ? null : level)}
+                                        className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${selectedFlow === level ? 'bg-pink-400 text-white shadow-sm' : 'bg-white/40 text-stone-500 border border-white/60'}`}
+                                    >
+                                        {level}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <span className="w-20 text-sm font-semibold text-stone-600">Cólica</span>
+                            <div className="flex-1 flex gap-2">
+                                {[0, 1, 2, 3].map(level => (
+                                    <button
+                                        type="button"
+                                        key={level}
+                                        onClick={() => setCrampLevel(level)}
+                                        className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${crampLevel === level ? 'bg-rose-400 text-white shadow-sm' : 'bg-white/40 text-stone-500 border border-white/60'}`}
+                                    >
+                                        {level === 0 ? 'Sem' : level === 1 ? 'Leve' : level === 2 ? 'Mod.' : 'Forte'}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <span className="w-20 text-sm font-semibold text-stone-600 leading-tight">Dor de Cabeça</span>
+                            <div className="flex-1 flex gap-2">
+                                {[0, 1, 2, 3].map(level => (
+                                    <button
+                                        type="button"
+                                        key={level}
+                                        onClick={() => setHeadacheLevel(level)}
+                                        className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${headacheLevel === level ? 'bg-orange-400 text-white shadow-sm' : 'bg-white/40 text-stone-500 border border-white/60'}`}
+                                    >
+                                        {level === 0 ? 'Sem' : level === 1 ? 'Leve' : level === 2 ? 'Mod.' : 'Forte'}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <span className="w-20 text-sm font-semibold text-stone-600">Humor</span>
+                            <div className="flex-1 flex gap-2">
+                                {['🌩️', '🌸', '☀️'].map(mood => (
+                                    <button
+                                        type="button"
+                                        key={mood}
+                                        onClick={() => setSelectedMood(selectedMood === mood ? null : mood)}
+                                        className={`flex-1 py-3 rounded-2xl text-xl transition-all ${selectedMood === mood ? 'bg-pink-100/80 shadow-inner border border-pink-200/50 scale-105' : 'bg-white/40 hover:bg-white/60'}`}
+                                    >
+                                        {mood}
+                                    </button>
+                                ))}
                             </div>
                         </div>
                     </div>
 
-                    <button onClick={() => setShowModal(true)} className="w-full bg-gradient-to-r from-pink-400 to-rose-400 text-white py-3.5 rounded-2xl font-semibold mt-4 shadow-md hover:shadow-lg transition-all active:scale-95">
-                        Log Symptoms
+                    <button
+                        type="button"
+                        onClick={saveSymptoms}
+                        disabled={saving}
+                        className="w-full bg-gradient-to-r from-pink-400 to-rose-400 text-white py-3.5 rounded-2xl font-semibold shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-50"
+                    >
+                        {saving ? 'Salvando...' : 'Registrar Sintomas'}
                     </button>
                 </div>
             </div>
-
-            {showModal && (
-                <div className="absolute inset-0 bg-stone-900/20 backdrop-blur-sm z-50 flex items-end justify-center">
-                    <div className="bg-white rounded-t-[2.5rem] w-full max-w-md p-6 pb-12 shadow-2xl animate-in slide-in-from-bottom-full duration-300">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-2xl font-serif text-stone-900">How are you feeling?</h2>
-                            <button onClick={() => setShowModal(false)} className="w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center text-stone-500">✕</button>
-                        </div>
-
-                        <div className="space-y-6">
-                            <div>
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Droplet className="w-5 h-5 text-stone-800" />
-                                    <h3 className="font-serif text-lg text-stone-800">Flow</h3>
-                                </div>
-                                <div className="flex gap-2">
-                                    <button className="flex-1 py-2 rounded-full border border-orange-200 text-orange-300 font-medium">Light</button>
-                                    <button className="flex-1 py-2 rounded-full bg-orange-300 text-white font-medium">Medium</button>
-                                    <button className="flex-1 py-2 rounded-full border border-orange-200 text-orange-300 font-medium">Heavy</button>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Zap className="w-5 h-5 text-stone-800" />
-                                    <h3 className="font-serif text-lg text-stone-800">Pain</h3>
-                                </div>
-                                <div className="space-y-4">
-                                    {['Cramps', 'Dor de cabeça', 'Backache'].map(p => (
-                                        <div key={p} className="flex items-center gap-4">
-                                            <span className="w-24 text-sm text-stone-600">{p}</span>
-                                            <div className="flex-1 h-1 bg-pink-100 rounded-full relative">
-                                                <div className="absolute left-1/2 top-1/2 -translate-y-1/2 w-4 h-4 bg-white border border-pink-200 rounded-full shadow-sm"></div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <button onClick={() => setShowModal(false)} className="w-full bg-orange-300 text-white py-4 rounded-full font-medium text-lg mt-8">
-                                Save Logs
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

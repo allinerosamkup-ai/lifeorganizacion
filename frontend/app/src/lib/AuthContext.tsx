@@ -5,12 +5,15 @@ import { supabase } from './supabase';
 type AuthContextType = {
   session: Session | null;
   user: User | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   profile: any | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   signUpWithEmail: (email: string, password: string) => Promise<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   signInWithEmail: (email: string, password: string) => Promise<any>;
 };
 
@@ -19,6 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
