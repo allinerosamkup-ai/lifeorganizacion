@@ -1,0 +1,8 @@
+
+> app@0.0.0 build
+> tsc -b && vite build
+
+src/components/EnergyHistoryStrip.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/WeeklyBoard.tsx(4,10): error TS1484: 'Task' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+src/pages/Agenda.tsx(548,33): error TS2322: Type 'import("C:/Users/allin/lifeorganizacion/frontend/app/src/pages/Agenda").Task[]' is not assignable to type 'import("C:/Users/allin/lifeorganizacion/frontend/app/src/components/TaskEditModal").Task[]'.
+  Property 'created_at' is missing in type 'import("C:/Users/allin/lifeorganizacion/frontend/app/src/pages/Agenda").Task' but required in type 'import("C:/Users/allin/lifeorganizacion/frontend/app/src/components/TaskEditModal").Task'.

@@ -1,4 +1,6 @@
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import './i18n';
 import { useAuth } from './lib/AuthContext';
 import { Login } from './pages/Login';
 import { Onboarding1 } from './pages/Onboarding1';
@@ -15,23 +17,35 @@ import { Tasks } from './pages/Tasks';
 import { Settings } from './pages/Settings';
 import { Notifications } from './pages/Notifications';
 import { Exercises } from './pages/Exercises';
+import { Plans } from './pages/Plans';
 import { BottomNav } from './pages/BottomNav';
 import { ToastProvider } from './components/Toast';
 
-const Footer = () => (
-  <div className="mt-8 pb-32 pt-8 flex flex-col items-center justify-center gap-4 relative z-10 opacity-80 hover:opacity-100 transition-opacity">
-    <div className="w-16 h-1 bg-stone-200 rounded-full mb-2"></div>
-    <div className="flex gap-4">
-      <button className="text-[10px] font-bold text-stone-500 bg-stone-100 hover:bg-stone-200 px-3 py-1.5 rounded-lg uppercase tracking-wider transition-colors">
-        PT / EN
-      </button>
-      <button className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-orange-400 to-rose-400 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center gap-1">
-        Airia Pro <span>✨</span>
-      </button>
+const Footer = ({ navigate }: { navigate: (v: string) => void }) => {
+  const { i18n } = useTranslation();
+  const toggleLang = () => i18n.changeLanguage(i18n.language === 'pt' ? 'en' : 'pt');
+
+  return (
+    <div className="mt-8 pb-32 pt-8 flex flex-col items-center justify-center gap-4 relative z-10 opacity-80 hover:opacity-100 transition-opacity">
+      <div className="w-16 h-1 bg-stone-200 rounded-full mb-2"></div>
+      <div className="flex gap-4">
+        <button
+          onClick={toggleLang}
+          className="text-[10px] font-bold text-stone-500 bg-stone-100 hover:bg-stone-200 px-3 py-1.5 rounded-lg uppercase tracking-wider transition-colors active:scale-95"
+        >
+          {i18n.language === 'pt' ? 'EN' : 'PT'}
+        </button>
+        <button
+          onClick={() => navigate('plans')}
+          className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-orange-400 to-rose-400 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center gap-1"
+        >
+          Airia Pro <span>✨</span>
+        </button>
+      </div>
+      <p className="text-[10px] text-stone-400">© 2026 Airia Flow.</p>
     </div>
-    <p className="text-[10px] text-stone-400">© 2026 Airia Flow. Todos os direitos reservados.</p>
-  </div>
-);
+  );
+};
 
 export default function App() {
   const { session, profile, loading } = useAuth();
@@ -110,6 +124,7 @@ export default function App() {
       case 'exercises': return <Exercises />;
       case 'settings': return <Settings navigate={setView} />;
       case 'notifications': return <Notifications navigate={setView} />;
+      case 'plans': return <Plans navigate={setView} />;
       default: return <Login />;
     }
   };
@@ -131,8 +146,8 @@ export default function App() {
           <div className="min-h-full flex flex-col">
             {renderView()}
             {/* Show footer on scrollable pages (not auth / onboarding / chat) */}
-            {!['login', 'loading', 'chat', 'sanctuary'].includes(currentView) && !currentView.startsWith('onboarding') && (
-              <Footer />
+            {!['login', 'loading', 'chat', 'sanctuary', 'plans'].includes(currentView) && !currentView.startsWith('onboarding') && (
+              <Footer navigate={setView} />
             )}
           </div>
         </main>

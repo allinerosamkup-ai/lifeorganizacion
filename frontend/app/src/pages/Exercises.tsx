@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Dumbbell, Flame, Wind, Footprints, Send, Check, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Dumbbell, Send, Check, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import { useEnergyScore } from '../lib/useEnergyScore';
@@ -31,6 +32,7 @@ const QUICK_OPTIONS = [
 ];
 
 export const Exercises = () => {
+    const { t } = useTranslation();
     const { user } = useAuth();
     const { energy, loading: energyLoading } = useEnergyScore();
     const [history, setHistory] = useState<ExerciseEntry[]>([]);
@@ -56,7 +58,34 @@ export const Exercises = () => {
     }, [user]);
 
     const energyScore = energy?.total_score ?? 50;
+    const energyLevel = energy?.energy_level || 'medium';
     const availableExercises = QUICK_OPTIONS.filter(ex => ex.minEnergy <= energyScore);
+
+    const suggestions = {
+        low: {
+            type: 'Alongamento + Respiração',
+            duration: 10,
+            intensity: 'leve',
+            description: 'Alongamentos suaves + 5 min respiração box (4-4-4-4)',
+            icon: '🌙'
+        },
+        medium: {
+            type: 'Caminhada moderada',
+            duration: 20,
+            intensity: 'moderado',
+            description: 'Caminhada ao ar livre, ritmo confortável',
+            icon: '🚶'
+        },
+        high: {
+            type: 'Corrida intervalada',
+            duration: 30,
+            intensity: 'intenso',
+            description: '5 min aquecimento + 6x (2 min corrida rápida + 1 min caminhada)',
+            icon: '🏃'
+        }
+    };
+
+    const currentSuggestion = suggestions[energyLevel as keyof typeof suggestions];
 
     const startQuickExercise = async (option: typeof QUICK_OPTIONS[0]) => {
         if (!user) return;
@@ -96,31 +125,20 @@ export const Exercises = () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) return;
 
-            const resp = await supabase.functions.invoke('chat-ai', {
+            const resp = await supabase.functions.invoke('generate-exercise-plan', {
                 body: {
-                    message: `Gere um plano de exercício curto e prático baseado no pedido: "${customRequest}". 
-Minha energia atual é ${energyScore}/100 (${energy?.energy_level || 'medium'}).
-${energyScore < 40 ? 'IMPORTANTE: minha energia está baixa. Sugira algo muito leve e seguro.' : ''}
-${energyScore > 70 ? 'Tenho boa energia, posso fazer algo mais desafiador mas com limites claros.' : ''}
-Formate como lista simples de exercícios com duração. Máximo 5 exercícios. Seja direto.`,
-                    history: [],
+                    user_id: user.id,
+                    user_request: customRequest,
                 },
             });
 
-            if (resp.data?.analysis) {
-                setAiPlan(resp.data.analysis);
+            if (resp.data) {
+                const plan = resp.data.ai_generated_plan;
+                const formattedPlan = `${plan.title} (${plan.duration} min - ${plan.intensity})\n\nMotivo: ${plan.ai_reasoning}\n\nExercícios:\n- ${plan.items.join('\n- ')}`;
+                setAiPlan(formattedPlan);
 
-                // Save to history
-                await supabase.from('exercise_history').insert([{
-                    user_id: user.id,
-                    type: 'custom',
-                    title: customRequest,
-                    duration_minutes: 30,
-                    intensity: energyScore > 70 ? 'intense' : energyScore > 40 ? 'moderate' : 'light',
-                    energy_at_start: energyScore,
-                    user_request: customRequest,
-                    ai_generated_plan: { plan: resp.data.analysis },
-                }]);
+                setHistory(prev => [resp.data, ...prev]);
+                showToast('Plano gerado com sucesso!');
             }
         } catch (e) {
             console.error('AI exercise generation failed:', e);
@@ -152,7 +170,7 @@ Formate como lista simples de exercícios com duração. Máximo 5 exercícios. 
                     <div>
                         <h1 className="text-3xl font-serif text-stone-800 tracking-tight flex items-center gap-2">
                             <Dumbbell className="w-6 h-6 text-purple-500" />
-                            Exercícios
+                            {t('exercises.title')}
                         </h1>
                         <p className="text-stone-500 text-xs font-medium mt-0.5">Movimento proporcional à sua energia</p>
                     </div>
@@ -163,27 +181,26 @@ Formate como lista simples de exercícios com duração. Máximo 5 exercícios. 
 
                 {/* Energy-based recommendation */}
                 {!energyLoading && energy && (
-                    <div className={`rounded-2xl p-4 border ${energy.energy_level === 'high' ? 'bg-emerald-50/80 border-emerald-200/60' :
-                        energy.energy_level === 'medium' ? 'bg-amber-50/80 border-amber-200/60' :
-                            'bg-red-50/80 border-red-200/60'
+                    <div className={`p-4 rounded-xl shadow-sm border border-white/60 mb-2 ${energyLevel === 'high' ? 'bg-gradient-to-r from-orange-100 to-rose-100' :
+                        energyLevel === 'medium' ? 'bg-gradient-to-r from-yellow-100 to-amber-100' :
+                            'bg-gradient-to-r from-purple-100 to-indigo-100'
                         }`}>
-                        <div className="flex items-center gap-2 mb-1">
-                            {energy.energy_level === 'high' ? <Flame className="w-4 h-4 text-emerald-600" /> :
-                                energy.energy_level === 'medium' ? <Footprints className="w-4 h-4 text-amber-600" /> :
-                                    <Wind className="w-4 h-4 text-red-500" />}
-                            <span className="font-semibold text-sm text-stone-700">
-                                {energy.energy_level === 'high' ? 'Boa energia para treinar!' :
-                                    energy.energy_level === 'medium' ? 'Exercício moderado recomendado' :
-                                        'Hoje é dia de movimento suave'}
-                            </span>
+                        <div className="flex items-start gap-4">
+                            <span className="text-4xl mt-1 drop-shadow-sm">{currentSuggestion.icon}</span>
+                            <div className="flex-1">
+                                <h3 className="font-serif text-[17px] text-stone-800 leading-tight">Recomendado hoje</h3>
+                                <p className="text-[11px] text-stone-600 font-medium mb-3">Baseado na sua energia: {energy.total_score}/100</p>
+
+                                <div className="bg-white/40 rounded-xl p-3">
+                                    <p className="font-bold text-sm text-stone-800">{currentSuggestion.type}</p>
+                                    <p className="text-xs text-stone-600 mt-1 leading-relaxed">{currentSuggestion.description}</p>
+                                    <div className="flex gap-2 mt-3">
+                                        <span className="px-2.5 py-1 bg-white/70 rounded-md text-[10px] font-bold text-stone-600 shadow-sm">{currentSuggestion.duration} min</span>
+                                        <span className="px-2.5 py-1 bg-white/70 rounded-md text-[10px] font-bold text-stone-600 shadow-sm capitalize">{currentSuggestion.intensity}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <p className="text-xs text-stone-500">
-                            {energy.energy_level === 'low'
-                                ? 'Priorize alongamento, respiração ou uma caminhada curta. Nada de se forçar.'
-                                : energy.energy_level === 'high'
-                                    ? 'Bom momento para um treino mais intenso, mas respeite seus limites.'
-                                    : 'Combine caminhada com exercícios leves de força. Evite exageros.'}
-                        </p>
                     </div>
                 )}
 

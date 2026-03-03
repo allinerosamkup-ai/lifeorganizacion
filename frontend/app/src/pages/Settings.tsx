@@ -1,16 +1,19 @@
 import { useState } from "react";
 import { usePushNotifications } from "../lib/usePushNotifications";
 import { useAuth } from "../lib/AuthContext";
-import { ChevronLeft, ChevronRight, User, CreditCard, Calendar, Bell, BellOff, LogOut, Sparkles } from "lucide-react";
+import { supabase } from "../lib/supabase";
+import { ChevronLeft, ChevronRight, User, CreditCard, Calendar, Bell, BellOff, LogOut, Sparkles, BrainCircuit, Activity } from "lucide-react";
+import { showToast } from "../components/Toast";
 
 interface SettingItem {
     icon: React.ReactNode;
     label: string;
-    sub: string;
-    onPress: () => void;
+    sub?: string;
+    onPress?: () => void;
     arrow?: boolean;
     danger?: boolean;
     badge?: { text: string; color: string; bg: string };
+    control?: React.ReactNode;
 }
 
 interface SettingSection {
@@ -19,17 +22,35 @@ interface SettingSection {
 }
 
 export const Settings = ({ navigate }: { navigate?: (view: string) => void }) => {
-    const { user, signOut } = useAuth();
+    const { user, profile, signOut } = useAuth();
     const { status: pushStatus, loading: pushLoading, requestPermission, sendTestNotification } = usePushNotifications(user?.id);
     const [calConnected, setCalConnected] = useState(true);
     const [, setCalConnecting] = useState(false);
     const [section, setSection] = useState<string | null>(null);
+
+    // Profile Settings State
+    const [updatingProfile, setUpdatingProfile] = useState(false);
+    const aiPersona = profile?.ai_persona || 'empatica';
+    const cycleLength = profile?.cycle_length || 28;
 
     const handleConnect = async () => {
         setCalConnecting(true);
         await new Promise(r => setTimeout(r, 1800));
         setCalConnected(true);
         setCalConnecting(false);
+    };
+
+    const updateProfile = async (field: string, value: string | number | boolean) => {
+        if (!user) return;
+        setUpdatingProfile(true);
+        const { error } = await supabase.from('profiles').update({ [field]: value }).eq('id', user.id);
+        if (!error) {
+            showToast('Configuração atualizada com sucesso!');
+            // It might require a reload if we don't have global state sync for these yet, but toast is enough UX feedback
+        } else {
+            showToast('Erro ao atualizar. Tente novamente.');
+        }
+        setUpdatingProfile(false);
     };
 
     if (section === "calendar") return (
@@ -90,11 +111,52 @@ export const Settings = ({ navigate }: { navigate?: (view: string) => void }) =>
         {
             title: "CONTA",
             items: [
-                { icon: <User className="w-5 h-5" />, label: "Meu perfil", sub: "Usuária Airia Flow", onPress: () => navigate?.("profile"), arrow: true },
+                { icon: <User className="w-5 h-5" />, label: "Meu perfil", sub: profile?.full_name || "Usuária Airia Flow", onPress: () => navigate?.("profile"), arrow: true },
                 {
                     icon: <CreditCard className="w-5 h-5" />, label: "Plano Pro", sub: "Gerenciar assinatura", onPress: () => { }, arrow: true,
                     badge: { text: "Pro ⭐", color: "text-purple-600", bg: "bg-purple-100" }
                 },
+            ]
+        },
+        {
+            title: "INTELIGÊNCIA ARTIFICIAL",
+            items: [
+                {
+                    icon: <BrainCircuit className="w-5 h-5" />,
+                    label: "Personalidade da IA",
+                    control: (
+                        <select
+                            className="bg-transparent text-sm text-stone-600 outline-none cursor-pointer max-w-[120px]"
+                            title="Personalidade da IA"
+                            value={aiPersona}
+                            onChange={(e) => updateProfile('ai_persona', e.target.value)}
+                            disabled={updatingProfile}
+                        >
+                            <option value="empatica">Empática & Leve</option>
+                            <option value="direta">Direta & Focada</option>
+                        </select>
+                    )
+                }
+            ]
+        },
+        {
+            title: "CICLO & ENERGIA",
+            items: [
+                {
+                    icon: <Activity className="w-5 h-5" />,
+                    label: "Duração do Ciclo (dias)",
+                    control: (
+                        <input
+                            type="number"
+                            className="w-16 bg-white/50 border border-stone-200 rounded-lg p-1 text-center text-sm font-semibold outline-none"
+                            defaultValue={cycleLength}
+                            onBlur={(e) => updateProfile('cycle_length', parseInt(e.target.value, 10))}
+                            disabled={updatingProfile}
+                            min={20}
+                            max={45}
+                        />
+                    )
+                }
             ]
         },
         {
@@ -115,10 +177,10 @@ export const Settings = ({ navigate }: { navigate?: (view: string) => void }) =>
                     sub: pushStatus === "granted"
                         ? "Ativadas ✓ — toque para testar"
                         : pushStatus === "denied"
-                            ? "Bloqueadas — ative nas configurações"
+                            ? "Bloqueadas — ative nas"
                             : pushStatus === "unsupported"
                                 ? "Não suportado neste navegador"
-                                : pushLoading ? "Solicitando permissão…" : "Toque para ativar lembretes",
+                                : pushLoading ? "Solicitando..." : "Toque para ativar",
                     onPress: pushStatus === "granted"
                         ? sendTestNotification
                         : () => requestPermission(),
@@ -129,7 +191,7 @@ export const Settings = ({ navigate }: { navigate?: (view: string) => void }) =>
         {
             title: "SESSÃO",
             items: [
-                { icon: <LogOut className="w-5 h-5 text-rose-500" />, label: "Sair da conta", sub: "", onPress: () => signOut?.(), danger: true },
+                { icon: <LogOut className="w-5 h-5 text-rose-500" />, label: "Sair da conta", onPress: () => signOut?.(), danger: true },
             ]
         },
     ];
@@ -153,14 +215,9 @@ export const Settings = ({ navigate }: { navigate?: (view: string) => void }) =>
                             <p className="text-xs font-bold text-stone-400 tracking-widest pl-4 uppercase">{sec.title}</p>
                             <div className="glass-card-chic rounded-3xl overflow-hidden shadow-sm border border-white/60">
                                 {sec.items.map((item, ii) => (
-                                    <button
-                                        type="button"
-                                        key={ii}
-                                        onClick={item.onPress}
-                                        className={`w-full flex items-center justify-between p-4 bg-white/40 hover:bg-white/70 transition-colors text-left group ${ii < sec.items.length - 1 ? 'border-b border-stone-200/50' : ''}`}
-                                    >
+                                    <div key={ii} className={`w-full flex items-center justify-between p-4 bg-white/40 transition-colors text-left group ${ii < sec.items.length - 1 ? 'border-b border-stone-200/50' : ''} ${item.onPress ? 'hover:bg-white/70 cursor-pointer' : ''}`} onClick={item.onPress}>
                                         <div className="flex items-center gap-4">
-                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-inner-sm transition-colors ${item.danger ? 'bg-rose-100/50 text-rose-600' : 'bg-white/60 text-stone-500 group-hover:text-purple-500'}`}>
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-inner-sm transition-colors shrink-0 ${item.danger ? 'bg-rose-100/50 text-rose-600' : 'bg-white/60 text-stone-500 group-[.cursor-pointer]:group-hover:text-purple-500'}`}>
                                                 {item.icon}
                                             </div>
                                             <div>
@@ -171,6 +228,11 @@ export const Settings = ({ navigate }: { navigate?: (view: string) => void }) =>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
+                                            {item.control && (
+                                                <div onClick={e => e.stopPropagation()}>
+                                                    {item.control}
+                                                </div>
+                                            )}
                                             {item.badge && (
                                                 <span className={`text-[10px] font-bold px-2.5 py-1.5 rounded-full ${item.badge.bg} ${item.badge.color}`}>
                                                     {item.badge.text}
@@ -178,7 +240,7 @@ export const Settings = ({ navigate }: { navigate?: (view: string) => void }) =>
                                             )}
                                             {item.arrow && <ChevronRight className="w-5 h-5 text-stone-400 group-hover:text-stone-600 transition-colors" />}
                                         </div>
-                                    </button>
+                                    </div>
                                 ))}
                             </div>
                         </div>
@@ -188,4 +250,3 @@ export const Settings = ({ navigate }: { navigate?: (view: string) => void }) =>
         </div>
     );
 };
-

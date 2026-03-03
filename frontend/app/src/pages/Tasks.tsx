@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     CheckCircle2, CircleDashed, Trash2, Plus, Filter,
     Wand2, SplitSquareHorizontal, Clock, X, Pencil
@@ -41,6 +42,7 @@ const energyMap: Record<string, { icon: string; label: string; tw: string }> = {
 };
 
 export const Tasks = () => {
+    const { t } = useTranslation();
     const { user, profile } = useAuth();
     const [tab, setTab] = useState<'today' | 'week' | 'completed'>('today');
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -122,6 +124,7 @@ export const Tasks = () => {
     };
 
     const deleteTask = async (taskId: string) => {
+        if (!window.confirm('Tem certeza que deseja excluir esta tarefa?')) return;
         const { error } = await supabase.from('tasks').delete().eq('id', taskId);
         if (!error) {
             setTasks(tasks.filter(t => t.id !== taskId));
@@ -177,7 +180,7 @@ export const Tasks = () => {
             }
         } catch (err) {
             console.error('Split error:', err);
-            alert('Erro ao dividir tarefa. Tente novamente.');
+            alert(t('tasks.split_error'));
         } finally {
             setIsSplitting(null);
         }
@@ -207,9 +210,9 @@ export const Tasks = () => {
     const currentPhase = getCurrentPhase();
 
     const tabs: { id: 'today' | 'week' | 'completed'; label: string }[] = [
-        { id: 'today', label: 'Hoje' },
-        { id: 'week', label: 'Semana' },
-        { id: 'completed', label: 'Concluídas' },
+        { id: 'today', label: t('tasks.tab_today') },
+        { id: 'week', label: t('tasks.tab_week') },
+        { id: 'completed', label: t('tasks.tab_completed') },
     ];
 
     return (
@@ -218,7 +221,7 @@ export const Tasks = () => {
             <div className="bg-white/60 backdrop-blur-2xl pt-14 pb-4 px-6 sticky top-0 z-30 border-b border-white/80 shadow-[0_4px_30px_rgba(0,0,0,0.03)] transition-all">
                 <div className="flex items-center justify-between mb-4">
                     <div>
-                        <h1 className="text-3xl font-serif text-stone-800 tracking-tight">Tarefas</h1>
+                        <h1 className="text-3xl font-serif text-stone-800 tracking-tight">{t('tasks.title')}</h1>
                         {currentPhase && (
                             <span
                                 className="text-[11px] font-bold px-2.5 py-1 rounded-full mt-1.5 inline-flex items-center gap-1 shadow-sm border border-black/5"
@@ -231,7 +234,7 @@ export const Tasks = () => {
                     <div className="flex gap-2.5">
                         <button
                             type="button"
-                            title="Filtrar tarefas"
+                            title={t('tasks.filter_tasks')}
                             onClick={() => setShowFilters(f => !f)}
                             className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all active:scale-[0.95] ${filterEnergy ? 'bg-orange-400 text-white shadow-lg shadow-orange-400/30' : 'bg-white/80 text-stone-600 hover:bg-white border border-white hover:shadow-md'}`}
                         >
@@ -239,7 +242,7 @@ export const Tasks = () => {
                         </button>
                         <button
                             type="button"
-                            title="Adicionar tarefa"
+                            title={t('tasks.add')}
                             onClick={() => setShowAddModal(true)}
                             className="w-11 h-11 rounded-2xl bg-stone-800 text-white flex items-center justify-center shadow-lg shadow-stone-800/20 hover:-translate-y-0.5 hover:bg-stone-900 transition-all active:scale-[0.95]"
                         >
@@ -266,14 +269,14 @@ export const Tasks = () => {
             {/* Filters */}
             {showFilters && (
                 <div className="px-5 py-3 bg-white/50 backdrop-blur-md border-b border-white/40">
-                    <p className="text-[10px] font-bold text-stone-400 uppercase mb-2">Filtrar por Energia</p>
+                    <p className="text-[10px] font-bold text-stone-400 uppercase mb-2">{t('tasks.filter_energy')}</p>
                     <div className="flex gap-2">
                         <button
                             type="button"
                             onClick={() => setFilterEnergy(null)}
                             className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${!filterEnergy ? 'bg-orange-400 text-white' : 'bg-white/60 text-stone-500'}`}
                         >
-                            Todas
+                            {t('tasks.all')}
                         </button>
                         {Object.entries(energyMap).map(([k, v]) => (
                             <button
@@ -288,7 +291,7 @@ export const Tasks = () => {
                     </div>
                     {filterEnergy && (
                         <button type="button" onClick={() => setFilterEnergy(null)} className="mt-2 text-xs text-rose-500 font-semibold">
-                            ✕ Limpar filtro
+                            ✕ {t('tasks.clear_filter')}
                         </button>
                     )}
                 </div>

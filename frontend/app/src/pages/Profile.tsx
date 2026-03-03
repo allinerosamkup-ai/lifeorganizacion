@@ -1,8 +1,59 @@
-import { Bell, Brain, ChevronRight, Droplet, HelpCircle, Lock, Sparkles, User, LogOut } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Bell, ChevronRight, Activity, HelpCircle, Lock, Sparkles, User, LogOut, Flame, Wind } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
+import { supabase } from '../lib/supabase';
+import { subDays, format } from 'date-fns';
 
 export const Profile = () => {
+    const { t } = useTranslation();
     const { user, signOut } = useAuth();
+    const [stats, setStats] = useState({
+        avgEnergy: 0,
+        highEnergyDays: 0,
+        exercisesCompleted: 0,
+        loading: true
+    });
+
+    useEffect(() => {
+        if (!user) return;
+
+        const fetchStats = async () => {
+            const thirtyDaysAgo = format(subDays(new Date(), 30), 'yyyy-MM-dd');
+
+            // Fetch energy stats
+            const { data: energyData } = await supabase
+                .from('daily_energy')
+                .select('total_score, energy_level')
+                .eq('user_id', user.id)
+                .gte('date', thirtyDaysAgo);
+
+            let avgEnergy = 0;
+            let highEnergyDays = 0;
+            if (energyData && energyData.length > 0) {
+                const total = energyData.reduce((acc, curr) => acc + curr.total_score, 0);
+                avgEnergy = Math.round(total / energyData.length);
+                highEnergyDays = energyData.filter(d => d.energy_level === 'high').length;
+            }
+
+            // Fetch exercise stats
+            const { data: exerciseData } = await supabase
+                .from('exercise_history')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('completed', true)
+                .gte('created_at', thirtyDaysAgo);
+
+            setStats({
+                avgEnergy,
+                highEnergyDays,
+                exercisesCompleted: exerciseData?.length || 0,
+                loading: false
+            });
+        };
+
+        fetchStats();
+    }, [user]);
 
 
     return (
@@ -18,7 +69,7 @@ export const Profile = () => {
                     <Sparkles className="absolute -top-2 left-6 w-6 h-6 text-orange-400 opacity-60 animate-pulse" />
                     <Sparkles className="absolute top-8 right-6 w-4 h-4 text-pink-400 opacity-40 animate-pulse animation-delay-2000" />
                     <h1 className="text-2xl font-serif text-stone-900 drop-shadow-sm">Airia Flow</h1>
-                    <h2 className="text-4xl font-serif text-stone-800 tracking-tight mt-1">Profile & Analytics</h2>
+                    <h2 className="text-4xl font-serif text-stone-800 tracking-tight mt-1">{t('profile.title')}</h2>
                 </div>
 
                 <div className="glass-card-chic rounded-[2rem] p-8 shadow-3d space-y-8 relative overflow-hidden">
@@ -42,24 +93,30 @@ export const Profile = () => {
 
 
                 <div className="pt-2">
-                    <h4 className="font-serif text-xl tracking-tight text-stone-800 mb-4 px-2">Weekly Summary</h4>
-                    <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-gradient-to-br from-emerald-100/80 to-teal-50/80 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 shadow-inner-sm border border-white/60 hover:shadow-md transition-shadow">
-                            <Brain className="w-6 h-6 text-emerald-600" />
-                            <span className="text-2xl font-serif text-stone-800">32</span>
-                            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Hours Focused</span>
+                    <h4 className="font-serif text-xl tracking-tight text-stone-800 mb-4 px-2">Últimos 30 Dias</h4>
+                    {stats.loading ? (
+                        <div className="grid grid-cols-3 gap-3 animate-pulse">
+                            {[1, 2, 3].map(i => <div key={i} className="h-28 bg-white/40 rounded-2xl"></div>)}
                         </div>
-                        <div className="bg-gradient-to-br from-purple-100/80 to-pink-50/80 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 shadow-inner-sm border border-white/60 hover:shadow-md transition-shadow">
-                            <span className="text-2xl">😊</span>
-                            <span className="text-xl font-serif text-stone-800">Calm</span>
-                            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Avg Mood</span>
+                    ) : (
+                        <div className="grid grid-cols-3 gap-3">
+                            <div className="bg-gradient-to-br from-emerald-100/80 to-teal-50/80 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 shadow-inner-sm border border-white/60 hover:shadow-md transition-shadow">
+                                <Activity className="w-6 h-6 text-emerald-600" />
+                                <span className="text-2xl font-serif text-stone-800">{stats.avgEnergy}</span>
+                                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Energia Média</span>
+                            </div>
+                            <div className="bg-gradient-to-br from-orange-100/80 to-amber-50/80 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 shadow-inner-sm border border-white/60 hover:shadow-md transition-shadow">
+                                <Flame className="w-6 h-6 text-orange-500" />
+                                <span className="text-2xl font-serif text-stone-800">{stats.highEnergyDays}</span>
+                                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Dias Alta<br />Energia</span>
+                            </div>
+                            <div className="bg-gradient-to-br from-purple-100/80 to-pink-50/80 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 shadow-inner-sm border border-white/60 hover:shadow-md transition-shadow">
+                                <Wind className="w-6 h-6 text-purple-500" />
+                                <span className="text-2xl font-serif text-stone-800">{stats.exercisesCompleted}</span>
+                                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Treinos<br />Feitos</span>
+                            </div>
                         </div>
-                        <div className="bg-gradient-to-br from-orange-100/80 to-amber-50/80 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 shadow-inner-sm border border-white/60 hover:shadow-md transition-shadow">
-                            <Droplet className="w-6 h-6 text-orange-500" />
-                            <span className="text-xs font-bold text-stone-700 leading-tight">Day 18,<br />Follicular</span>
-                            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider mt-1">Cycle Phase</span>
-                        </div>
-                    </div>
+                    )}
                 </div>
 
                 <div className="flex flex-col items-center justify-center py-6 glass-card-chic rounded-3xl shadow-3d border border-white/40 relative">
