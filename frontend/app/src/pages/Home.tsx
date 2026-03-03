@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, Clock, User, Check, Bell, Mic } from 'lucide-react';
+import { User, Check, Bell, Mic } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import { useEnergyScore } from '../lib/useEnergyScore';
@@ -9,6 +9,8 @@ import { showToast } from '../components/Toast';
 import type { Task } from '../components/TaskEditModal';
 import { TaskEditModal } from '../components/TaskEditModal';
 import { EnergyHistoryStrip } from '../components/EnergyHistoryStrip';
+import { DayTimeline } from '../components/DayTimeline';
+import type { TimelineBlock } from '../components/DayTimeline';
 
 const MOODS = [
     { key: 'great', emoji: '😊', label: 'Feliz', value: 'great' },
@@ -30,33 +32,60 @@ const energyScoreMap: Record<string, number> = {
 
 export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
     const { t } = useTranslation();
-    const { user } = useAuth();
+    const { user, profile } = useAuth();
     const { energy, loading: energyLoading, recalculate } = useEnergyScore();
     const [tasks, setTasks] = useState<Task[]>([]);
-    const [loading, setLoading] = useState(true);
     const [todayCheckInCount, setTodayCheckInCount] = useState(0);
     const [lastCheckInEmoji, setLastCheckInEmoji] = useState<string | null>(null);
     const [quickMoodText, setQuickMoodText] = useState('');
     const [editingTask, setEditingTask] = useState<Task | null>(null);
     const [isListening, setIsListening] = useState(false);
     const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
+    const [aiSuggestions, setAiSuggestions] = useState<any[]>([]);
+    const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+    const [exerciseHistory, setExerciseHistory] = useState<any[]>([]);
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const recognitionRef = useRef<any>(null);
+
+    const fetchTasks = async () => {
+        if (!user) return;
+        const { data } = await supabase
+            .from('tasks')
+            .select('*')
+            .eq('user_id', user.id)
+            .is('is_completed', false)
+            .order('priority', { ascending: true })
+            .limit(5);
+
+        if (data) setTasks(data);
+    };
+
+    const getCyclePhaseForDate = (date: Date) => {
+        if (!profile?.last_period_start || !profile?.tracks_cycle) return null;
+        const lastPeriod = new Date(profile.last_period_start);
+        const cycleLength = profile.cycle_length || 28;
+        const daysDiff = Math.floor((date.getTime() - lastPeriod.getTime()) / (1000 * 3600 * 24));
+        const dayInCycle = ((daysDiff % cycleLength) + cycleLength) % cycleLength;
+
+        if (dayInCycle < 5) return 'menstrual';
+        if (dayInCycle < 13) return 'folicular';
+        if (dayInCycle < 16) return 'ovulatoria';
+        return 'luteal';
+    };
+
+    const phaseLabels: Record<string, { icon: string; label: string; color: string; desc: string }> = {
+        menstrual: { icon: '🌙', label: 'Menstrual', color: 'text-rose-600 bg-rose-50 border-rose-200', desc: 'Energia mais baixa. Descanse.' },
+        folicular: { icon: '🌱', label: 'Folicular', color: 'text-emerald-600 bg-emerald-50 border-emerald-200', desc: 'Energia subindo!' },
+        ovulatoria: { icon: '☀️', label: 'Ovulação', color: 'text-amber-600 bg-amber-50 border-amber-200', desc: 'Pico de energia.' },
+        luteal: { icon: '🍂', label: 'Lútea', color: 'text-purple-600 bg-purple-50 border-purple-200', desc: 'Energia caindo. Foco.' },
+    };
 
     useEffect(() => {
         if (!user) return;
 
-        const fetchTasks = async () => {
-            const { data } = await supabase
-                .from('tasks')
-                .select('*')
-                .eq('user_id', user.id)
-                .is('is_completed', false)
-                .order('priority', { ascending: true })
-                .limit(5);
-
-            if (data) setTasks(data);
-            setLoading(false);
+        const doFetchTasks = async () => {
+            await fetchTasks();
         };
 
         const fetchCheckIns = async () => {
@@ -74,8 +103,19 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
             }
         };
 
-        fetchTasks();
+        const fetchExercises = async () => {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const { data } = await supabase
+                .from('exercise_history')
+                .select('*')
+                .eq('user_id', user.id)
+                .eq('date', todayStr);
+            if (data) setExerciseHistory(data);
+        };
+
+        doFetchTasks();
         fetchCheckIns();
+        fetchExercises();
     }, [user]);
 
     const handleCheckIn = async (moodKey: string) => {
@@ -142,6 +182,97 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
         }
     };
 
+    const processQuickText = async () => {
+        if (!user || !quickMoodText.trim()) return;
+
+        const currentText = quickMoodText;
+        setQuickMoodText('');
+        showToast('Analisando intenção...');
+
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
+
+            const resp = await supabase.functions.invoke('voice-intent-parser', {
+                body: { user_id: user.id, transcript: currentText }
+            });
+
+            if (resp.error) throw resp.error;
+
+            const result = resp.data;
+
+            if (result.intent === 'mood') {
+                setTodayCheckInCount(prev => prev + 1);
+                setLastCheckInEmoji(result.emoji || '😐');
+                recalculate();
+
+                if (currentText.trim()) {
+                    supabase.functions.invoke('process-checkin', {
+                        body: {
+                            user_id: user.id,
+                            text: currentText,
+                            humor_emoji: result.emoji || 'neutral',
+                            energy_score: 5,
+                        }
+                    });
+                }
+            } else if (result.intent === 'task' || result.intent === 'event') {
+                showToast(`${result.intent === 'task' ? 'Tarefa' : 'Evento'} criado com sucesso!`);
+                fetchTasks();
+            } else {
+                showToast('Ação registrada com sucesso.');
+            }
+        } catch (e) {
+            console.error('Intent parser failed:', e);
+            showToast('Erro ao processar o texto');
+        }
+    };
+
+    const loadAISuggestions = async () => {
+        if (!user || !energy) return;
+        setLoadingSuggestions(true);
+        const phase = getCyclePhaseForDate(new Date());
+        const phaseName = phase ? phaseLabels[phase].label : 'desconhecida';
+
+        try {
+            const { data } = await supabase.functions.invoke('chat-ai', {
+                body: {
+                    message: `Gere 3 sugestões de tarefas/ações ultraconcretas e curtas (array JSON: [{"title": "Ex: Caminhar 10 min", "energy_level": "low|medium|high", "priority": 1}]) baseadas na energia de hoje (${energy.total_score}/100, nível ${energyLevel}) e fase do ciclo ${phaseName}. NENHUM TEXTO ADICIONAL. APENAS O JSON.`,
+                    history: []
+                }
+            });
+            if (data?.analysis) {
+                const jsonMatch = data.analysis.match(/\[[\s\S]*?\]/);
+                if (jsonMatch) {
+                    setAiSuggestions(JSON.parse(jsonMatch[0]));
+                }
+            }
+        } catch (e) { console.error('AI suggestions error', e); }
+        setLoadingSuggestions(false);
+    };
+
+    const addSuggestedTask = async (sug: any, index: number) => {
+        if (!user) return;
+        const newTask = {
+            user_id: user.id,
+            title: sug.title,
+            energy_level: sug.energy_level || 'medium',
+            priority: sug.priority || 3,
+            due_date: new Date().toISOString().split('T')[0],
+            is_completed: false,
+            subtasks: [],
+            is_ai_suggested: true,
+            ai_insight: "Sugestão baseada no seu estado atual",
+        };
+
+        const { error } = await supabase.from('tasks').insert([newTask]);
+        if (!error) {
+            setAiSuggestions(prev => prev.filter((_, idx) => idx !== index));
+            fetchTasks();
+            showToast('Tarefa adicionada!');
+        }
+    };
+
     // Speech-to-Text using Web Speech API
     const toggleSpeechToText = () => {
         if (isListening) {
@@ -190,6 +321,57 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
         return true;
     });
 
+    const currentPhase = getCyclePhaseForDate(new Date());
+
+    const buildTimelineBlocks = (): TimelineBlock[] => {
+        const blocks: TimelineBlock[] = [];
+
+        // Add tasks
+        suggestedTasks.slice(0, 3).forEach(task => {
+            blocks.push({
+                id: task.id,
+                label: 'Tarefa',
+                start: task.due_time || '10:00', // fallback time
+                end: '',
+                type: 'task',
+                title: task.title,
+                is_completed: task.is_completed,
+                onClick: () => setEditingTask(task as Task),
+                onToggle: () => toggleTask(task.id)
+            });
+        });
+
+        // Add exercise
+        const todayExercise = exerciseHistory[0];
+        if (todayExercise) {
+            blocks.push({
+                id: todayExercise.id || 'exercise-1',
+                label: 'Exercício',
+                start: '18:00', // default evening exercise
+                end: '',
+                type: 'exercise',
+                title: todayExercise.exercise_type || 'Plano de Exercício',
+                is_completed: todayExercise.completed,
+                onClick: () => navigate('exercises')
+            });
+        }
+
+        // Add focus session
+        blocks.push({
+            id: 'focus-1',
+            label: 'Foco Profundo',
+            start: '14:00',
+            end: '15:00',
+            type: 'focus',
+            title: 'Sessão de Foco Profundo',
+            onClick: () => navigate('focus')
+        });
+
+        return blocks;
+    };
+
+    const timelineBlocks = buildTimelineBlocks();
+
     return (
         <div className={`min-h-full bg-gradient-to-br ${energyLevel === 'high' ? 'from-emerald-50 via-emerald-50/50' : energyLevel === 'low' ? 'from-red-50 via-red-50/50' : 'from-orange-50 via-amber-50'} to-white pb-6 relative overflow-hidden transition-colors duration-1000`}>
             {/* Ambient Backgrounds */}
@@ -201,9 +383,16 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
                 <div className="flex justify-between items-center mt-4">
                     <div>
                         <h1 className="text-3xl font-serif text-stone-800 tracking-tight">{t('home.my_day')}</h1>
-                        <p className="text-stone-500 text-xs font-medium mt-0.5">
-                            {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' })}
-                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                            <p className="text-stone-500 text-xs font-medium">
+                                {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' })}
+                            </p>
+                            {currentPhase && (
+                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${phaseLabels[currentPhase].color}`}>
+                                    <span className="text-xs">{phaseLabels[currentPhase].icon}</span> Fase {phaseLabels[currentPhase].label}
+                                </span>
+                            )}
+                        </div>
                     </div>
                     <div className="flex gap-2 items-center">
                         {/* Energy Gauge - compact */}
@@ -247,7 +436,7 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
 
                 {/* Quick Mood Entry */}
                 <form
-                    onSubmit={e => { e.preventDefault(); if (quickMoodText) handleCheckIn('neutral'); }}
+                    onSubmit={e => { e.preventDefault(); processQuickText(); }}
                     className="relative group"
                 >
                     <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 rounded-3xl blur-md transition-all group-hover:blur-lg opacity-50"></div>
@@ -344,78 +533,39 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
                     </div>
                 </div>
 
-                {/* Focus Session - elegant compact card */}
-                <div
-                    className="relative overflow-hidden bg-stone-800 shadow-lg rounded-2xl p-3 flex items-center gap-3 cursor-pointer group active:scale-[0.98] transition-all"
-                    onClick={() => navigate('focus')}
-                >
-                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <div className="absolute -right-4 -top-4 w-16 h-16 bg-white/5 rounded-full blur-xl"></div>
+                <DayTimeline blocks={timelineBlocks} />
 
-                    <div className="w-10 h-10 bg-white/10 border border-white/10 rounded-[12px] flex items-center justify-center shrink-0 shadow-inner">
-                        <Clock className="w-5 h-5 text-emerald-300" strokeWidth={2.5} />
-                    </div>
-                    <div className="flex-1 relative z-10">
-                        <h2 className="font-serif text-base text-white tracking-wide leading-tight">{t('home.focus')}</h2>
-                        <p className="text-stone-400 text-[10px] font-medium tracking-wide">{t('home.focus_desc')}</p>
-                    </div>
-                    <button className="relative z-10 bg-emerald-500/20 text-emerald-300 px-3 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all group-hover:bg-emerald-500 group-hover:text-white border border-emerald-500/30">
-                        {t('home.focus_start')}
-                    </button>
-                </div>
-
-                {/* Today's Suggestions (Energy-driven) */}
+                {/* AI Suggestions Block */}
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="font-serif text-xl tracking-tight text-stone-800">{t('home.todays_suggestions')}</h2>
-                            <p className="text-stone-500 text-xs font-medium">
-                                {energy ? `${t('home.energy_based_on')} (${energy.total_score}/100)` : t('home.tasks_for_today')}
-                            </p>
+                            <h2 className="font-serif text-xl tracking-tight text-stone-800 flex items-center gap-2">Dicas da IA <span className="text-[10px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full font-bold">BETA</span></h2>
+                            <p className="text-stone-500 text-xs font-medium">Ações concretas baseadas na sua energia.</p>
                         </div>
-                        <button
-                            onClick={() => navigate('tasks')}
-                            className="text-xs text-emerald-600 font-semibold hover:underline"
-                        >
-                            {t('home.see_all')}
+                        <button onClick={loadAISuggestions} disabled={loadingSuggestions} className="text-xs text-purple-600 font-semibold bg-purple-50 px-3 py-1.5 rounded-full hover:bg-purple-100 disabled:opacity-50 transition-colors">
+                            {loadingSuggestions ? 'Gerando...' : 'Gerar Novas'}
                         </button>
                     </div>
 
-                    <div className="space-y-2.5">
-                        {loading ? (
-                            <div className="space-y-2.5">
-                                {[1, 2, 3].map(i => (
-                                    <div key={i} className="h-14 bg-white/40 rounded-2xl animate-pulse"></div>
-                                ))}
-                            </div>
-                        ) : suggestedTasks.length > 0 ? (
-                            suggestedTasks.slice(0, 4).map((task) => (
-                                <div
-                                    key={task.id}
-                                    className="glass-card-chic rounded-2xl p-3.5 px-4 flex justify-between items-center group hover:bg-white/60 transition-all cursor-pointer"
-                                    onClick={() => setEditingTask(task as Task)}
-                                >
-                                    <div className="flex items-center gap-3 w-full pr-2 overflow-hidden">
-                                        <div className={`w-2 h-2 shrink-0 rounded-full shadow-inner-sm ${task.energy_level === 'high' ? 'bg-rose-400' :
-                                            task.energy_level === 'medium' ? 'bg-amber-400' : 'bg-emerald-400'
-                                            }`}></div>
-                                        <span className="text-stone-700 font-medium text-sm truncate">{task.title}</span>
+                    {aiSuggestions.length > 0 ? (
+                        <div className="space-y-2">
+                            {aiSuggestions.map((sug, i) => (
+                                <div key={i} className="glass-card-chic rounded-xl p-3 border border-purple-100 flex justify-between items-center bg-purple-50/40 shadow-sm">
+                                    <div>
+                                        <p className="text-sm font-medium text-stone-800">{sug.title}</p>
                                     </div>
-                                    <button
-                                        title={`Mark ${task.title} as completed`}
-                                        className="w-7 h-7 shrink-0 rounded-full bg-white/50 border border-stone-200/50 flex items-center justify-center shadow-sm cursor-pointer hover:bg-emerald-400 hover:border-emerald-500 transition-all active:scale-90 group/btn"
-                                        onClick={(e) => { e.stopPropagation(); toggleTask(task.id); }}
-                                    >
-                                        <CheckCircle2 className="w-4 h-4 text-stone-400 group-hover/btn:text-white transition-colors" />
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => addSuggestedTask(sug, i)} className="text-xs bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-2.5 py-1.5 rounded-lg font-bold transition-all active:scale-95">Aceitar</button>
+                                        <button onClick={() => setAiSuggestions(prev => prev.filter((_, idx) => idx !== i))} className="text-xs bg-stone-100 text-stone-500 hover:bg-stone-200 px-2.5 py-1.5 rounded-lg font-bold transition-all active:scale-95">Ignorar</button>
+                                    </div>
                                 </div>
-                            ))
-                        ) : (
-                            <div className="text-center py-6 glass-card-chic rounded-2xl border-dashed border-2 border-white/40">
-                                <p className="text-stone-500 font-medium text-sm">{t('home.no_tasks')}</p>
-                            </div>
-                        )}
-                    </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-5 glass-card-chic rounded-2xl border-dashed border-2 border-white/40">
+                            <p className="text-sm text-stone-500 px-6">Nenhuma dica gerada ainda. Toque em "Gerar Novas" para receber sugestões de acordo com o seu momento.</p>
+                        </div>
+                    )}
                 </div>
             </div>
 

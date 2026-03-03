@@ -40,6 +40,7 @@ export const Exercises = () => {
     const [customRequest, setCustomRequest] = useState('');
     const [generating, setGenerating] = useState(false);
     const [aiPlan, setAiPlan] = useState<string | null>(null);
+    const [selectedExercise, setSelectedExercise] = useState<any | null>(null);
 
     useEffect(() => {
         if (!user) return;
@@ -87,32 +88,40 @@ export const Exercises = () => {
 
     const currentSuggestion = suggestions[energyLevel as keyof typeof suggestions];
 
-    const startQuickExercise = async (option: typeof QUICK_OPTIONS[0]) => {
-        if (!user) return;
+    const openQuickExercise = (option: typeof QUICK_OPTIONS[0]) => {
+        setSelectedExercise({
+            title: option.label,
+            type: option.type,
+            duration_minutes: option.intensity === 'light' ? 15 : option.intensity === 'moderate' ? 30 : 45,
+            intensity: option.intensity,
+            description: `Este é um exercício de intensidade ${option.intensity === 'light' ? 'leve' : option.intensity === 'moderate' ? 'moderada' : 'alta'} para ajudar a recuperar ou gastar energia no seu ritmo.`,
+        });
+    };
 
-        const { error } = await supabase
-            .from('exercise_history')
-            .insert([{
-                user_id: user.id,
-                type: option.type,
-                title: option.label,
-                duration_minutes: option.intensity === 'light' ? 15 : option.intensity === 'moderate' ? 30 : 45,
-                intensity: option.intensity,
-                energy_at_start: energyScore,
-                user_request: option.label,
-            }]);
+    const openRecommended = () => {
+        setSelectedExercise({
+            title: currentSuggestion.type,
+            type: 'recommended',
+            duration_minutes: currentSuggestion.duration,
+            intensity: currentSuggestion.intensity,
+            description: currentSuggestion.description,
+        });
+    };
 
-        if (!error) {
-            showToast('Exercício iniciado!');
-            // Refetch history
-            const { data } = await supabase
-                .from('exercise_history')
-                .select('*')
-                .eq('user_id', user.id)
-                .order('created_at', { ascending: false })
-                .limit(10);
-            if (data) setHistory(data as ExerciseEntry[]);
+    const openHistoryExercise = (entry: ExerciseEntry) => {
+        let desc = `Sessão de ${entry.title}.`;
+        if (entry.ai_generated_plan && typeof entry.ai_generated_plan === 'object') {
+            const plan: any = entry.ai_generated_plan;
+            desc = `${plan.ai_reasoning || ''}\n\nExercícios:\n- ${(plan.items || []).join('\n- ')}`;
         }
+        setSelectedExercise({
+            id: entry.id,
+            title: entry.title,
+            type: entry.type,
+            duration_minutes: entry.duration_minutes,
+            intensity: entry.intensity,
+            description: desc,
+        });
     };
 
     const generateAIPlan = async () => {
@@ -148,16 +157,41 @@ export const Exercises = () => {
         }
     };
 
-    const markCompleted = async (exerciseId: string) => {
-        const { error } = await supabase
-            .from('exercise_history')
-            .update({ completed: true, completed_at: new Date().toISOString() })
-            .eq('id', exerciseId);
+    const markCompleted = async () => {
+        if (!selectedExercise || !user) return;
 
-        if (!error) {
-            setHistory(history.map(h => h.id === exerciseId ? { ...h, completed: true } : h));
-            showToast('Exercício concluído! 💪');
+        if (selectedExercise.id) {
+            // Update existing
+            const { error } = await supabase
+                .from('exercise_history')
+                .update({ completed: true, completed_at: new Date().toISOString() })
+                .eq('id', selectedExercise.id);
+
+            if (!error) {
+                setHistory(history.map(h => h.id === selectedExercise.id ? { ...h, completed: true } : h));
+                showToast('Exercício concluído! 💪');
+            }
+        } else {
+            // Insert new
+            const { data, error } = await supabase
+                .from('exercise_history')
+                .insert([{
+                    user_id: user.id,
+                    type: selectedExercise.type,
+                    title: selectedExercise.title,
+                    duration_minutes: selectedExercise.duration_minutes,
+                    intensity: selectedExercise.intensity,
+                    energy_at_start: energyScore,
+                    completed: true,
+                    completed_at: new Date().toISOString()
+                }]).select();
+
+            if (!error && data) {
+                setHistory([data[0] as ExerciseEntry, ...history]);
+                showToast('Exercício concluído! 💪');
+            }
         }
+        setSelectedExercise(null);
     };
 
     return (
@@ -181,11 +215,14 @@ export const Exercises = () => {
 
                 {/* Energy-based recommendation */}
                 {!energyLoading && energy && (
-                    <div className={`p-4 rounded-xl shadow-sm border border-white/60 mb-2 ${energyLevel === 'high' ? 'bg-gradient-to-r from-orange-100 to-rose-100' :
-                        energyLevel === 'medium' ? 'bg-gradient-to-r from-yellow-100 to-amber-100' :
-                            'bg-gradient-to-r from-purple-100 to-indigo-100'
-                        }`}>
-                        <div className="flex items-start gap-4">
+                    <div
+                        onClick={openRecommended}
+                        className={`p-4 rounded-xl shadow-sm border border-white/60 mb-2 cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95 ${energyLevel === 'high' ? 'bg-gradient-to-r from-orange-100 to-rose-100' :
+                            energyLevel === 'medium' ? 'bg-gradient-to-r from-yellow-100 to-amber-100' :
+                                'bg-gradient-to-r from-purple-100 to-indigo-100'
+                            }`}
+                    >
+                        <div className="flex items-start gap-4 pointer-events-none">
                             <span className="text-4xl mt-1 drop-shadow-sm">{currentSuggestion.icon}</span>
                             <div className="flex-1">
                                 <h3 className="font-serif text-[17px] text-stone-800 leading-tight">Recomendado hoje</h3>
@@ -193,7 +230,6 @@ export const Exercises = () => {
 
                                 <div className="bg-white/40 rounded-xl p-3">
                                     <p className="font-bold text-sm text-stone-800">{currentSuggestion.type}</p>
-                                    <p className="text-xs text-stone-600 mt-1 leading-relaxed">{currentSuggestion.description}</p>
                                     <div className="flex gap-2 mt-3">
                                         <span className="px-2.5 py-1 bg-white/70 rounded-md text-[10px] font-bold text-stone-600 shadow-sm">{currentSuggestion.duration} min</span>
                                         <span className="px-2.5 py-1 bg-white/70 rounded-md text-[10px] font-bold text-stone-600 shadow-sm capitalize">{currentSuggestion.intensity}</span>
@@ -212,11 +248,8 @@ export const Exercises = () => {
                             <button
                                 key={option.label}
                                 title={option.label}
-                                onClick={() => startQuickExercise(option)}
-                                className={`flex items-center gap-2 p-3 rounded-2xl border transition-all hover:-translate-y-0.5 active:scale-95 shadow-sm hover:shadow-md ${option.intensity === 'intense' ? 'bg-orange-50/80 border-orange-200/60 hover:bg-orange-100/80 text-orange-700' :
-                                    option.intensity === 'moderate' ? 'bg-amber-50/80 border-amber-200/60 hover:bg-amber-100/80 text-amber-700' :
-                                        'bg-white/80 border-white hover:bg-white text-stone-700'
-                                    }`}
+                                onClick={() => openQuickExercise(option)}
+                                className={`flex items-center gap-2 p-3 rounded-2xl border transition-all hover:-translate-y-0.5 active:scale-95 shadow-sm hover:shadow-md bg-white/80 border-white hover:bg-white text-stone-700`}
                             >
                                 <span className="text-xl drop-shadow-sm">{option.icon}</span>
                                 <span className="text-[13px] font-semibold text-left leading-tight">{option.label}</span>
@@ -273,7 +306,11 @@ export const Exercises = () => {
                         </div>
                     ) : history.length > 0 ? (
                         history.map((entry) => (
-                            <div key={entry.id} className="glass-card-chic rounded-2xl p-3 flex items-center justify-between">
+                            <div
+                                key={entry.id}
+                                onClick={() => !entry.completed && openHistoryExercise(entry)}
+                                className={`glass-card-chic rounded-2xl p-3 flex items-center justify-between ${!entry.completed ? 'cursor-pointer hover:bg-white/60 transition-colors' : ''}`}
+                            >
                                 <div className="flex items-center gap-3">
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${entry.completed ? 'bg-emerald-100 text-emerald-600' : 'bg-stone-100 text-stone-500'
                                         }`}>
@@ -287,14 +324,6 @@ export const Exercises = () => {
                                         </p>
                                     </div>
                                 </div>
-                                {!entry.completed && (
-                                    <button
-                                        onClick={() => markCompleted(entry.id)}
-                                        className="text-xs text-emerald-600 font-semibold px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 transition-all active:scale-95"
-                                    >
-                                        Concluir
-                                    </button>
-                                )}
                             </div>
                         ))
                     ) : (
@@ -312,6 +341,44 @@ export const Exercises = () => {
                     )}
                 </div>
             </div>
+
+            {/* Exercise Modal */}
+            {selectedExercise && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm transition-opacity">
+                    <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-xl transform transition-all space-y-6">
+                        <div>
+                            <h2 className="text-2xl font-serif text-stone-800 mb-2 leading-tight">{selectedExercise.title}</h2>
+                            <div className="flex gap-2 mb-4">
+                                <span className="px-2.5 py-1 bg-purple-50 rounded-lg text-xs font-bold text-purple-600 uppercase tracking-wide">
+                                    {selectedExercise.duration_minutes} min
+                                </span>
+                                <span className="px-2.5 py-1 bg-stone-100 rounded-lg text-xs font-bold text-stone-600 uppercase tracking-wide">
+                                    {selectedExercise.intensity}
+                                </span>
+                            </div>
+                            <div className="bg-stone-50 rounded-2xl p-4">
+                                <p className="text-sm text-stone-700 leading-relaxed whitespace-pre-wrap">{selectedExercise.description}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-between gap-3 pt-2">
+                            <button
+                                onClick={() => setSelectedExercise(null)}
+                                className="flex-1 py-3 px-4 rounded-2xl font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-colors"
+                            >
+                                Fechar
+                            </button>
+                            <button
+                                onClick={markCompleted}
+                                className="flex-1 py-3 px-4 rounded-2xl font-semibold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2"
+                            >
+                                <Check className="w-4 h-4" />
+                                Concluir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

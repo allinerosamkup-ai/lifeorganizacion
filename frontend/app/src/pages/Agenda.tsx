@@ -28,6 +28,7 @@ export const Agenda = () => {
     const [isSplitting, setIsSplitting] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [showAddForm, setShowAddForm] = useState(false);
+    const [dragTaskId, setDragTaskId] = useState<string | null>(null);
     const [energyHistory, setEnergyHistory] = useState<Record<string, { energy_level: string, total_score: number }>>({});
 
     // Fetch energy history for calendar colors
@@ -172,6 +173,31 @@ export const Agenda = () => {
     const handleMoveTask = async (taskId: string, newDate: string) => {
         setTasks(prev => prev.map(t => t.id === taskId ? { ...t, due_date: newDate } : t));
         await supabase.from('tasks').update({ due_date: newDate }).eq('id', taskId);
+    };
+
+    const handleDropReorder = async (dragId: string, dropId: string) => {
+        if (dragId === dropId) return;
+        setDragTaskId(null);
+
+        const dragIndex = tasks.findIndex(t => t.id === dragId);
+        const dropIndex = tasks.findIndex(t => t.id === dropId);
+        if (dragIndex < 0 || dropIndex < 0) return;
+
+        const newTasks = [...tasks];
+        const [draggedItem] = newTasks.splice(dragIndex, 1);
+        newTasks.splice(dropIndex, 0, draggedItem);
+
+        setTasks(newTasks);
+
+        const maxPriority = newTasks.length;
+        for (let i = 0; i < newTasks.length; i++) {
+            const task = newTasks[i];
+            const p = maxPriority - i;
+            if (task.priority !== p) {
+                task.priority = p;
+                await supabase.from('tasks').update({ priority: p }).eq('id', task.id);
+            }
+        }
     };
 
     const toggleTask = async (taskId: string) => {
@@ -319,6 +345,7 @@ export const Agenda = () => {
                             type="button"
                             onClick={smartEntry}
                             disabled={isGenerating}
+                            title="Gerar com IA"
                             className="flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-purple-500 text-white text-sm font-semibold shadow-md hover:bg-purple-600 transition-all disabled:opacity-50"
                         >
                             {isGenerating ? <Wand2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
@@ -332,13 +359,13 @@ export const Agenda = () => {
                         {/* Month Calendar */}
                         <div className="glass-card-chic rounded-3xl p-5 shadow-sm border border-white/80">
                             <div className="flex justify-between items-center mb-4">
-                                <button type="button" onClick={() => setCurrentMonth(m => subMonths(m, 1))} className="w-8 h-8 flex items-center justify-center hover:bg-stone-100/50 rounded-full">
+                                <button type="button" onClick={() => setCurrentMonth(m => subMonths(m, 1))} title="Mês anterior" className="w-8 h-8 flex items-center justify-center hover:bg-stone-100/50 rounded-full">
                                     <ChevronLeft className="w-5 h-5 text-stone-500" />
                                 </button>
                                 <h2 className="font-serif text-lg text-stone-800 capitalize">
                                     {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
                                 </h2>
-                                <button type="button" onClick={() => setCurrentMonth(m => addMonths(m, 1))} className="w-8 h-8 flex items-center justify-center hover:bg-stone-100/50 rounded-full">
+                                <button type="button" onClick={() => setCurrentMonth(m => addMonths(m, 1))} title="Próximo mês" className="w-8 h-8 flex items-center justify-center hover:bg-stone-100/50 rounded-full">
                                     <ChevronRight className="w-5 h-5 text-stone-500" />
                                 </button>
                             </div>
@@ -410,6 +437,7 @@ export const Agenda = () => {
                             </div>
                             <button
                                 type="button"
+                                title={showAddForm ? "Cancelar" : "Adicionar tarefa"}
                                 onClick={() => setShowAddForm(!showAddForm)}
                                 className="w-11 h-11 rounded-2xl bg-stone-800 text-white flex items-center justify-center shadow-lg hover:-translate-y-0.5 hover:bg-stone-900 transition-all"
                             >
@@ -422,6 +450,8 @@ export const Agenda = () => {
                             <form onSubmit={handleAddTask} className="glass-card-chic rounded-2xl p-4 space-y-3">
                                 <input
                                     type="text"
+                                    title="Título da nova tarefa"
+                                    aria-label="Título da nova tarefa"
                                     value={newTaskTitle}
                                     onChange={(e) => setNewTaskTitle(e.target.value)}
                                     placeholder="Nova tarefa..."
@@ -431,6 +461,8 @@ export const Agenda = () => {
                                 <div className="flex gap-2">
                                     <input
                                         type="time"
+                                        title="Horário da tarefa"
+                                        aria-label="Horário da tarefa"
                                         value={newTaskTime}
                                         onChange={(e) => setNewTaskTime(e.target.value)}
                                         className="flex-1 bg-white/50 border border-white/60 rounded-xl py-2.5 px-4 outline-none focus:ring-2 focus:ring-orange-300/50"
@@ -454,10 +486,26 @@ export const Agenda = () => {
                                 </div>
                             ) : tasks.length > 0 ? (
                                 tasks.map(task => (
-                                    <div key={task.id} className={`relative glass-card-chic border border-white/60 rounded-3xl p-5 shadow-sm transition-all ${task.is_completed ? 'opacity-60 grayscale-[0.2]' : ''}`}>
+                                    <div
+                                        key={task.id}
+                                        draggable
+                                        onDragStart={(e) => {
+                                            setDragTaskId(task.id);
+                                            e.dataTransfer.setData('text/plain', task.id);
+                                            e.dataTransfer.effectAllowed = 'move';
+                                        }}
+                                        onDragOver={(e) => e.preventDefault()}
+                                        onDrop={(e) => {
+                                            e.preventDefault();
+                                            if (dragTaskId) {
+                                                handleDropReorder(dragTaskId, task.id);
+                                            }
+                                        }}
+                                        className={`relative glass-card-chic border border-white/60 rounded-3xl p-5 shadow-sm transition-all cursor-move ${dragTaskId === task.id ? 'opacity-50' : ''} ${task.is_completed ? 'opacity-60 grayscale-[0.2]' : ''}`}
+                                    >
                                         <div className="flex justify-between items-start gap-4">
                                             <div className="flex gap-3 flex-1 cursor-pointer group" onClick={() => toggleTask(task.id)}>
-                                                <button type="button" className={`mt-0.5 w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all ${task.is_completed ? 'bg-emerald-400 text-white' : 'border-2 border-stone-300'}`}>
+                                                <button type="button" title="Alternar tarefa" className={`mt-0.5 w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all ${task.is_completed ? 'bg-emerald-400 text-white' : 'border-2 border-stone-300'}`}>
                                                     {task.is_completed && <CheckCircle2 className="w-4 h-4" />}
                                                 </button>
                                                 <div className="flex-1">
@@ -475,11 +523,11 @@ export const Agenda = () => {
                                             </div>
                                             <div className="flex gap-1.5 shrink-0">
                                                 {(!task.subtasks || task.subtasks.length === 0) && !task.is_completed && (
-                                                    <button type="button" onClick={() => splitTaskWithAI(task)} disabled={isSplitting === task.id} className="p-2 w-8 h-8 flex items-center justify-center rounded-xl bg-purple-50 text-purple-500 hover:bg-purple-100">
+                                                    <button type="button" title="Dividir tarefa com IA" onClick={() => splitTaskWithAI(task)} disabled={isSplitting === task.id} className="p-2 w-8 h-8 flex items-center justify-center rounded-xl bg-purple-50 text-purple-500 hover:bg-purple-100">
                                                         {isSplitting === task.id ? <Wand2 className="w-4 h-4 animate-spin" /> : <SplitSquareHorizontal className="w-4 h-4" />}
                                                     </button>
                                                 )}
-                                                <button type="button" onClick={() => deleteTask(task.id)} className="p-2 w-8 h-8 flex items-center justify-center rounded-xl bg-rose-50 text-rose-400 hover:bg-rose-100">
+                                                <button type="button" title="Excluir tarefa" onClick={() => deleteTask(task.id)} className="p-2 w-8 h-8 flex items-center justify-center rounded-xl bg-rose-50 text-rose-400 hover:bg-rose-100">
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
                                             </div>
@@ -517,13 +565,13 @@ export const Agenda = () => {
                     <>
                         {/* Weekly Board */}
                         <div className="flex justify-between items-center mb-2">
-                            <button type="button" onClick={() => setSelectedDate(d => subWeeks(d, 1))} className="w-8 h-8 flex items-center justify-center hover:bg-stone-100/50 rounded-full">
+                            <button type="button" title="Semana anterior" onClick={() => setSelectedDate(d => subWeeks(d, 1))} className="w-8 h-8 flex items-center justify-center hover:bg-stone-100/50 rounded-full">
                                 <ChevronLeft className="w-5 h-5 text-stone-500" />
                             </button>
                             <h2 className="font-serif text-lg text-stone-800 capitalize">
                                 Semana de {format(startOfWeek(selectedDate, { weekStartsOn: 1 }), "d 'de' MMMM", { locale: ptBR })}
                             </h2>
-                            <button type="button" onClick={() => setSelectedDate(d => addWeeks(d, 1))} className="w-8 h-8 flex items-center justify-center hover:bg-stone-100/50 rounded-full">
+                            <button type="button" title="Próxima semana" onClick={() => setSelectedDate(d => addWeeks(d, 1))} className="w-8 h-8 flex items-center justify-center hover:bg-stone-100/50 rounded-full">
                                 <ChevronRight className="w-5 h-5 text-stone-500" />
                             </button>
                         </div>

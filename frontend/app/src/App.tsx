@@ -122,7 +122,7 @@ export default function App() {
       case 'profile': return <Profile />;
       case 'tasks': return <Tasks />;
       case 'exercises': return <Exercises />;
-      case 'settings': return <Settings navigate={setView} />;
+      case 'settings': return <Settings />;
       case 'notifications': return <Notifications navigate={setView} />;
       case 'plans': return <Plans navigate={setView} />;
       default: return <Login />;

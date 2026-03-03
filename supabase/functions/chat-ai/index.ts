@@ -50,6 +50,14 @@ serve(async (req: Request) => {
             .eq('date', today)
             .maybeSingle()
 
+        // Fetch recent check_ins for memory context
+        const { data: recentCheckins } = await supabaseClient
+            .from('check_ins')
+            .select('date, humor_emoji, energy_score, free_text, ai_analysis')
+            .eq('user_id', user.id)
+            .order('date', { ascending: false })
+            .limit(3)
+
         // Build energy context string for the system prompt
         let energyContext = ''
         if (energyData) {
@@ -63,6 +71,10 @@ serve(async (req: Request) => {
                 (healthData.hrv_rmssd ? `HRV RMSSD=${healthData.hrv_rmssd}ms, ` : '') +
                 (healthData.steps ? `Passos=${healthData.steps}, ` : '') +
                 (healthData.active_minutes ? `Minutos ativos=${healthData.active_minutes}` : '')
+        }
+        let memoryContext = ''
+        if (recentCheckins && recentCheckins.length > 0) {
+            memoryContext = `\nMEMÓRIA RECENTE (últimos check-ins):\n` + recentCheckins.map(c => `- ${c.date}: Humor ${c.humor_emoji}, Energia ${c.energy_score}/10. Nota: ${c.free_text || 'Sem nota'}`).join('\n');
         }
 
         const openAiApiKey = Deno.env.get('OPENAI_API_KEY')
@@ -82,20 +94,22 @@ serve(async (req: Request) => {
                 messages: [
                     {
                         role: 'system',
-                        content: `Você é o Airia Flow, um assistente de bem-estar e organização pessoal empático e baseado em evidências. ` +
-                            `Seu papel é ajudar a pessoa a organizar o dia de forma compatível com sua energia real. ` +
-                            `Use princípios de Behavioral Activation (agendar atividades mesmo sem vontade) e respeite limites de energia. ` +
-                            `NUNCA faça diagnóstico médico. NUNCA promova produtividade tóxica. ` +
-                            `Em energia baixa, sugira autocuidado e tarefas mínimas. ` +
+                        content: `Você é o Airia Flow, um assistente de bem-estar e organização pessoal empático e baseado em evidências.\n` +
+                            `Seu papel não é apenas um chat livre, mas conduzir uma SESSÃO GUIADA:\n` +
+                            `1. Puxe a memória (temas e check-ins recentes).\n` +
+                            `2. Faça 1-2 perguntas muito focadas para a pessoa refletir.\n` +
+                            `3. Termine com UMA pequena ação sugerida (Behavioral Activation).\n` +
+                            `NUNCA faça diagnóstico médico. Em energia baixa, sugira autocuidado extremo e mínimo atrito.\n` +
                             `Contexto: Nome=${profile?.full_name}, Plano=${profile?.plan}.` +
                             energyContext +
+                            memoryContext +
                             `\n\nIMPORTANTE: VOCÊ DEVE RETORNAR APENAS UM JSON VÁLIDO. NÃO USE MARKDOWN TAGS. EXPECTED FORMAT:\n` +
                             `{\n` +
-                            `  "summary": "Sua resposta conversacional e empática principal",\n` +
-                            `  "task_suggestions": [{"title": "Nome", "energy_level": "low|medium|high", "reason": "Justificativa"}],\n` +
-                            `  "exercise_suggestion": {"name": "Exercício", "reason": "Justificativa"}\n` +
+                            `  "summary": "Sua resposta conversacional e empática principal contendo a reflexão e as perguntas focadas",\n` +
+                            `  "task_suggestions": [{"title": "Nome de ação minúscula sugerida", "energy_level": "low|medium|high", "reason": "Justificativa"}],\n` +
+                            `  "exercise_suggestion": {"name": "Exercício leve (se apropriado)", "reason": "Justificativa"}\n` +
                             `}\n` +
-                            `Se não houver tarefas ou exercícios a sugerir, envie arrays/objetos vazios, mas a estrutura deve ser mantida.`
+                            `Se não houver tarefas ou ferramentas a sugerir, envie arrays/objetos vazios, mas a estrutura deve ser mantida.`
                     },
                     ...history,
                     { role: 'user', content: message }

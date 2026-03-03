@@ -1,0 +1,17 @@
+
+> app@0.0.0 build
+> tsc -b && vite build
+
+src/App.tsx(125,41): error TS2322: Type '{ navigate: Dispatch<SetStateAction<string>>; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'navigate' does not exist on type 'IntrinsicAttributes'.
+src/components/DayTimeline.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/DayTimeline.tsx(2,1): error TS6133: 'format' is declared but its value is never read.
+src/pages/Home.tsx(3,10): error TS6133: 'CheckCircle2' is declared but its value is never read.
+src/pages/Home.tsx(3,24): error TS6133: 'Clock' is declared but its value is never read.
+src/pages/Home.tsx(12,23): error TS1484: 'TimelineBlock' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+src/pages/Home.tsx(37,12): error TS6133: 'loading' is declared but its value is never read.
+src/pages/Home.tsx(66,14): error TS2304: Cannot find name 'profile'.
+src/pages/Home.tsx(66,45): error TS2304: Cannot find name 'profile'.
+src/pages/Home.tsx(67,37): error TS2304: Cannot find name 'profile'.
+src/pages/Home.tsx(68,29): error TS2304: Cannot find name 'profile'.
+src/pages/Home.tsx(239,27): error TS6133: 'error' is declared but its value is never read.
