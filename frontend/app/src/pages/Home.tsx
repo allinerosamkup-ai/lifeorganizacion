@@ -221,7 +221,7 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
                             <div className="space-y-4">
                                 <p className="text-stone-500 text-sm">Faça uma pausa e analise o que aconteceu hoje.</p>
                                 <button
-                                    onClick={() => setIsCheckinModalOpen(true)}
+                                    onClick={() => navigate('reflections')}
                                     className="w-full py-4 rounded-2xl bg-stone-900 text-white font-bold text-sm shadow-md hover:bg-stone-800 transition-all active:scale-95 flex items-center justify-center gap-2"
                                 >
                                     Iniciar Reflexão <Sparkles className="w-4 h-4" />

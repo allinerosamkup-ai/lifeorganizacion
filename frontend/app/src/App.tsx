@@ -21,6 +21,7 @@ import { Plans } from './pages/Plans';
 import { BottomNav } from './pages/BottomNav';
 import { Habits } from './pages/Habits';
 import { Insights } from './pages/Insights';
+import { Reflections } from './pages/Reflections';
 import { ToastProvider } from './components/Toast';
 
 const Footer = ({ navigate }: { navigate: (v: string) => void }) => {
@@ -128,6 +129,7 @@ export default function App() {
       case 'settings': return <Settings />;
       case 'notifications': return <Notifications navigate={setView} />;
       case 'insights': return <Insights />;
+      case 'reflections': return <Reflections onBack={() => setView('home')} />;
       case 'plans': return <Plans navigate={setView} />;
       default: return <Login />;
     }
