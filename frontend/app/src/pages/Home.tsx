@@ -1,52 +1,75 @@
-import { useState, useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
-import { User, Check, Bell, Mic } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { CheckCircle2, Clock, User, Check, Moon, Sun, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import { useEnergyScore } from '../lib/useEnergyScore';
 import { EnergyGauge } from '../components/EnergyGauge';
+import { EnergyHistoryStrip } from '../components/EnergyHistoryStrip';
+import { TaskEditModal } from '../components/TaskEditModal';
 import { showToast } from '../components/Toast';
 import type { Task } from '../components/TaskEditModal';
-import { TaskEditModal } from '../components/TaskEditModal';
-import { EnergyHistoryStrip } from '../components/EnergyHistoryStrip';
-import { DayTimeline } from '../components/DayTimeline';
-import type { TimelineBlock } from '../components/DayTimeline';
+
+interface AiSuggestion {
+    title: string;
+    energy_level: 'low' | 'medium' | 'high';
+    description?: string;
+}
 
 const MOODS = [
-    { key: 'great', emoji: '😊', label: 'Feliz', value: 'great' },
-    { key: 'good', emoji: '💪', label: 'Disposto', value: 'good' },
-    { key: 'neutral', emoji: '😐', label: 'Normal', value: 'neutral' },
-    { key: 'low', emoji: '☹️', label: 'Triste', value: 'low' },
-    { key: 'bad', emoji: '😡', label: 'Irritado', value: 'bad' },
-    { key: 'tired', emoji: '🥱', label: 'Cansado', value: 'low' },
-    { key: 'anxious', emoji: '😰', label: 'Ansioso', value: 'bad' },
-    { key: 'calm', emoji: '🧘', label: 'Calmo', value: 'good' },
-    { key: 'creative', emoji: '🎨', label: 'Criativo', value: 'great' },
+    { label: 'Feliz', emoji: '😊', humor: 'great', energy: 8, bg: 'bg-yellow-100/80' },
+    { label: 'Disposto', emoji: '💪', humor: 'good', energy: 9, bg: 'bg-yellow-100/80' },
+    { label: 'Normal', emoji: '😐', humor: 'neutral', energy: 5, bg: 'bg-orange-100/80' },
+    { label: 'Calmo', emoji: '🧘', humor: 'calm', energy: 7, bg: 'bg-sky-100/80' },
+    { label: 'Criativo', emoji: '🎨', humor: 'creative', energy: 8, bg: 'bg-violet-100/80' },
+    { label: 'Triste', emoji: '☹️', humor: 'low', energy: 3, bg: 'bg-blue-100/80' },
+    { label: 'Ansioso', emoji: '😰', humor: 'anxious', energy: 3, bg: 'bg-orange-200/80' },
+    { label: 'Irritado', emoji: '😡', humor: 'bad', energy: 4, bg: 'bg-red-200/80' },
+    { label: 'Cansado', emoji: '🥱', humor: 'tired', energy: 2, bg: 'bg-blue-100/80' },
 ];
 
-const energyScoreMap: Record<string, number> = {
-    'great': 9, 'good': 8, 'neutral': 5,
-    'low': 3, 'bad': 2, 'tired': 2,
-    'anxious': 3, 'calm': 7, 'creative': 8,
+const phaseLabels: Record<string, { icon: string; label: string; color: string; desc: string }> = {
+    menstrual: { icon: '🌙', label: 'Menstrual', color: 'text-rose-600 bg-rose-50 border-rose-200', desc: 'Descanse e cuide de você.' },
+    folicular: { icon: '🌱', label: 'Folicular', color: 'text-emerald-600 bg-emerald-50 border-emerald-200', desc: 'Energia subindo!' },
+    ovulatoria: { icon: '☀️', label: 'Ovulação', color: 'text-amber-600 bg-amber-50 border-amber-200', desc: 'Pico de energia.' },
+    luteal: { icon: '🍂', label: 'Lútea', color: 'text-purple-600 bg-purple-50 border-purple-200', desc: 'Foco nas rotinas.' },
 };
 
 export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
-    const { t } = useTranslation();
     const { user, profile } = useAuth();
     const { energy, loading: energyLoading, recalculate } = useEnergyScore();
-    const [tasks, setTasks] = useState<Task[]>([]);
-    const [todayCheckInCount, setTodayCheckInCount] = useState(0);
-    const [lastCheckInEmoji, setLastCheckInEmoji] = useState<string | null>(null);
-    const [quickMoodText, setQuickMoodText] = useState('');
-    const [editingTask, setEditingTask] = useState<Task | null>(null);
-    const [isListening, setIsListening] = useState(false);
-    const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
-    const [aiSuggestions, setAiSuggestions] = useState<any[]>([]);
-    const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-    const [exerciseHistory, setExerciseHistory] = useState<any[]>([]);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const recognitionRef = useRef<any>(null);
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [checkInDone, setCheckInDone] = useState(false);
+    const [eveningDone, setEveningDone] = useState(false);
+    const [selectedMood, setSelectedMood] = useState<typeof MOODS[0] | null>(null);
+    const [sleepHours, setSleepHours] = useState(7);
+    const [accomplishment, setAccomplishment] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+    const [aiSuggestions, setAiSuggestions] = useState<AiSuggestion[]>([]);
+    const [eveningJournal, setEveningJournal] = useState('');
+    const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+    const mode = useMemo<'morning' | 'evening'>(() => {
+        const hour = new Date().getHours();
+        return hour >= 17 ? 'evening' : 'morning';
+    }, []);
+
+    const firstName = profile?.full_name?.split(' ')[0] || 'você';
+
+    const getCyclePhaseForDate = (date: Date) => {
+        if (!profile?.last_period_start || !profile?.tracks_cycle) return null;
+        const lastPeriod = new Date(profile.last_period_start);
+        const cycleLength = (profile as Record<string, unknown>).cycle_length as number || 28;
+        const daysDiff = Math.floor((date.getTime() - lastPeriod.getTime()) / (1000 * 3600 * 24));
+        const dayInCycle = ((daysDiff % cycleLength) + cycleLength) % cycleLength;
+        if (dayInCycle < 5) return 'menstrual';
+        if (dayInCycle < 13) return 'folicular';
+        if (dayInCycle < 16) return 'ovulatoria';
+        return 'luteal';
+    };
+
+    const currentPhase = getCyclePhaseForDate(new Date());
 
     const fetchTasks = async () => {
         if (!user) return;
@@ -57,376 +80,168 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
             .is('is_completed', false)
             .order('priority', { ascending: true })
             .limit(5);
-
         if (data) setTasks(data);
-    };
-
-    const getCyclePhaseForDate = (date: Date) => {
-        if (!profile?.last_period_start || !profile?.tracks_cycle) return null;
-        const lastPeriod = new Date(profile.last_period_start);
-        const cycleLength = profile.cycle_length || 28;
-        const daysDiff = Math.floor((date.getTime() - lastPeriod.getTime()) / (1000 * 3600 * 24));
-        const dayInCycle = ((daysDiff % cycleLength) + cycleLength) % cycleLength;
-
-        if (dayInCycle < 5) return 'menstrual';
-        if (dayInCycle < 13) return 'folicular';
-        if (dayInCycle < 16) return 'ovulatoria';
-        return 'luteal';
-    };
-
-    const phaseLabels: Record<string, { icon: string; label: string; color: string; desc: string }> = {
-        menstrual: { icon: '🌙', label: 'Menstrual', color: 'text-rose-600 bg-rose-50 border-rose-200', desc: 'Energia mais baixa. Descanse.' },
-        folicular: { icon: '🌱', label: 'Folicular', color: 'text-emerald-600 bg-emerald-50 border-emerald-200', desc: 'Energia subindo!' },
-        ovulatoria: { icon: '☀️', label: 'Ovulação', color: 'text-amber-600 bg-amber-50 border-amber-200', desc: 'Pico de energia.' },
-        luteal: { icon: '🍂', label: 'Lútea', color: 'text-purple-600 bg-purple-50 border-purple-200', desc: 'Energia caindo. Foco.' },
+        setLoading(false);
     };
 
     useEffect(() => {
         if (!user) return;
 
-        const doFetchTasks = async () => {
-            await fetchTasks();
-        };
-
-        const fetchCheckIns = async () => {
+        const checkTodayCheckIns = async () => {
             const today = new Date().toISOString().split('T')[0];
-            const { data, count } = await supabase
+            const { data } = await supabase
                 .from('check_ins')
-                .select('humor_emoji', { count: 'exact' })
+                .select('id, check_in_type')
                 .eq('user_id', user.id)
-                .gte('checked_at', `${today}T00:00:00`)
-                .lte('checked_at', `${today}T23:59:59`);
-
-            setTodayCheckInCount(count || 0);
+                .eq('date', today);
             if (data && data.length > 0) {
-                setLastCheckInEmoji(data[data.length - 1].humor_emoji);
+                const hasMorning = data.some(c => c.check_in_type === 'morning' || !c.check_in_type);
+                const hasEvening = data.some(c => c.check_in_type === 'evening');
+                if (hasMorning) setCheckInDone(true);
+                if (hasEvening) setEveningDone(true);
             }
         };
 
-        const fetchExercises = async () => {
-            const todayStr = new Date().toISOString().split('T')[0];
+        const fetchAiSuggestions = async () => {
+            const today = new Date().toISOString().split('T')[0];
             const { data } = await supabase
-                .from('exercise_history')
-                .select('*')
+                .from('ai_suggestions')
+                .select('suggestions')
                 .eq('user_id', user.id)
-                .eq('date', todayStr);
-            if (data) setExerciseHistory(data);
+                .eq('date', today)
+                .maybeSingle();
+            if (data?.suggestions) setAiSuggestions(data.suggestions as AiSuggestion[]);
         };
 
-        doFetchTasks();
-        fetchCheckIns();
-        fetchExercises();
+        fetchTasks();
+        checkTodayCheckIns();
+        fetchAiSuggestions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
 
-    const handleCheckIn = async (moodKey: string) => {
-        if (!user) return;
-
-        setSelectedEmoji(moodKey);
-        setTimeout(() => setSelectedEmoji(null), 2000);
-
-        const mood = MOODS.find(m => m.key === moodKey);
-        // If we are submitting a text-only mood with no explicit emoji selected yet, default to neutral
-        const emojiToSave = mood ? mood.emoji : '😐';
-        const scoreToSave = mood ? energyScoreMap[moodKey] || 5 : 5;
-
-        const { error } = await supabase
-            .from('check_ins')
-            .insert([{
-                user_id: user.id,
-                humor_emoji: emojiToSave,
-                energy_score: scoreToSave,
-                free_text: quickMoodText || null,
-                checked_at: new Date().toISOString(),
-            }]);
-
+    const handleMorningCheckIn = async () => {
+        if (!user || !selectedMood || submitting) return;
+        setSubmitting(true);
+        const { error } = await supabase.from('check_ins').insert([{
+            user_id: user.id,
+            humor_emoji: selectedMood.humor,
+            energy_score: selectedMood.energy,
+            sleep_hours: sleepHours,
+            check_in_type: 'morning',
+        }]);
         if (!error) {
-            setTodayCheckInCount(prev => prev + 1);
-            setLastCheckInEmoji(emojiToSave);
-            setQuickMoodText('');
-            showToast(t('home.checkin_saved'));
-
-            // Recalculate energy score after new check-in
-            recalculate();
-
-            // Trigger Edge Function to analyze check-in
-            if (quickMoodText.trim()) {
-                supabase.functions.invoke('process-checkin', {
-                    body: {
-                        user_id: user.id,
-                        text: quickMoodText,
-                        humor_emoji: mood?.value || 'neutral',
-                        energy_score: energyScoreMap[moodKey] || 5,
-                    }
+            setCheckInDone(true);
+            showToast('Morning Prep concluído! ✨');
+            try {
+                const { data: fnData } = await supabase.functions.invoke('process-checkin', {
+                    body: { user_id: user.id, humor: selectedMood.label, check_in_type: 'morning', sleep_hours: sleepHours }
                 });
-            } else {
-                supabase.functions.invoke('process-checkin', {
-                    body: {
-                        user_id: user.id,
-                        humor_emoji: mood?.value || 'neutral',
-                        energy_score: energyScoreMap[moodKey] || 5,
-                    }
-                });
-            }
+                if (fnData?.suggestions) setAiSuggestions(fnData.suggestions);
+                await recalculate();
+            } catch { /* Edge function opcional */ }
         }
+        setSubmitting(false);
+    };
+
+    const handleEveningCheckIn = async () => {
+        if (!user || !selectedMood || submitting) return;
+        setSubmitting(true);
+        const today = new Date().toISOString().split('T')[0];
+        const { error } = await supabase.from('check_ins').insert([{
+            user_id: user.id,
+            humor_emoji: selectedMood.humor,
+            energy_score: selectedMood.energy,
+            free_text: accomplishment,
+            check_in_type: 'evening',
+            date: today,
+        }]);
+        if (!error) {
+            setEveningDone(true);
+            showToast('Reflexão salva. Descanse bem! 🌙');
+            try {
+                const { data: fnData } = await supabase.functions.invoke('process-checkin', {
+                    body: { user_id: user.id, humor: selectedMood.label, check_in_type: 'evening', free_text: accomplishment }
+                });
+                if (fnData?.journal_summary) setEveningJournal(fnData.journal_summary);
+            } catch { /* Edge function opcional */ }
+        }
+        setSubmitting(false);
     };
 
     const toggleTask = async (taskId: string) => {
-        const { error } = await supabase
-            .from('tasks')
-            .update({ is_completed: true })
-            .eq('id', taskId);
-
+        const { error } = await supabase.from('tasks').update({ is_completed: true, completed_at: new Date().toISOString() }).eq('id', taskId);
         if (!error) {
             setTasks(tasks.filter(t => t.id !== taskId));
-            showToast('Tarefa concluída');
+            showToast('Tarefa concluída! 🎉');
         }
     };
 
-    const processQuickText = async () => {
-        if (!user || !quickMoodText.trim()) return;
-
-        const currentText = quickMoodText;
-        setQuickMoodText('');
-        showToast('Analisando intenção...');
-
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return;
-
-            const resp = await supabase.functions.invoke('voice-intent-parser', {
-                body: { user_id: user.id, transcript: currentText }
-            });
-
-            if (resp.error) throw resp.error;
-
-            const result = resp.data;
-
-            if (result.intent === 'mood') {
-                setTodayCheckInCount(prev => prev + 1);
-                setLastCheckInEmoji(result.emoji || '😐');
-                recalculate();
-
-                if (currentText.trim()) {
-                    supabase.functions.invoke('process-checkin', {
-                        body: {
-                            user_id: user.id,
-                            text: currentText,
-                            humor_emoji: result.emoji || 'neutral',
-                            energy_score: 5,
-                        }
-                    });
-                }
-            } else if (result.intent === 'task' || result.intent === 'event') {
-                showToast(`${result.intent === 'task' ? 'Tarefa' : 'Evento'} criado com sucesso!`);
-                fetchTasks();
-            } else {
-                showToast('Ação registrada com sucesso.');
-            }
-        } catch (e) {
-            console.error('Intent parser failed:', e);
-            showToast('Erro ao processar o texto');
-        }
-    };
-
-    const loadAISuggestions = async () => {
-        if (!user || !energy) return;
-        setLoadingSuggestions(true);
-        const phase = getCyclePhaseForDate(new Date());
-        const phaseName = phase ? phaseLabels[phase].label : 'desconhecida';
-
-        try {
-            const { data } = await supabase.functions.invoke('chat-ai', {
-                body: {
-                    message: `Gere 3 sugestões de tarefas/ações ultraconcretas e curtas (array JSON: [{"title": "Ex: Caminhar 10 min", "energy_level": "low|medium|high", "priority": 1}]) baseadas na energia de hoje (${energy.total_score}/100, nível ${energyLevel}) e fase do ciclo ${phaseName}. NENHUM TEXTO ADICIONAL. APENAS O JSON.`,
-                    history: []
-                }
-            });
-            if (data?.analysis) {
-                const jsonMatch = data.analysis.match(/\[[\s\S]*?\]/);
-                if (jsonMatch) {
-                    setAiSuggestions(JSON.parse(jsonMatch[0]));
-                }
-            }
-        } catch (e) { console.error('AI suggestions error', e); }
-        setLoadingSuggestions(false);
-    };
-
-    const addSuggestedTask = async (sug: any, index: number) => {
-        if (!user) return;
-        const newTask = {
-            user_id: user.id,
-            title: sug.title,
-            energy_level: sug.energy_level || 'medium',
-            priority: sug.priority || 3,
-            due_date: new Date().toISOString().split('T')[0],
-            is_completed: false,
-            subtasks: [],
-            is_ai_suggested: true,
-            ai_insight: "Sugestão baseada no seu estado atual",
-        };
-
-        const { error } = await supabase.from('tasks').insert([newTask]);
-        if (!error) {
-            setAiSuggestions(prev => prev.filter((_, idx) => idx !== index));
-            fetchTasks();
-            showToast('Tarefa adicionada!');
-        }
-    };
-
-    // Speech-to-Text using Web Speech API
-    const toggleSpeechToText = () => {
-        if (isListening) {
-            recognitionRef.current?.stop();
-            setIsListening(false);
-            return;
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const SpeechRecognition = (window as Record<string, any>).SpeechRecognition || (window as Record<string, any>).webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            showToast('Speech-to-text não suportado neste navegador');
-            return;
-        }
-
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'pt-BR';
-        recognition.continuous = false;
-        recognition.interimResults = true;
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        recognition.onresult = (event: Record<string, any>) => {
-            const transcript = Array.from(event.results as Iterable<any>)
-                .map((r: any) => r[0].transcript)
-                .join(' ');
-            setQuickMoodText(transcript);
-        };
-
-        recognition.onerror = () => {
-            setIsListening(false);
-        };
-
-        recognition.onend = () => {
-            setIsListening(false);
-        };
-
-        recognitionRef.current = recognition;
-        recognition.start();
-        setIsListening(true);
-    };
-
-    const energyLevel = energy?.energy_level || 'medium';
-    const suggestedTasks = tasks.filter(t => {
-        if (energyLevel === 'low') return t.energy_level === 'low';
-        if (energyLevel === 'medium') return t.energy_level !== 'high';
-        return true;
-    });
-
-    const currentPhase = getCyclePhaseForDate(new Date());
-
-    const buildTimelineBlocks = (): TimelineBlock[] => {
-        const blocks: TimelineBlock[] = [];
-
-        // Add tasks
-        suggestedTasks.slice(0, 3).forEach(task => {
-            blocks.push({
-                id: task.id,
-                label: 'Tarefa',
-                start: task.due_time || '10:00', // fallback time
-                end: '',
-                type: 'task',
-                title: task.title,
-                is_completed: task.is_completed,
-                onClick: () => setEditingTask(task as Task),
-                onToggle: () => toggleTask(task.id)
-            });
-        });
-
-        // Add exercise
-        const todayExercise = exerciseHistory[0];
-        if (todayExercise) {
-            blocks.push({
-                id: todayExercise.id || 'exercise-1',
-                label: 'Exercício',
-                start: '18:00', // default evening exercise
-                end: '',
-                type: 'exercise',
-                title: todayExercise.exercise_type || 'Plano de Exercício',
-                is_completed: todayExercise.completed,
-                onClick: () => navigate('exercises')
-            });
-        }
-
-        // Add focus session
-        blocks.push({
-            id: 'focus-1',
-            label: 'Foco Profundo',
-            start: '14:00',
-            end: '15:00',
-            type: 'focus',
-            title: 'Sessão de Foco Profundo',
-            onClick: () => navigate('focus')
-        });
-
-        return blocks;
-    };
-
-    const timelineBlocks = buildTimelineBlocks();
+    const renderMoodPicker = () => (
+        <div className="grid grid-cols-3 gap-2">
+            {MOODS.map((mood) => (
+                <button
+                    key={mood.label}
+                    onClick={() => setSelectedMood(prev => prev?.label === mood.label ? null : mood)}
+                    className={`flex flex-col items-center rounded-2xl p-3 gap-1.5 transition-all border-2 ${selectedMood?.label === mood.label ? 'border-primary/60 bg-white/90 shadow-md scale-105' : 'border-transparent glass-button hover:bg-white/70'}`}
+                >
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner-sm ${mood.bg}`}>
+                        {mood.emoji}
+                    </div>
+                    <span className="text-xs font-semibold text-stone-600">{mood.label}</span>
+                </button>
+            ))}
+        </div>
+    );
 
     return (
-        <div className={`min-h-full bg-gradient-to-br ${energyLevel === 'high' ? 'from-emerald-50 via-emerald-50/50' : energyLevel === 'low' ? 'from-red-50 via-red-50/50' : 'from-orange-50 via-amber-50'} to-white pb-6 relative overflow-hidden transition-colors duration-1000`}>
-            {/* Ambient Backgrounds */}
-            <div className={`absolute top-[-5%] right-[-10%] w-80 h-80 rounded-full mix-blend-multiply filter blur-[80px] animate-pulse ${energyLevel === 'high' ? 'bg-emerald-300/20' : energyLevel === 'low' ? 'bg-red-300/20' : 'bg-orange-300/20'}`}></div>
-            <div className={`absolute bottom-[20%] left-[-10%] w-72 h-72 rounded-full mix-blend-multiply filter blur-[80px] animate-pulse animation-delay-2000 ${energyLevel === 'high' ? 'bg-teal-300/20' : energyLevel === 'low' ? 'bg-rose-300/20' : 'bg-amber-300/20'}`}></div>
+        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-rose-50 to-purple-50 pb-24 relative overflow-hidden">
+            <div className="absolute top-[-5%] right-[-10%] w-80 h-80 bg-orange-300/20 rounded-full mix-blend-multiply filter blur-[80px] animate-pulse" />
+            <div className="absolute bottom-[20%] left-[-10%] w-72 h-72 bg-purple-300/20 rounded-full mix-blend-multiply filter blur-[80px] animate-pulse animation-delay-2000" />
 
-            <div className="p-4 space-y-4 relative z-10 max-w-lg mx-auto">
+            <div className="p-6 space-y-6 relative z-10 max-w-lg mx-auto">
                 {/* Header */}
                 <div className="flex justify-between items-center mt-4">
                     <div>
-                        <h1 className="text-3xl font-serif text-stone-800 tracking-tight">{t('home.my_day')}</h1>
-                        <div className="flex items-center gap-2 mt-0.5">
-                            <p className="text-stone-500 text-xs font-medium">
-                                {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' })}
-                            </p>
-                            {currentPhase && (
-                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${phaseLabels[currentPhase].color}`}>
-                                    <span className="text-xs">{phaseLabels[currentPhase].icon}</span> Fase {phaseLabels[currentPhase].label}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                    <div className="flex gap-2 items-center">
-                        {/* Energy Gauge - compact */}
-                        {!energyLoading && energy && (
-                            <EnergyGauge score={energy.total_score} size="sm" showLabel={false} />
+                        <h1 className="text-4xl font-serif text-stone-800 tracking-tight">
+                            {mode === 'morning' ? 'Bom dia' : 'Boa noite'}
+                        </h1>
+                        <p className="text-stone-500 text-sm font-medium mt-0.5">{firstName} ✨</p>
+                        {currentPhase && (
+                            <span className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 mt-1.5 border ${phaseLabels[currentPhase].color}`}>
+                                <span>{phaseLabels[currentPhase].icon}</span> {phaseLabels[currentPhase].desc}
+                            </span>
                         )}
-                        <div className="w-10 h-10 bg-white/60 shadow-glass-inset backdrop-blur-md rounded-full flex items-center justify-center text-stone-700 cursor-pointer border border-white/80 hover:bg-white/80 transition-all active:scale-95" onClick={() => navigate('notifications')}>
-                            <Bell className="w-4 h-4" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 ${mode === 'morning' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                            {mode === 'morning' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+                            {mode === 'morning' ? 'Manhã' : 'Noite'}
                         </div>
-                        <div className="w-10 h-10 bg-white/60 shadow-glass-inset backdrop-blur-md rounded-full flex items-center justify-center text-stone-700 cursor-pointer border border-white/80 hover:bg-white/80 transition-all active:scale-95" onClick={() => navigate('settings')}>
-                            <User className="w-4 h-4" />
-                        </div>
+                        <button
+                            className="w-11 h-11 bg-white/60 shadow-glass-inset backdrop-blur-md rounded-full flex items-center justify-center text-stone-700 cursor-pointer border border-white/80 hover:bg-white/80 transition-all hover:scale-105"
+                            onClick={() => navigate('profile')}
+                            title="Perfil"
+                        >
+                            <User className="w-5 h-5" />
+                        </button>
                     </div>
                 </div>
-                {/* Energy Score Banner (when data available) */}
+
+                {/* Energy Gauge */}
                 {!energyLoading && energy && (
-                    <div className={`rounded-2xl p-4 flex items-center gap-4 border transition-all ${energy.energy_level === 'high' ? 'bg-emerald-50/80 border-emerald-200/60' :
-                        energy.energy_level === 'medium' ? 'bg-amber-50/80 border-amber-200/60' :
-                            'bg-red-50/80 border-red-200/60'
-                        }`}>
-                        <EnergyGauge score={energy.total_score} size="md" />
+                    <div className="glass-card-chic rounded-3xl p-5 flex items-center gap-6">
+                        <EnergyGauge score={energy.total_score} size="md" showLabel />
                         <div className="flex-1">
-                            <p className="text-stone-700 text-sm font-semibold">
-                                {energy.energy_level === 'high' ? t('home.energy_high') :
-                                    energy.energy_level === 'medium' ? t('home.energy_medium') :
-                                        t('home.energy_low')}
-                            </p>
-                            <p className="text-stone-500 text-xs mt-1">
-                                {energy.energy_level === 'low'
-                                    ? t('home.energy_low_desc')
-                                    : energy.energy_level === 'high'
-                                        ? t('home.energy_high_desc')
-                                        : t('home.energy_medium_desc')}
-                            </p>
+                            <p className="font-serif text-lg text-stone-800">Energia de Hoje</p>
+                            <p className="text-sm text-stone-500 mt-0.5">{phaseLabels[energy.cycle_phase || '']?.desc || 'Baseada no seu ciclo e sono.'}</p>
+                            <div className="flex gap-3 mt-2 flex-wrap">
+                                {energy.sub_scores.sleep > 0 && (
+                                    <span className="text-xs bg-sky-50 text-sky-700 px-2 py-0.5 rounded-full font-medium">😴 Sono {energy.sub_scores.sleep}</span>
+                                )}
+                                {energy.sub_scores.mood > 0 && (
+                                    <span className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full font-medium">🧠 Humor {energy.sub_scores.mood}</span>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}
@@ -434,147 +249,194 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
                 {/* Energy History Strip */}
                 <EnergyHistoryStrip />
 
-                {/* Quick Mood Entry */}
-                <form
-                    onSubmit={e => { e.preventDefault(); processQuickText(); }}
-                    className="relative group"
-                >
-                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 rounded-3xl blur-md transition-all group-hover:blur-lg opacity-50"></div>
-                    <div className="relative glass-card-chic rounded-3xl p-2 flex items-center gap-2 transition-all border border-white/80 focus-within:border-emerald-300 shadow-sm focus-within:shadow-md">
-                        <input
-                            type="text"
-                            placeholder={t('home.quick_mood_placeholder')}
-                            value={quickMoodText}
-                            onChange={(e) => setQuickMoodText(e.target.value)}
-                            aria-label={t('home.quick_mood_placeholder')}
-                            className="flex-1 bg-transparent text-stone-700 text-[15px] placeholder:text-stone-400/80 outline-none px-4 py-2 font-medium"
-                        />
-                        <div className="flex shrink-0 items-center pr-1 gap-1">
-                            <button
-                                type="button"
-                                onClick={toggleSpeechToText}
-                                title="Ditar"
-                                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${isListening
-                                    ? 'bg-rose-100 text-rose-500 shadow-inner-sm'
-                                    : 'bg-white/60 text-stone-500 hover:bg-white hover:text-emerald-600 border border-transparent hover:border-white/80 shadow-sm'
-                                    }`}
-                            >
-                                {isListening ? (
-                                    <div className="flex items-center gap-0.5">
-                                        <div className="w-1 h-3 bg-rose-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                        <div className="w-1 h-4 bg-rose-500 rounded-full animate-bounce" style={{ animationDelay: '100ms' }} />
-                                        <div className="w-1 h-3 bg-rose-500 rounded-full animate-bounce" style={{ animationDelay: '200ms' }} />
-                                    </div>
-                                ) : <Mic className="w-5 h-5" />}
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={!quickMoodText.trim()}
-                                title="Enviar nota"
-                                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${!quickMoodText.trim() ? 'bg-stone-100/50 text-stone-300' : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-md hover:-translate-y-0.5'}`}
-                            >
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Inline emojis for text input */}
-                    {quickMoodText && (
-                        <div className="mt-3 flex gap-2 flex-wrap">
-                            <p className="text-xs text-stone-500 w-full mb-1">Deseja adicionar uma emoção?</p>
-                            {MOODS.slice(0, 4).map(m => (
-                                <button
-                                    key={m.key}
-                                    type="button"
-                                    onClick={() => handleCheckIn(m.key)}
-                                    className="px-3 py-1.5 bg-white/70 hover:bg-white border border-white/60 hover:border-emerald-200 rounded-xl text-xs font-semibold text-stone-700 flex items-center gap-1.5 shadow-sm transition-all active:scale-95"
-                                >
-                                    <span>{m.emoji}</span> Enviar
-                                </button>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Listening feedback */}
-                    {isListening && (
-                        <p className="text-xs text-rose-500 animate-pulse mt-2 font-medium">
-                            🎙️ Escutando... Fale agora
-                        </p>
-                    )}
-                </form>
-
-                {/* Compact Check-in — 3×3 emoji grid */}
-                <div className="glass-card-chic rounded-[1.5rem] p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                        <h2 className="font-serif text-base tracking-tight text-stone-800 flex items-center gap-2">
-                            {t('home.mood_board')}
-                            {todayCheckInCount > 0 && <span className="text-emerald-600 text-xs font-bold bg-emerald-100/50 px-2 py-0.5 rounded-full">{todayCheckInCount} check-in{todayCheckInCount > 1 ? 's' : ''} hoje</span>}
+                {/* Morning Check-in */}
+                {mode === 'morning' && (
+                    <div className={`rounded-3xl p-6 space-y-5 transition-all duration-500 ${checkInDone ? 'bg-white/40 shadow-sm border border-white/50 backdrop-blur-sm' : 'glass-card-chic shadow-3d'}`}>
+                        <h2 className="font-serif text-xl tracking-tight text-stone-800 flex items-center gap-2">
+                            <Sun className="w-5 h-5 text-amber-400" />
+                            {checkInDone ? 'Morning Prep Concluído ✓' : 'Morning Prep'}
                         </h2>
-                        {todayCheckInCount > 0 && (
-                            <div className="bg-emerald-100/50 border border-emerald-200/50 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-inner-sm">
-                                <span className="text-lg leading-none">{lastCheckInEmoji}</span>
-                                <Check className="w-3 h-3 text-emerald-600" strokeWidth={3} />
+
+                        {!checkInDone ? (
+                            <div className="space-y-5">
+                                <p className="text-stone-500 text-sm">Como você acordou hoje?</p>
+                                {renderMoodPicker()}
+
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <label className="text-sm font-semibold text-stone-600">Horas de sono</label>
+                                        <span className="text-sm font-bold text-primary">{sleepHours}h</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min={3} max={12} step={0.5}
+                                        value={sleepHours}
+                                        onChange={e => setSleepHours(Number(e.target.value))}
+                                        className="w-full accent-primary"
+                                        aria-label="Horas de sono"
+                                    />
+                                    <div className="flex justify-between text-xs text-stone-400">
+                                        <span>3h</span><span>6h</span><span>9h</span><span>12h</span>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={handleMorningCheckIn}
+                                    disabled={!selectedMood || submitting}
+                                    className="w-full py-3 rounded-2xl bg-primary text-white font-semibold text-sm shadow-glow hover:bg-primary/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+                                >
+                                    {submitting ? 'Gerando seu plano…' : '✨ Planejar meu dia com IA'}
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-center py-3 gap-3 text-stone-600">
+                                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
+                                    <Check className="w-6 h-6" />
+                                </div>
+                                <p className="text-sm font-medium">Energia registrada — que seu dia flua! 🌸</p>
                             </div>
                         )}
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
-                        {MOODS.map((mood) => (
-                            <button
-                                key={mood.key}
-                                onClick={() => handleCheckIn(mood.key)}
-                                className={`relative overflow-hidden flex flex-col items-center justify-center rounded-xl py-2 gap-1 bg-gradient-to-b border transition-all active:scale-[0.97] group shadow-sm hover:shadow-md
-                                    ${selectedEmoji === mood.key ? 'from-emerald-50/50 to-emerald-100/50 scale-110 ring-4 ring-emerald-400/30 border-emerald-300' : 'from-white/70 to-white/40 hover:from-white hover:to-white/80 border-white/60'}
-                                `}
-                            >
-                                <span className="text-2xl group-hover:scale-110 group-hover:-translate-y-0.5 transition-transform duration-300 drop-shadow-sm">{mood.emoji}</span>
-                                <span className="text-[10px] font-medium text-stone-600/90 tracking-wide">{mood.label}</span>
-                            </button>
+                )}
+
+                {/* Evening Reflection */}
+                {mode === 'evening' && (
+                    <div className={`rounded-3xl p-6 space-y-5 transition-all duration-500 ${eveningDone ? 'bg-white/40 shadow-sm border border-white/50 backdrop-blur-sm' : 'glass-card-chic shadow-3d'}`}>
+                        <h2 className="font-serif text-xl tracking-tight text-stone-800 flex items-center gap-2">
+                            <Moon className="w-5 h-5 text-indigo-400" />
+                            {eveningDone ? 'Reflexão Registrada ✓' : 'Evening Reflection'}
+                        </h2>
+
+                        {!eveningDone ? (
+                            <div className="space-y-5">
+                                <p className="text-stone-500 text-sm">Como foi seu dia, {firstName}?</p>
+                                {renderMoodPicker()}
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-stone-600">Qual foi sua maior conquista hoje?</label>
+                                    <textarea
+                                        value={accomplishment}
+                                        onChange={e => setAccomplishment(e.target.value)}
+                                        placeholder="Descreva livremente…"
+                                        rows={3}
+                                        className="w-full bg-white/50 border border-white/70 rounded-2xl p-3 text-stone-700 placeholder:text-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-none"
+                                    />
+                                </div>
+
+                                <button
+                                    onClick={handleEveningCheckIn}
+                                    disabled={!selectedMood || submitting}
+                                    className="w-full py-3 rounded-2xl bg-indigo-500 text-white font-semibold text-sm shadow-md hover:bg-indigo-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+                                >
+                                    {submitting ? 'Gerando diário…' : '🌙 Registrar reflexão'}
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-3 text-stone-600">
+                                    <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-500">
+                                        <Check className="w-6 h-6" />
+                                    </div>
+                                    <p className="text-sm font-medium">Reflexão salva. Descanse bem! 🌙</p>
+                                </div>
+                                {eveningJournal && (
+                                    <div className="bg-indigo-50/80 rounded-2xl p-4 text-sm text-indigo-800 leading-relaxed border border-indigo-100">
+                                        <p className="font-semibold text-xs text-indigo-500 mb-1 uppercase tracking-wide">Diário automático</p>
+                                        {eveningJournal}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* AI Suggestions */}
+                {mode === 'morning' && aiSuggestions.length > 0 && (
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-primary" />
+                            <h2 className="font-serif text-xl tracking-tight text-stone-800">Sugeridas pela IA</h2>
+                        </div>
+                        <p className="text-stone-400 text-xs font-medium -mt-1">Baseadas no seu ciclo e energia de hoje</p>
+                        {aiSuggestions.map((s, i) => (
+                            <div key={i} className="glass-card-chic rounded-2xl p-4 flex items-start gap-3">
+                                <div className={`mt-0.5 w-2.5 h-2.5 rounded-full shrink-0 ${s.energy_level === 'high' ? 'bg-rose-400' : s.energy_level === 'medium' ? 'bg-amber-400' : 'bg-emerald-400'}`} />
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-stone-700 font-medium text-sm">{s.title}</p>
+                                    {s.description && <p className="text-stone-400 text-xs mt-0.5">{s.description}</p>}
+                                </div>
+                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${s.energy_level === 'high' ? 'bg-rose-100 text-rose-700' : s.energy_level === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                    {s.energy_level === 'high' ? 'Intensa' : s.energy_level === 'medium' ? 'Média' : 'Leve'}
+                                </span>
+                            </div>
                         ))}
                     </div>
-                </div>
+                )}
 
-                <DayTimeline blocks={timelineBlocks} />
-
-                {/* AI Suggestions Block */}
-                <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="font-serif text-xl tracking-tight text-stone-800 flex items-center gap-2">Dicas da IA <span className="text-[10px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full font-bold">BETA</span></h2>
-                            <p className="text-stone-500 text-xs font-medium">Ações concretas baseadas na sua energia.</p>
-                        </div>
-                        <button onClick={loadAISuggestions} disabled={loadingSuggestions} className="text-xs text-purple-600 font-semibold bg-purple-50 px-3 py-1.5 rounded-full hover:bg-purple-100 disabled:opacity-50 transition-colors">
-                            {loadingSuggestions ? 'Gerando...' : 'Gerar Novas'}
+                {/* Focus Session CTA */}
+                <div
+                    className="bg-gradient-to-br from-emerald-500/80 to-teal-600/80 backdrop-blur-md shadow-3d rounded-3xl p-7 relative overflow-hidden text-white cursor-pointer hover:shadow-lg transition-all group"
+                    onClick={() => navigate('focus')}
+                >
+                    <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
+                    <div className="relative z-10">
+                        <h2 className="font-serif text-3xl tracking-tight mb-2">Focus Session</h2>
+                        <p className="text-emerald-50 text-sm font-medium mb-8 opacity-90">Deep work e respiração</p>
+                        <button className="glass-button !text-emerald-900 !bg-white/90 hover:!bg-white px-8 py-2.5 rounded-full font-semibold text-sm backdrop-blur-sm shadow-sm transition-transform active:scale-95">
+                            Quick Start
                         </button>
                     </div>
+                    <Clock className="absolute top-8 right-8 w-7 h-7 text-white/40 group-hover:text-white/60 transition-colors" />
+                </div>
 
-                    {aiSuggestions.length > 0 ? (
-                        <div className="space-y-2">
-                            {aiSuggestions.map((sug, i) => (
-                                <div key={i} className="glass-card-chic rounded-xl p-3 border border-purple-100 flex justify-between items-center bg-purple-50/40 shadow-sm">
-                                    <div>
-                                        <p className="text-sm font-medium text-stone-800">{sug.title}</p>
+                {/* Tasks list */}
+                <div className="space-y-5">
+                    <div className="space-y-1">
+                        <h2 className="font-serif text-2xl tracking-tight text-stone-800">Tarefas de Hoje</h2>
+                        <p className="text-stone-500 text-sm font-medium">Alinhadas com sua energia atual.</p>
+                    </div>
+                    <div className="space-y-3">
+                        {loading ? (
+                            [1, 2].map(i => <div key={i} className="h-16 bg-white/40 rounded-2xl animate-pulse" />)
+                        ) : tasks.length > 0 ? (
+                            tasks.map((task) => (
+                                <div
+                                    key={task.id}
+                                    className="glass-card-chic rounded-2xl p-4 px-5 flex justify-between items-center group hover:bg-white/60 transition-all cursor-pointer"
+                                    onClick={() => setEditingTask(task)}
+                                >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className={`w-2.5 h-2.5 rounded-full shadow-inner-sm shrink-0 ${task.energy_level === 'high' ? 'bg-rose-400' : task.energy_level === 'medium' ? 'bg-amber-400' : 'bg-emerald-400'}`} />
+                                        <span className="text-stone-700 font-medium truncate">{task.title}</span>
+                                        {task.is_ai_suggested && <span className="text-[10px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full font-bold shrink-0">IA</span>}
                                     </div>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => addSuggestedTask(sug, i)} className="text-xs bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-2.5 py-1.5 rounded-lg font-bold transition-all active:scale-95">Aceitar</button>
-                                        <button onClick={() => setAiSuggestions(prev => prev.filter((_, idx) => idx !== i))} className="text-xs bg-stone-100 text-stone-500 hover:bg-stone-200 px-2.5 py-1.5 rounded-lg font-bold transition-all active:scale-95">Ignorar</button>
-                                    </div>
+                                    <button
+                                        title={`Marcar ${task.title} como concluído`}
+                                        className="w-8 h-8 rounded-full bg-white/50 border border-stone-200/50 flex items-center justify-center shadow-sm cursor-pointer hover:bg-emerald-400 hover:border-emerald-500 transition-all active:scale-90 shrink-0 ml-2"
+                                        onClick={(e) => { e.stopPropagation(); toggleTask(task.id); }}
+                                    >
+                                        <CheckCircle2 className="w-5 h-5 text-stone-400 hover:text-white transition-colors" />
+                                    </button>
                                 </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-5 glass-card-chic rounded-2xl border-dashed border-2 border-white/40">
-                            <p className="text-sm text-stone-500 px-6">Nenhuma dica gerada ainda. Toque em "Gerar Novas" para receber sugestões de acordo com o seu momento.</p>
-                        </div>
-                    )}
+                            ))
+                        ) : (
+                            <div className="text-center py-8 glass-card-chic rounded-2xl border-dashed border-2 border-white/40">
+                                <p className="text-stone-500 font-medium text-sm">Nenhuma tarefa pendente. Respire fundo! ✨</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
-            {/* Edit Modal */}
             {editingTask && (
                 <TaskEditModal
                     task={editingTask}
                     onClose={() => setEditingTask(null)}
-                    onSave={(updatedTask) => setTasks(tasks.map(t => t.id === updatedTask.id ? updatedTask : t))}
+                    onSave={(updated) => {
+                        setTasks(tasks.map(t => t.id === updated.id ? updated : t));
+                        setEditingTask(null);
+                    }}
                 />
             )}
         </div>
