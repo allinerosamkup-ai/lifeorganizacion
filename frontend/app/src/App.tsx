@@ -19,6 +19,8 @@ import { Notifications } from './pages/Notifications';
 import { Exercises } from './pages/Exercises';
 import { Plans } from './pages/Plans';
 import { BottomNav } from './pages/BottomNav';
+import { Habits } from './pages/Habits';
+import { Insights } from './pages/Insights';
 import { ToastProvider } from './components/Toast';
 
 const Footer = ({ navigate }: { navigate: (v: string) => void }) => {
@@ -115,7 +117,8 @@ export default function App() {
       case 'onboarding-3': return <Onboarding3 data={onboardingData} onComplete={() => setView('sanctuary')} />;
       case 'sanctuary': return <Sanctuary onNext={() => setView('home')} />;
       case 'home': return <Home navigate={setView} />;
-      case 'agenda': return <Agenda />;
+      case 'agenda': return <Agenda navigate={setView} />;
+      case 'habits': return <Habits navigate={setView} />;
       case 'cycle': return <CycleTracker navigate={setView} />;
       case 'chat': return <AIChat navigate={setView} />;
       case 'focus': return <FocusSession navigate={setView} />;
@@ -124,6 +127,7 @@ export default function App() {
       case 'exercises': return <Exercises />;
       case 'settings': return <Settings />;
       case 'notifications': return <Notifications navigate={setView} />;
+      case 'insights': return <Insights />;
       case 'plans': return <Plans navigate={setView} />;
       default: return <Login />;
     }

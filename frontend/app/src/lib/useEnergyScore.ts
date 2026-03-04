@@ -93,11 +93,13 @@ export function useEnergyScore() {
                     },
                     cycle_phase: data.raw_data?.cycle_phase || null,
                 });
+            } else if (!data && user) {
+                recalculate();
             }
             setLoading(false);
         })();
         return () => { cancelled = true; };
-    }, [user]);
+    }, [user, recalculate]);
 
     return { energy, loading, recalculate, refetch: fetchEnergy };
 }

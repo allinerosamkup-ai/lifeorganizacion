@@ -14,6 +14,7 @@ import {
 import { ptBR } from 'date-fns/locale';
 import { WeeklyBoard } from '../components/WeeklyBoard';
 import { TaskEditModal } from '../components/TaskEditModal';
+import { DayTimeline } from '../components/DayTimeline';
 import { showToast } from '../components/Toast';
 import type { Task } from '../components/TaskEditModal';
 
@@ -46,11 +47,12 @@ const calEnergyColors: Record<string, { bg: string; border: string; dot: string 
     high: { bg: 'bg-emerald-50/50', border: 'border-emerald-200/50', dot: 'bg-emerald-400' },
 };
 
-export const Agenda = ({ navigate: _navigate }: { navigate?: (view: string) => void } = {}) => {
+export const Agenda = ({ navigate }: { navigate?: (view: string) => void } = {}) => {
+    if (navigate) { /* skip */ }
     const { user, profile } = useAuth();
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
-    const [viewMode, setViewMode] = useState<'day' | 'week'>('day');
+    const [viewMode, setViewMode] = useState<'day' | 'week' | 'timeline'>('timeline');
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -112,7 +114,7 @@ export const Agenda = ({ navigate: _navigate }: { navigate?: (view: string) => v
         if (!user) return;
         setLoading(true);
         try {
-            if (viewMode === 'day') {
+            if (viewMode === 'day' || viewMode === 'timeline') {
                 const dateStr = format(selectedDate, 'yyyy-MM-dd');
                 const { data } = await supabase.from('tasks').select('*').eq('user_id', user.id).eq('due_date', dateStr).order('priority', { ascending: true });
                 setTasks(data || []);
@@ -128,7 +130,7 @@ export const Agenda = ({ navigate: _navigate }: { navigate?: (view: string) => v
 
     useEffect(() => {
         fetchTasks();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, selectedDate, viewMode]);
 
     const filteredTasks = useMemo(() => {
@@ -147,7 +149,7 @@ export const Agenda = ({ navigate: _navigate }: { navigate?: (view: string) => v
         const { data, error } = await supabase.from('tasks').insert([{
             user_id: user.id, title: newTaskTitle.trim(),
             due_date: format(selectedDate, 'yyyy-MM-dd'),
-            due_time: newTaskTime || null,
+            start_time: newTaskTime || null,
             energy_level: 'medium', priority: 3, subtasks: [],
         }]).select().single();
         if (!error && data) {
@@ -295,9 +297,9 @@ export const Agenda = ({ navigate: _navigate }: { navigate?: (view: string) => v
                         <div className="flex-1">
                             <span className={`text-stone-700 font-medium block ${task.is_completed ? 'line-through' : ''}`}>{task.title}</span>
                             <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                {task.due_time && (
+                                {task.start_time && (
                                     <span className="text-xs text-stone-400 flex items-center gap-1">
-                                        <Clock className="w-3 h-3" /> {task.due_time as string}
+                                        <Clock className="w-3 h-3" /> {task.start_time as string}
                                     </span>
                                 )}
                                 {task.is_ai_suggested && <span className="text-[10px] bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full font-bold">IA</span>}
@@ -357,9 +359,13 @@ export const Agenda = ({ navigate: _navigate }: { navigate?: (view: string) => v
                                 className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${viewMode === 'week' ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}>
                                 <LayoutList className="w-4 h-4" /> Semana
                             </button>
+                            <button type="button" onClick={() => setViewMode('timeline')}
+                                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${viewMode === 'timeline' ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}>
+                                <Clock className="w-4 h-4" /> Timeline
+                            </button>
                         </div>
                     </div>
-                    {viewMode === 'day' && (
+                    {(viewMode === 'day' || viewMode === 'timeline') && (
                         <div className="flex gap-2">
                             <button type="button" onClick={() => setShowInbox(true)} title="Capturar ideia"
                                 className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-white/70 text-stone-600 text-sm font-semibold shadow-sm hover:bg-white transition-all border border-white/80">
@@ -532,6 +538,28 @@ export const Agenda = ({ navigate: _navigate }: { navigate?: (view: string) => v
                             )}
                         </div>
                     </>
+                ) : viewMode === 'timeline' ? (
+                    <DayTimeline
+                        blocks={filteredTasks.filter((t: Task) => t.start_time).map((t: Task) => {
+                            const timeStr = t.start_time!;
+                            const [h, m] = timeStr.split(':').map(Number);
+                            const startD = new Date(); startD.setHours(h, m, 0, 0);
+                            const endD = new Date(startD.getTime() + (t.duration_minutes || 30) * 60000);
+                            const endH = endD.getHours().toString().padStart(2, '0');
+                            const endM = endD.getMinutes().toString().padStart(2, '0');
+                            return {
+                                id: t.id,
+                                start: timeStr.substring(0, 5),
+                                end: `${endH}:${endM}`,
+                                type: 'task',
+                                label: t.category || 'task',
+                                title: t.title,
+                                is_completed: t.is_completed,
+                                onClick: () => setEditingTask(t),
+                                onToggle: () => toggleTask(t.id)
+                            };
+                        })}
+                    />
                 ) : (
                     <>
                         <div className="flex justify-between items-center mb-2">

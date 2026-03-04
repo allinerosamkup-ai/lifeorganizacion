@@ -16,6 +16,7 @@ interface CheckinRequest {
   energy_score?: number
   sleep_hours?: number
   sleep_quality?: number
+  check_in_type?: string
 }
 
 interface CheckinResponse {
@@ -216,10 +217,11 @@ Retorne APENAS um JSON válido com a exata estrutura abaixo:
     // Salvar check-in no banco
     const { error: insertError } = await supabaseClient
       .from('check_ins')
-      .upsert({
+      .insert({
         user_id: user.id,
         date: new Date().toISOString().split('T')[0],
-        free_text: checkinData.free_text,
+        check_in_type: checkinData.check_in_type || 'morning',
+        free_text: checkinData.free_text || null,
         humor_emoji: checkinData.humor_emoji,
         energy_score: checkinData.energy_score,
         sleep_hours: checkinData.sleep_hours,
@@ -227,8 +229,6 @@ Retorne APENAS um JSON válido com a exata estrutura abaixo:
         cycle_phase: cyclePhase,
         ai_analysis: aiAnalysis.analysis,
         ai_suggestions: aiAnalysis.suggested_tasks,
-      }, {
-        onConflict: 'user_id,date'
       })
 
     if (insertError) {

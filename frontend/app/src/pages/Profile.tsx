@@ -73,14 +73,35 @@ export const Profile = () => {
             setWeeklyStats({ focusHours, checkInStreak: count || 0, highEnergyDays });
 
             // Habit streaks
-            if (profile?.cognitive_preference?.length) {
-                const habits = (profile.cognitive_preference as string[]).slice(0, 4);
-                const streakData: StreakData[] = habits.map((habit: string, idx: number) => ({
-                    habit,
-                    streak: Math.max(0, streak - idx),
-                    completedToday: streak > 0,
-                }));
-                setStreaks(streakData);
+            const { data: activeHabits } = await supabase.from('habits').select('*').eq('user_id', user.id).eq('is_active', true);
+            const { data: habitCompletions } = await supabase.from('habit_completions').select('habit_id, completed_date').eq('user_id', user.id).gte('completed_date', thirtyDaysAgo);
+
+            if (activeHabits) {
+                const streakData: StreakData[] = activeHabits.slice(0, 4).map((h: any) => {
+                    const comps = habitCompletions?.filter(c => c.habit_id === h.id).map(c => c.completed_date) || [];
+                    const sorted = [...comps].sort().reverse();
+                    let hStreak = 0;
+                    const cToday = today.toISOString().split('T')[0];
+                    const prevD = new Date(today); prevD.setDate(prevD.getDate() - 1);
+                    const cYest = prevD.toISOString().split('T')[0];
+
+                    let checkDate = sorted.includes(cToday) ? cToday : cYest;
+                    for (const d of sorted) {
+                        if (d === checkDate) {
+                            hStreak++;
+                            const p = new Date(d);
+                            p.setDate(p.getDate() - 1);
+                            checkDate = p.toISOString().split('T')[0];
+                        } else break;
+                    }
+                    return {
+                        habit: h.title,
+                        emoji: h.emoji,
+                        streak: hStreak,
+                        completedToday: sorted.includes(cToday),
+                    };
+                });
+                setStreaks(streakData as any);
             }
 
             setStatsLoading(false);

@@ -8,6 +8,23 @@ import { showToast } from '../components/Toast';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 import { TaskEditModal } from '../components/TaskEditModal';
 
@@ -19,7 +36,7 @@ export interface Task {
     energy_level: 'low' | 'medium' | 'high';
     priority: number;
     due_date: string | null;
-    due_time?: string;
+    start_time?: string;
     is_completed: boolean;
     subtasks: Array<{ id: string; title: string; is_completed: boolean }>;
     ai_insight?: string;
@@ -40,6 +57,165 @@ const energyMap: Record<string, { icon: string; label: string; tw: string }> = {
     medium: { icon: '🌿', label: 'Média', tw: 'text-emerald-600 bg-emerald-50' },
     high: { icon: '🔥', label: 'Alta', tw: 'text-orange-600 bg-orange-50' },
 };
+
+function SortableTaskItem({
+    task,
+    isExpanded,
+    toggleTask,
+    setExpandedId,
+    splitTaskWithAI,
+    isSplitting,
+    openEditModal,
+    deleteTask,
+    toggleSubtask
+}: {
+    task: Task;
+    isExpanded: boolean;
+    toggleTask: (id: string) => void;
+    setExpandedId: (id: string | null) => void;
+    splitTaskWithAI: (task: Task) => void;
+    isSplitting: string | null;
+    openEditModal: (task: Task) => void;
+    deleteTask: (id: string) => void;
+    toggleSubtask: (taskId: string, subtaskId: string) => void;
+}) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: task.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 10 : 1,
+    };
+
+    const e = energyMap[task.energy_level] || energyMap.medium;
+    const subDone = task.subtasks?.filter(s => s.is_completed).length || 0;
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...listeners}
+            className={`relative glass-card-chic rounded-3xl p-5 border border-white/60 hover:border-white shadow-sm hover:shadow-md active:scale-[0.99] group ${task.is_completed ? 'opacity-60 grayscale-[0.2]' : ''} ${isDragging ? 'shadow-xl scale-105 rotate-1 opacity-90' : 'transition-all'}`}
+        >
+            <div className="absolute inset-0 bg-gradient-to-r from-white/40 to-transparent rounded-3xl pointer-events-none"></div>
+
+            <div className="relative flex gap-3.5 items-start">
+                <button
+                    type="button"
+                    title={task.is_completed ? 'Desmarcar tarefa' : 'Concluir tarefa'}
+                    onClick={(e) => { e.stopPropagation(); toggleTask(task.id); }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className={`mt-0.5 w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all ${task.is_completed ? 'bg-emerald-400 text-white' : 'border-2 border-stone-300 hover:border-emerald-400'}`}
+                >
+                    {task.is_completed && <span className="text-xs">✓</span>}
+                </button>
+
+                <div
+                    className="flex-1 min-w-0 cursor-pointer"
+                    onClick={(e) => { e.stopPropagation(); setExpandedId(isExpanded ? null : task.id); }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                >
+                    <div className="flex justify-between items-start gap-2">
+                        <p className={`text-sm font-semibold text-stone-800 ${task.is_completed ? 'line-through' : ''}`}>{task.title}</p>
+                        {task.start_time && (
+                            <span className="text-[10px] text-stone-400 shrink-0 flex items-center gap-0.5">
+                                <Clock className="w-3 h-3" /> {task.start_time}
+                            </span>
+                        )}
+                    </div>
+                    <div className="flex gap-1.5 mt-1.5 flex-wrap items-center">
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${e.tw}`}>{e.icon} {e.label}</span>
+                        {task.subtasks?.length > 0 && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-stone-100 text-stone-500 font-semibold">
+                                {subDone}/{task.subtasks.length}
+                            </span>
+                        )}
+                        {task.is_ai_suggested && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-600 font-bold">IA</span>
+                        )}
+                        {[...Array(Math.min(task.priority, 5))].map((_, i) => (
+                            <span key={i} className="text-[8px]">⭐</span>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="flex gap-1 shrink-0" onPointerDown={(e) => e.stopPropagation()}>
+                    {(!task.subtasks || task.subtasks.length === 0) && !task.is_completed && (
+                        <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); splitTaskWithAI(task); }}
+                            disabled={isSplitting === task.id}
+                            className="p-1.5 rounded-lg bg-purple-50 text-purple-500 hover:bg-purple-100 disabled:opacity-50 cursor-pointer"
+                            title="Dividir com IA"
+                        >
+                            {isSplitting === task.id ? <Wand2 className="w-3.5 h-3.5 animate-spin" /> : <SplitSquareHorizontal className="w-3.5 h-3.5" />}
+                        </button>
+                    )}
+                    <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); openEditModal(task); }}
+                        className="p-1.5 rounded-lg bg-blue-50 text-blue-500 hover:bg-blue-100 transition-all active:scale-90 cursor-pointer"
+                        title="Editar"
+                    >
+                        <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); deleteTask(task.id); }}
+                        className="p-1.5 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 transition-all active:scale-90 cursor-pointer"
+                        title="Excluir"
+                    >
+                        <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            </div>
+
+            {/* Expanded content */}
+            {isExpanded && (
+                <div className="mt-3 pt-3 border-t border-stone-100 space-y-3" onPointerDown={(e) => e.stopPropagation()}>
+                    {task.subtasks?.length > 0 && (
+                        <div className="space-y-2">
+                            <p className="text-[10px] font-bold text-stone-400 uppercase">Subtarefas</p>
+                            {task.subtasks.map(st => (
+                                <div key={st.id} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => toggleSubtask(task.id, st.id)}>
+                                    {st.is_completed
+                                        ? <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                                        : <CircleDashed className="w-4 h-4 text-stone-400 group-hover:text-emerald-400 shrink-0" />}
+                                    <span className={`text-sm ${st.is_completed ? 'line-through text-stone-400' : 'text-stone-600'}`}>{st.title}</span>
+                                </div>
+                            ))}
+                            <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden mt-2">
+                                <div className="h-full bg-emerald-400 rounded-full transition-all" style={{ width: `${(subDone / task.subtasks.length) * 100}%` }} />
+                            </div>
+                        </div>
+                    )}
+
+                    {task.note && (
+                        <div className="bg-amber-50/50 rounded-xl p-3 border border-amber-100/50">
+                            <p className="text-[10px] font-bold text-amber-600 uppercase mb-1">Nota</p>
+                            <p className="text-xs text-stone-600">{task.note}</p>
+                        </div>
+                    )}
+
+                    {task.ai_insight && (
+                        <div className="bg-emerald-50/50 rounded-xl p-3 border border-emerald-100/50">
+                            <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">Insight IA</p>
+                            <p className="text-xs text-stone-600 italic">"{task.ai_insight}"</p>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
 
 export const Tasks = () => {
     const { t } = useTranslation();
@@ -206,6 +382,35 @@ export const Tasks = () => {
         }
     };
 
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5, // 5px drag offset to avoid accidental drag when expanding or clicking
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (active.id !== over?.id) {
+            setTasks((items) => {
+                const oldIndex = items.findIndex(t => t.id === active.id);
+                const newIndex = items.findIndex(t => t.id === over?.id);
+
+                const newItems = arrayMove(items, oldIndex, newIndex);
+
+                // Opção: Poderíamos salvar a nova ordem no DB se tivéssemos um campo "order".
+                // Mas por enquanto, a UI vai refletir a mudança instantaneamente.
+
+                return newItems;
+            });
+        }
+    };
+
     const filtered = filterEnergy ? tasks.filter(t => t.energy_level === filterEnergy) : tasks;
     const currentPhase = getCurrentPhase();
 
@@ -315,119 +520,33 @@ export const Tasks = () => {
                             {tab === 'completed' ? 'Suas vitórias aparecerão aqui.' : 'Aproveite o momento ou adicione uma nova tarefa.'}
                         </p>
                     </div>
-                ) : filtered.map(task => {
-                    const e = energyMap[task.energy_level] || energyMap.medium;
-                    const isExpanded = expandedId === task.id;
-                    const subDone = task.subtasks?.filter(s => s.is_completed).length || 0;
-
-                    return (
-                        <div key={task.id} className={`relative glass-card-chic rounded-3xl p-5 border border-white/60 hover:border-white shadow-sm hover:shadow-md transition-all active:scale-[0.99] group ${task.is_completed ? 'opacity-60 grayscale-[0.2]' : ''}`}>
-                            <div className="absolute inset-0 bg-gradient-to-r from-white/40 to-transparent rounded-3xl pointer-events-none"></div>
-
-                            <div className="relative flex gap-3.5 items-start">
-                                <button
-                                    type="button"
-                                    title={task.is_completed ? 'Desmarcar tarefa' : 'Concluir tarefa'}
-                                    onClick={() => toggleTask(task.id)}
-                                    className={`mt-0.5 w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all ${task.is_completed ? 'bg-emerald-400 text-white' : 'border-2 border-stone-300 hover:border-emerald-400'}`}
-                                >
-                                    {task.is_completed && <span className="text-xs">✓</span>}
-                                </button>
-
-                                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : task.id)}>
-                                    <div className="flex justify-between items-start gap-2">
-                                        <p className={`text-sm font-semibold text-stone-800 ${task.is_completed ? 'line-through' : ''}`}>{task.title}</p>
-                                        {task.due_time && (
-                                            <span className="text-[10px] text-stone-400 shrink-0 flex items-center gap-0.5">
-                                                <Clock className="w-3 h-3" /> {task.due_time}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="flex gap-1.5 mt-1.5 flex-wrap items-center">
-                                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${e.tw}`}>{e.icon} {e.label}</span>
-                                        {task.subtasks?.length > 0 && (
-                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-stone-100 text-stone-500 font-semibold">
-                                                {subDone}/{task.subtasks.length}
-                                            </span>
-                                        )}
-                                        {task.is_ai_suggested && (
-                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-600 font-bold">IA</span>
-                                        )}
-                                        {[...Array(Math.min(task.priority, 5))].map((_, i) => (
-                                            <span key={i} className="text-[8px]">⭐</span>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-1 shrink-0">
-                                    {(!task.subtasks || task.subtasks.length === 0) && !task.is_completed && (
-                                        <button
-                                            type="button"
-                                            onClick={() => splitTaskWithAI(task)}
-                                            disabled={isSplitting === task.id}
-                                            className="p-1.5 rounded-lg bg-purple-50 text-purple-500 hover:bg-purple-100 disabled:opacity-50"
-                                            title="Dividir com IA"
-                                        >
-                                            {isSplitting === task.id ? <Wand2 className="w-3.5 h-3.5 animate-spin" /> : <SplitSquareHorizontal className="w-3.5 h-3.5" />}
-                                        </button>
-                                    )}
-                                    <button
-                                        type="button"
-                                        onClick={() => openEditModal(task)}
-                                        className="p-1.5 rounded-lg bg-blue-50 text-blue-500 hover:bg-blue-100 transition-all active:scale-90"
-                                        title="Editar"
-                                    >
-                                        <Pencil className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => deleteTask(task.id)}
-                                        className="p-1.5 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 transition-all active:scale-90"
-                                        title="Excluir"
-                                    >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Expanded content */}
-                            {isExpanded && (
-                                <div className="mt-3 pt-3 border-t border-stone-100 space-y-3">
-                                    {task.subtasks?.length > 0 && (
-                                        <div className="space-y-2">
-                                            <p className="text-[10px] font-bold text-stone-400 uppercase">Subtarefas</p>
-                                            {task.subtasks.map(st => (
-                                                <div key={st.id} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => toggleSubtask(task.id, st.id)}>
-                                                    {st.is_completed
-                                                        ? <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                                                        : <CircleDashed className="w-4 h-4 text-stone-400 group-hover:text-emerald-400 shrink-0" />}
-                                                    <span className={`text-sm ${st.is_completed ? 'line-through text-stone-400' : 'text-stone-600'}`}>{st.title}</span>
-                                                </div>
-                                            ))}
-                                            <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden mt-2">
-                                                <div className="h-full bg-emerald-400 rounded-full transition-all" style={{ width: `${(subDone / task.subtasks.length) * 100}%` }} />
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {task.note && (
-                                        <div className="bg-amber-50/50 rounded-xl p-3 border border-amber-100/50">
-                                            <p className="text-[10px] font-bold text-amber-600 uppercase mb-1">Nota</p>
-                                            <p className="text-xs text-stone-600">{task.note}</p>
-                                        </div>
-                                    )}
-
-                                    {task.ai_insight && (
-                                        <div className="bg-emerald-50/50 rounded-xl p-3 border border-emerald-100/50">
-                                            <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">Insight IA</p>
-                                            <p className="text-xs text-stone-600 italic">"{task.ai_insight}"</p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
+                ) : (
+                    <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                    >
+                        <SortableContext
+                            items={filtered.map(t => t.id)}
+                            strategy={verticalListSortingStrategy}
+                        >
+                            {filtered.map(task => (
+                                <SortableTaskItem
+                                    key={task.id}
+                                    task={task}
+                                    isExpanded={expandedId === task.id}
+                                    toggleTask={toggleTask}
+                                    setExpandedId={setExpandedId}
+                                    splitTaskWithAI={splitTaskWithAI}
+                                    isSplitting={isSplitting}
+                                    openEditModal={openEditModal}
+                                    deleteTask={deleteTask}
+                                    toggleSubtask={toggleSubtask}
+                                />
+                            ))}
+                        </SortableContext>
+                    </DndContext>
+                )}
             </div>
 
             {/* Add Task Modal */}

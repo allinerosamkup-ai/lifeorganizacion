@@ -6,6 +6,7 @@ import { useEnergyScore } from '../lib/useEnergyScore';
 import { EnergyGauge } from '../components/EnergyGauge';
 import { EnergyHistoryStrip } from '../components/EnergyHistoryStrip';
 import { TaskEditModal } from '../components/TaskEditModal';
+import { CheckinModal } from '../components/CheckinModal';
 import { showToast } from '../components/Toast';
 import type { Task } from '../components/TaskEditModal';
 
@@ -14,18 +15,6 @@ interface AiSuggestion {
     energy_level: 'low' | 'medium' | 'high';
     description?: string;
 }
-
-const MOODS = [
-    { label: 'Feliz', emoji: '😊', humor: 'great', energy: 8, bg: 'bg-yellow-100/80' },
-    { label: 'Disposto', emoji: '💪', humor: 'good', energy: 9, bg: 'bg-yellow-100/80' },
-    { label: 'Normal', emoji: '😐', humor: 'neutral', energy: 5, bg: 'bg-orange-100/80' },
-    { label: 'Calmo', emoji: '🧘', humor: 'calm', energy: 7, bg: 'bg-sky-100/80' },
-    { label: 'Criativo', emoji: '🎨', humor: 'creative', energy: 8, bg: 'bg-violet-100/80' },
-    { label: 'Triste', emoji: '☹️', humor: 'low', energy: 3, bg: 'bg-blue-100/80' },
-    { label: 'Ansioso', emoji: '😰', humor: 'anxious', energy: 3, bg: 'bg-orange-200/80' },
-    { label: 'Irritado', emoji: '😡', humor: 'bad', energy: 4, bg: 'bg-red-200/80' },
-    { label: 'Cansado', emoji: '🥱', humor: 'tired', energy: 2, bg: 'bg-blue-100/80' },
-];
 
 const phaseLabels: Record<string, { icon: string; label: string; color: string; desc: string }> = {
     menstrual: { icon: '🌙', label: 'Menstrual', color: 'text-rose-600 bg-rose-50 border-rose-200', desc: 'Descanse e cuide de você.' },
@@ -42,13 +31,9 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
     const [loading, setLoading] = useState(true);
     const [checkInDone, setCheckInDone] = useState(false);
     const [eveningDone, setEveningDone] = useState(false);
-    const [selectedMood, setSelectedMood] = useState<typeof MOODS[0] | null>(null);
-    const [sleepHours, setSleepHours] = useState(7);
-    const [accomplishment, setAccomplishment] = useState('');
-    const [submitting, setSubmitting] = useState(false);
     const [aiSuggestions, setAiSuggestions] = useState<AiSuggestion[]>([]);
-    const [eveningJournal, setEveningJournal] = useState('');
     const [editingTask, setEditingTask] = useState<Task | null>(null);
+    const [isCheckinModalOpen, setIsCheckinModalOpen] = useState(false);
 
     const mode = useMemo<'morning' | 'evening'>(() => {
         const hour = new Date().getHours();
@@ -116,56 +101,11 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
         fetchTasks();
         checkTodayCheckIns();
         fetchAiSuggestions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
 
-    const handleMorningCheckIn = async () => {
-        if (!user || !selectedMood || submitting) return;
-        setSubmitting(true);
-        const { error } = await supabase.from('check_ins').insert([{
-            user_id: user.id,
-            humor_emoji: selectedMood.humor,
-            energy_score: selectedMood.energy,
-            sleep_hours: sleepHours,
-            check_in_type: 'morning',
-        }]);
-        if (!error) {
-            setCheckInDone(true);
-            showToast('Morning Prep concluído! ✨');
-            try {
-                const { data: fnData } = await supabase.functions.invoke('process-checkin', {
-                    body: { user_id: user.id, humor: selectedMood.label, check_in_type: 'morning', sleep_hours: sleepHours }
-                });
-                if (fnData?.suggestions) setAiSuggestions(fnData.suggestions);
-                await recalculate();
-            } catch { /* Edge function opcional */ }
-        }
-        setSubmitting(false);
-    };
-
-    const handleEveningCheckIn = async () => {
-        if (!user || !selectedMood || submitting) return;
-        setSubmitting(true);
-        const today = new Date().toISOString().split('T')[0];
-        const { error } = await supabase.from('check_ins').insert([{
-            user_id: user.id,
-            humor_emoji: selectedMood.humor,
-            energy_score: selectedMood.energy,
-            free_text: accomplishment,
-            check_in_type: 'evening',
-            date: today,
-        }]);
-        if (!error) {
-            setEveningDone(true);
-            showToast('Reflexão salva. Descanse bem! 🌙');
-            try {
-                const { data: fnData } = await supabase.functions.invoke('process-checkin', {
-                    body: { user_id: user.id, humor: selectedMood.label, check_in_type: 'evening', free_text: accomplishment }
-                });
-                if (fnData?.journal_summary) setEveningJournal(fnData.journal_summary);
-            } catch { /* Edge function opcional */ }
-        }
-        setSubmitting(false);
+    const handleMorningCheckIn = () => {
+        setIsCheckinModalOpen(true);
     };
 
     const toggleTask = async (taskId: string) => {
@@ -176,22 +116,13 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
         }
     };
 
-    const renderMoodPicker = () => (
-        <div className="grid grid-cols-3 gap-2">
-            {MOODS.map((mood) => (
-                <button
-                    key={mood.label}
-                    onClick={() => setSelectedMood(prev => prev?.label === mood.label ? null : mood)}
-                    className={`flex flex-col items-center rounded-2xl p-3 gap-1.5 transition-all border-2 ${selectedMood?.label === mood.label ? 'border-primary/60 bg-white/90 shadow-md scale-105' : 'border-transparent glass-button hover:bg-white/70'}`}
-                >
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner-sm ${mood.bg}`}>
-                        {mood.emoji}
-                    </div>
-                    <span className="text-xs font-semibold text-stone-600">{mood.label}</span>
-                </button>
-            ))}
-        </div>
-    );
+    const handleCheckinComplete = () => {
+        setIsCheckinModalOpen(false);
+        if (mode === 'morning') setCheckInDone(true);
+        if (mode === 'evening') setEveningDone(true);
+        showToast('Check-in salvo com sucesso!');
+        recalculate();
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-orange-50 via-rose-50 to-purple-50 pb-24 relative overflow-hidden">
@@ -258,34 +189,13 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
                         </h2>
 
                         {!checkInDone ? (
-                            <div className="space-y-5">
-                                <p className="text-stone-500 text-sm">Como você acordou hoje?</p>
-                                {renderMoodPicker()}
-
-                                <div className="space-y-2">
-                                    <div className="flex justify-between items-center">
-                                        <label className="text-sm font-semibold text-stone-600">Horas de sono</label>
-                                        <span className="text-sm font-bold text-primary">{sleepHours}h</span>
-                                    </div>
-                                    <input
-                                        type="range"
-                                        min={3} max={12} step={0.5}
-                                        value={sleepHours}
-                                        onChange={e => setSleepHours(Number(e.target.value))}
-                                        className="w-full accent-primary"
-                                        aria-label="Horas de sono"
-                                    />
-                                    <div className="flex justify-between text-xs text-stone-400">
-                                        <span>3h</span><span>6h</span><span>9h</span><span>12h</span>
-                                    </div>
-                                </div>
-
+                            <div className="space-y-4">
+                                <p className="text-stone-500 text-sm">Prepare seu corpo e mente para o dia de hoje.</p>
                                 <button
                                     onClick={handleMorningCheckIn}
-                                    disabled={!selectedMood || submitting}
-                                    className="w-full py-3 rounded-2xl bg-primary text-white font-semibold text-sm shadow-glow hover:bg-primary/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+                                    className="w-full py-4 rounded-2xl bg-stone-900 text-white font-bold text-sm shadow-md hover:bg-stone-800 transition-all active:scale-95 flex items-center justify-center gap-2"
                                 >
-                                    {submitting ? 'Gerando seu plano…' : '✨ Planejar meu dia com IA'}
+                                    Iniciar Check-in <Sparkles className="w-4 h-4" />
                                 </button>
                             </div>
                         ) : (
@@ -308,27 +218,13 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
                         </h2>
 
                         {!eveningDone ? (
-                            <div className="space-y-5">
-                                <p className="text-stone-500 text-sm">Como foi seu dia, {firstName}?</p>
-                                {renderMoodPicker()}
-
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-stone-600">Qual foi sua maior conquista hoje?</label>
-                                    <textarea
-                                        value={accomplishment}
-                                        onChange={e => setAccomplishment(e.target.value)}
-                                        placeholder="Descreva livremente…"
-                                        rows={3}
-                                        className="w-full bg-white/50 border border-white/70 rounded-2xl p-3 text-stone-700 placeholder:text-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-none"
-                                    />
-                                </div>
-
+                            <div className="space-y-4">
+                                <p className="text-stone-500 text-sm">Faça uma pausa e analise o que aconteceu hoje.</p>
                                 <button
-                                    onClick={handleEveningCheckIn}
-                                    disabled={!selectedMood || submitting}
-                                    className="w-full py-3 rounded-2xl bg-indigo-500 text-white font-semibold text-sm shadow-md hover:bg-indigo-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+                                    onClick={() => setIsCheckinModalOpen(true)}
+                                    className="w-full py-4 rounded-2xl bg-stone-900 text-white font-bold text-sm shadow-md hover:bg-stone-800 transition-all active:scale-95 flex items-center justify-center gap-2"
                                 >
-                                    {submitting ? 'Gerando diário…' : '🌙 Registrar reflexão'}
+                                    Iniciar Reflexão <Sparkles className="w-4 h-4" />
                                 </button>
                             </div>
                         ) : (
@@ -339,12 +235,6 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
                                     </div>
                                     <p className="text-sm font-medium">Reflexão salva. Descanse bem! 🌙</p>
                                 </div>
-                                {eveningJournal && (
-                                    <div className="bg-indigo-50/80 rounded-2xl p-4 text-sm text-indigo-800 leading-relaxed border border-indigo-100">
-                                        <p className="font-semibold text-xs text-indigo-500 mb-1 uppercase tracking-wide">Diário automático</p>
-                                        {eveningJournal}
-                                    </div>
-                                )}
                             </div>
                         )}
                     </div>
@@ -428,6 +318,13 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
                     </div>
                 </div>
             </div>
+
+            {isCheckinModalOpen && (
+                <CheckinModal
+                    onClose={() => setIsCheckinModalOpen(false)}
+                    onComplete={handleCheckinComplete}
+                />
+            )}
 
             {editingTask && (
                 <TaskEditModal
