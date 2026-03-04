@@ -209,6 +209,15 @@ export const Agenda = ({ navigate }: { navigate?: (view: string) => void } = {})
         }
     };
 
+    const handleTimeChange = async (taskId: string, newTime: string) => {
+        setTasks(tasks.map(t => t.id === taskId ? { ...t, start_time: newTime } : t));
+        const { error } = await supabase.from('tasks').update({ start_time: newTime }).eq('id', taskId);
+        if (error) {
+            showToast('Erro ao atualizar horário', 'error');
+            await fetchTasks();
+        }
+    };
+
     const deleteTask = async (taskId: string) => {
         const { error } = await supabase.from('tasks').delete().eq('id', taskId);
         if (!error) { setTasks(tasks.filter(t => t.id !== taskId)); showToast('Tarefa removida.'); }
@@ -540,6 +549,7 @@ export const Agenda = ({ navigate }: { navigate?: (view: string) => void } = {})
                     </>
                 ) : viewMode === 'timeline' ? (
                     <DayTimeline
+                        onTimeChange={handleTimeChange}
                         blocks={filteredTasks.filter((t: Task) => t.start_time).map((t: Task) => {
                             const timeStr = t.start_time!;
                             const [h, m] = timeStr.split(':').map(Number);
