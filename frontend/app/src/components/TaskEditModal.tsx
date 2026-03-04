@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Star, Clock, CalendarIcon } from 'lucide-react';
-import { showToast } from './Toast';
+import { showToast } from './ui/Toast';
 
 export interface Task {
     id: string;

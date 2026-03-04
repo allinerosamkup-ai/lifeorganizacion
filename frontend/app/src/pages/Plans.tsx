@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Check, Sparkles, Zap, Crown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
-import { showToast } from '../components/Toast';
+import { showToast } from '../components/ui/Toast';
 
 const PLANS = [
     {

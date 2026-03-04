@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from './supabase';
-import { useAuth } from './AuthContext';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../lib/AuthContext';
 
 export interface EnergyData {
     total_score: number;

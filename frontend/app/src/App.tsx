@@ -2,10 +2,10 @@ import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import './i18n';
 import { useAuth } from './lib/AuthContext';
-import { Login } from './pages/Login';
-import { Onboarding1 } from './pages/Onboarding1';
-import { Onboarding2 } from './pages/Onboarding2';
-import { Onboarding3 } from './pages/Onboarding3';
+import { Login } from './pages/auth/Login';
+import { Onboarding1 } from './pages/onboarding/Onboarding1';
+import { Onboarding2 } from './pages/onboarding/Onboarding2';
+import { Onboarding3 } from './pages/onboarding/Onboarding3';
 import { Sanctuary } from './pages/Sanctuary';
 import { Home } from './pages/Home';
 import { CycleTracker } from './pages/CycleTracker';
@@ -18,11 +18,11 @@ import { Settings } from './pages/Settings';
 import { Notifications } from './pages/Notifications';
 import { Exercises } from './pages/Exercises';
 import { Plans } from './pages/Plans';
-import { BottomNav } from './pages/BottomNav';
+import { BottomNav } from './components/layout/BottomNav';
 import { Habits } from './pages/Habits';
 import { Insights } from './pages/Insights';
 import { Reflections } from './pages/Reflections';
-import { ToastProvider } from './components/Toast';
+import { ToastProvider } from './components/ui/Toast';
 
 const Footer = ({ navigate }: { navigate: (v: string) => void }) => {
   const { i18n } = useTranslation();

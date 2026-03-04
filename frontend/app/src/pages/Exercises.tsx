@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { Dumbbell, Send, Check, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
-import { useEnergyScore } from '../lib/useEnergyScore';
-import { EnergyGauge } from '../components/EnergyGauge';
-import { showToast } from '../components/Toast';
+import { useEnergyScore } from '../hooks/useEnergyScore';
+import { EnergyGauge } from '../components/ui/EnergyGauge';
+import { showToast } from '../components/ui/Toast';
 
 interface ExerciseEntry {
     id: string;

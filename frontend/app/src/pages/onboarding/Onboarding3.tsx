@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Sparkles } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../lib/AuthContext';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../lib/AuthContext';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const Onboarding3 = ({ data, onComplete }: { data: any, onComplete: () => void }) => {

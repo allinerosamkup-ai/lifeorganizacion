@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ChevronLeft, Sparkles, History, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
-import { showToast } from '../components/Toast';
+import { showToast } from '../components/ui/Toast';
 
 const MOODS = [
     { value: 'great', emoji: '🤩', label: 'Excelente' },

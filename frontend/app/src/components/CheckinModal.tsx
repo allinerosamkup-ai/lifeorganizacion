@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import { X, ArrowRight, Check } from 'lucide-react';
-import { showToast } from './Toast';
+import { showToast } from './ui/Toast';
 
 const MOODS = [
     { value: 1, emoji: '😖', label: 'Péssimo' },

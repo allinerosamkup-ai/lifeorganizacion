@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../lib/AuthContext";
 import { supabase } from "../lib/supabase";
 import { ChevronRight, User, HeartPulse, ShieldCheck, Link2, LogOut, Sparkles, BrainCircuit, RefreshCw, Download, Trash2 } from "lucide-react";
-import { showToast } from "../components/Toast";
+import { showToast } from '../components/ui/Toast';
 
 const ToggleSwitch = ({ checked, onChange }: { checked: boolean, onChange: (v: boolean) => void }) => (
     <button

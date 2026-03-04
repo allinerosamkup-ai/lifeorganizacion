@@ -4,7 +4,7 @@ import {
     CheckCircle2, CircleDashed, Trash2, Plus, Filter,
     Wand2, SplitSquareHorizontal, Clock, X, Pencil
 } from 'lucide-react';
-import { showToast } from '../components/Toast';
+import { showToast } from '../components/ui/Toast';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import { format, startOfWeek, endOfWeek } from 'date-fns';

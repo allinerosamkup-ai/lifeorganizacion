@@ -1,5 +1,5 @@
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
-import { useAuth } from '../lib/AuthContext';
+import { useAuth } from '../../lib/AuthContext';
 import { useState } from 'react';
 
 export const Login = () => {
@@ -55,7 +55,7 @@ export const Login = () => {
     const handleAppleLogin = async () => {
         setIsLoading(true);
         try {
-            const { supabase } = await import('../lib/supabase');
+            const { supabase } = await import('../../lib/supabase');
             await supabase.auth.signInWithOAuth({
                 provider: 'apple',
                 options: { redirectTo: window.location.origin }

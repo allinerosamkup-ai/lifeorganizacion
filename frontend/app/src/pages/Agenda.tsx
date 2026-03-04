@@ -15,7 +15,7 @@ import { ptBR } from 'date-fns/locale';
 import { WeeklyBoard } from '../components/WeeklyBoard';
 import { TaskEditModal } from '../components/TaskEditModal';
 import { DayTimeline } from '../components/DayTimeline';
-import { showToast } from '../components/Toast';
+import { showToast } from '../components/ui/Toast';
 import type { Task } from '../components/TaskEditModal';
 
 type Category = 'all' | 'saude' | 'trabalho' | 'pessoal' | 'ciclo';

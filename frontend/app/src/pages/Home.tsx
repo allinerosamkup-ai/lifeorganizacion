@@ -2,12 +2,12 @@ import { useState, useEffect, useMemo } from 'react';
 import { CheckCircle2, Clock, User, Check, Moon, Sun, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
-import { useEnergyScore } from '../lib/useEnergyScore';
-import { EnergyGauge } from '../components/EnergyGauge';
+import { useEnergyScore } from '../hooks/useEnergyScore';
+import { EnergyGauge } from '../components/ui/EnergyGauge';
 import { EnergyHistoryStrip } from '../components/EnergyHistoryStrip';
 import { TaskEditModal } from '../components/TaskEditModal';
 import { CheckinModal } from '../components/CheckinModal';
-import { showToast } from '../components/Toast';
+import { showToast } from '../components/ui/Toast';
 import type { Task } from '../components/TaskEditModal';
 
 interface AiSuggestion {

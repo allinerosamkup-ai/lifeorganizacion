@@ -3,7 +3,7 @@ import { Plus, Flame, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import { format, subDays, parseISO } from 'date-fns';
-import { showToast } from '../components/Toast';
+import { showToast } from '../components/ui/Toast';
 
 interface Habit {
     id: string;
