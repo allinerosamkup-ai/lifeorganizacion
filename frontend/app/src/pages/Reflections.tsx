@@ -12,18 +12,31 @@ const MOODS = [
     { value: 'bad', emoji: '😔', label: 'Ruim' },
 ];
 
+const getMoodObj = (value: string) => MOODS.find(m => m.value === value);
+
 export const Reflections = ({ onBack }: { onBack: () => void }) => {
     const { user } = useAuth();
     const [text, setText] = useState('');
     const [mood, setMood] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [view, setView] = useState<'create' | 'result' | 'history'>('create');
-    const [result, setResult] = useState<{ ai_summary?: string; ai_themes?: string[]; ai_actions?: string[] } | null>(null);
-    const [history, setHistory] = useState<{ id: string; date: string; mood: string; ai_summary?: string; ai_themes?: string[]; free_text: string }[]>([]);
+    const [result, setResult] = useState<{
+        ai_summary?: string;
+        ai_themes?: string[];
+        ai_actions?: string[];
+    } | null>(null);
+    const [history, setHistory] = useState<{
+        id: string;
+        date: string;
+        mood: string;
+        ai_summary?: string;
+        ai_themes?: string[];
+        free_text: string;
+    }[]>([]);
 
     useEffect(() => {
+        if (view !== 'history' || !user) return;
         const fetchHistory = async () => {
-            if (!user) return;
             const { data } = await supabase
                 .from('daily_reflections')
                 .select('*')
@@ -32,10 +45,7 @@ export const Reflections = ({ onBack }: { onBack: () => void }) => {
                 .limit(7);
             if (data) setHistory(data);
         };
-
-        if (view === 'history') {
-            fetchHistory();
-        }
+        fetchHistory();
     }, [view, user]);
 
     const handleReflect = async () => {
@@ -47,132 +57,226 @@ export const Reflections = ({ onBack }: { onBack: () => void }) => {
         setLoading(true);
         try {
             const { data, error } = await supabase.functions.invoke('evening-reflection', {
-                body: { text, mood, user_id: user.id }
+                body: { text, mood, user_id: user.id },
             });
-
             if (error) throw error;
-
             setResult(data.data);
             setView('result');
-            showToast('Reflexão concluída✨', 'success');
-
-            // Grava task action na verdade poderiamos criar, mas sigo o UI
-        } catch (err) {
-            console.error(err);
+            showToast('Reflexão concluída ✨', 'success');
+        } catch {
             showToast('Erro ao analisar reflexão.', 'error');
         } finally {
             setLoading(false);
         }
     };
 
+    const isHistory = view === 'history';
+
     return (
-        <div className="min-h-screen bg-stone-50 pb-24 animate-fade-in">
-            <div className="bg-white/60 backdrop-blur-2xl pt-14 pb-4 px-6 sticky top-0 z-30 border-b border-stone-200">
-                <button onClick={onBack} className="flex items-center text-stone-500 font-medium mb-3">
-                    <ChevronLeft className="w-5 h-5 mr-1" /> Voltar
+        <div className="page-bg min-h-screen pb-28 animate-fade-in">
+
+            {/* Header */}
+            <div className="page-header pt-12 pb-4 px-6">
+                <button
+                    onClick={onBack}
+                    className="flex items-center gap-1 text-stone-500 font-semibold text-sm mb-3 hover:text-stone-800 transition-colors tap-spring"
+                    aria-label="Voltar para o início"
+                >
+                    <ChevronLeft className="w-4 h-4" /> Voltar
                 </button>
                 <div className="flex justify-between items-center">
-                    <h1 className="text-3xl font-serif text-stone-800 tracking-tight">Reflexão da Noite</h1>
-                    <button aria-label="Alternar histórico de reflexões" onClick={() => setView(v => v === 'history' ? 'create' : 'history')} className="text-indigo-500 p-2 rounded-full hover:bg-stone-100 flex items-center justify-center">
+                    <h1 className="text-3xl font-serif text-stone-800 tracking-tight">
+                        {isHistory ? 'Histórico' : 'Reflexão da Noite'}
+                    </h1>
+                    <button
+                        onClick={() => setView(v => v === 'history' ? 'create' : 'history')}
+                        className={`
+                            w-9 h-9 rounded-xl flex items-center justify-center
+                            tap-spring transition-all duration-200
+                            ${isHistory ? 'bg-violet-100 text-violet-600' : 'bg-stone-100 text-stone-500 hover:bg-violet-50 hover:text-violet-500'}
+                        `}
+                        aria-label={isHistory ? 'Ver formulário de reflexão' : 'Ver histórico de reflexões'}
+                        aria-pressed={isHistory}
+                    >
                         <History className="w-5 h-5" />
                     </button>
                 </div>
             </div>
 
-            <div className="p-6 max-w-lg mx-auto">
+            <div className="p-6 max-w-lg mx-auto space-y-4">
+
+                {/* ── Create view ── */}
                 {view === 'create' && (
-                    <div className="space-y-6">
-                        <div className="bg-white p-5 rounded-3xl shadow-sm border border-stone-100">
-                            <p className="text-sm font-bold text-stone-500 uppercase tracking-widest mb-4">Como você se sentiu hoje?</p>
-                            <div className="flex justify-between gap-2 overflow-x-auto pb-2">
+                    <div className="space-y-4 animate-fade-in-up">
+
+                        {/* Mood selector */}
+                        <div className="card rounded-3xl p-5">
+                            <p className="section-label mb-4">Como você se sentiu hoje?</p>
+                            <div className="grid grid-cols-5 gap-2">
                                 {MOODS.map(m => (
                                     <button
                                         key={m.value}
                                         onClick={() => setMood(m.value)}
-                                        className={`flex flex-col items-center gap-2 p-3 rounded-2xl transition-all ${mood === m.value ? 'bg-indigo-50 border-indigo-200 shadow-sm scale-105 border' : 'bg-stone-50 border border-transparent hover:bg-stone-100 grayscale-[0.5]'} shrink-0 min-w-[72px]`}
+                                        aria-pressed={mood === m.value}
+                                        className={`
+                                            flex flex-col items-center gap-2 py-3 rounded-2xl
+                                            transition-all duration-200 tap-spring
+                                            ${mood === m.value
+                                                ? 'bg-violet-50 border border-violet-200 scale-105'
+                                                : 'hover:bg-stone-50 border border-transparent'}
+                                        `}
                                     >
-                                        <span className="text-3xl">{m.emoji}</span>
-                                        <span className={`text-[10px] font-bold ${mood === m.value ? 'text-indigo-600' : 'text-stone-500'}`}>{m.label}</span>
+                                        <span className={`text-3xl transition-all ${mood === m.value ? '' : 'grayscale-[0.5]'}`}>
+                                            {m.emoji}
+                                        </span>
+                                        <span className={`text-[10px] font-bold ${mood === m.value ? 'text-violet-700' : 'text-stone-400'}`}>
+                                            {m.label}
+                                        </span>
                                     </button>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-3xl shadow-sm border border-stone-100 overflow-hidden">
-                            <div className="p-5 border-b border-stone-50 bg-stone-50/50">
-                                <p className="text-sm font-bold text-stone-500 uppercase tracking-widest">Diário</p>
+                        {/* Diary text */}
+                        <div className="card rounded-3xl overflow-hidden">
+                            <div className="px-5 py-4 border-b border-stone-50 bg-stone-50/60">
+                                <p className="section-label">Mini-diário</p>
                             </div>
                             <textarea
                                 value={text}
                                 onChange={e => setText(e.target.value)}
                                 placeholder="Escreva o que aconteceu de bom, ruim, ou pensamentos que ficaram na sua cabeça..."
-                                className="w-full h-48 p-5 text-stone-700 bg-transparent resize-none focus:outline-none placeholder:text-stone-300 leading-relaxed"
+                                className="
+                                    w-full h-44 p-5 text-stone-700 text-sm
+                                    bg-transparent resize-none focus:outline-none
+                                    placeholder:text-stone-300 leading-relaxed
+                                "
                             />
                         </div>
 
+                        {/* Submit */}
                         <button
                             onClick={handleReflect}
                             disabled={loading || !text.trim() || !mood}
-                            className="w-full py-4 rounded-2xl bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-600/30 hover:bg-indigo-700 transition-all active:scale-[0.98] disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2"
+                            className="btn-primary"
+                            aria-busy={loading}
                         >
-                            {loading ? <Sparkles className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                            {loading ? 'Refletindo...' : 'Refletir com IA'}
+                            {loading ? (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                                    Refletindo com IA...
+                                </>
+                            ) : (
+                                <>
+                                    <Sparkles className="w-5 h-5" />
+                                    Refletir com IA
+                                </>
+                            )}
+                        </button>
+
+                        {(!text.trim() || !mood) && (
+                            <p className="text-center text-stone-400 text-xs -mt-1">
+                                {!mood ? 'Escolha um humor para continuar' : 'Escreva algo para continuar'}
+                            </p>
+                        )}
+                    </div>
+                )}
+
+                {/* ── Result view ── */}
+                {view === 'result' && result && (
+                    <div className="space-y-4 animate-fade-in-up">
+
+                        {/* AI Summary banner */}
+                        <div
+                            className="relative overflow-hidden rounded-3xl p-6 text-white text-center space-y-3"
+                            style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #DB2777 100%)' }}
+                        >
+                            <div className="absolute -right-12 -top-12 w-40 h-40 bg-white/15 blur-3xl rounded-full pointer-events-none" />
+                            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mx-auto">
+                                <Sparkles className="w-6 h-6" />
+                            </div>
+                            <p className="font-serif text-xl leading-snug relative">{result.ai_summary}</p>
+                        </div>
+
+                        {/* Themes */}
+                        {result.ai_themes && result.ai_themes.length > 0 && (
+                            <div className="card rounded-3xl p-6">
+                                <h3 className="section-label mb-4">Temas de Hoje</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {result.ai_themes.map((t, i) => (
+                                        <span key={i} className="pill bg-stone-100 text-stone-600 border border-stone-200 text-sm py-1.5">
+                                            {t}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Actions */}
+                        {result.ai_actions && result.ai_actions.length > 0 && (
+                            <div className="card rounded-3xl p-6">
+                                <h3 className="section-label mb-4">Para Amanhã</h3>
+                                <ul className="space-y-2.5">
+                                    {result.ai_actions.map((act, i) => (
+                                        <li key={i} className="flex items-center gap-3 bg-stone-50 p-4 rounded-2xl">
+                                            <div className="w-7 h-7 bg-violet-100 rounded-xl flex items-center justify-center shrink-0">
+                                                <ArrowRight className="w-4 h-4 text-violet-500" />
+                                            </div>
+                                            <span className="text-stone-700 font-semibold text-sm leading-snug">{act}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                        <button
+                            onClick={onBack}
+                            className="btn-ghost w-full"
+                        >
+                            Voltar ao Início
                         </button>
                     </div>
                 )}
 
-                {view === 'result' && result && (
-                    <div className="space-y-6 animate-fade-in-up">
-                        <div className="bg-indigo-600 text-white p-6 rounded-3xl shadow-xl shadow-indigo-600/20 text-center space-y-3 relative overflow-hidden">
-                            <div className="absolute top-[-50%] right-[-10%] w-40 h-40 bg-white/20 blur-2xl rounded-full" />
-                            <Sparkles className="w-8 h-8 mx-auto text-indigo-200" />
-                            <p className="font-serif text-xl font-medium leading-tight relative">{result.ai_summary}</p>
-                        </div>
-
-                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-100">
-                            <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest border-b border-stone-100 pb-3 mb-4">Temas de Hoje</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {result.ai_themes?.map((t: string, i: number) => (
-                                    <span key={i} className="px-3 py-1.5 bg-stone-100 text-stone-600 rounded-full text-sm font-medium">{t}</span>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-100">
-                            <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest border-b border-stone-100 pb-3 mb-4">Para Amanhã</h3>
-                            <ul className="space-y-3">
-                                {result.ai_actions?.map((act: string, i: number) => (
-                                    <li key={i} className="flex gap-3 text-stone-700 font-medium bg-stone-50 p-4 rounded-xl items-center">
-                                        <ArrowRight className="w-5 h-5 text-indigo-400 shrink-0" />
-                                        {act}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        <button onClick={onBack} className="w-full py-4 text-stone-500 font-bold hover:text-stone-800 transition-colors">Voltar ao Início</button>
-                    </div>
-                )}
-
+                {/* ── History view ── */}
                 {view === 'history' && (
-                    <div className="space-y-4">
+                    <div className="space-y-3 animate-fade-in-up">
                         {history.length === 0 ? (
-                            <p className="text-center text-stone-400 py-10">Nenhuma reflexão passada.</p>
+                            <div className="card rounded-3xl py-14 text-center">
+                                <p className="text-4xl mb-3">📖</p>
+                                <p className="text-stone-500 font-semibold">Nenhuma reflexão ainda</p>
+                                <p className="text-stone-400 text-sm mt-1">Comece a refletir sobre seu dia!</p>
+                            </div>
                         ) : (
                             history.map(item => {
-                                const moodObj = MOODS.find(m => m.value === item.mood);
+                                const moodObj = getMoodObj(item.mood);
                                 return (
-                                    <div key={item.id} className="bg-white p-5 rounded-3xl shadow-sm border border-stone-100">
+                                    <div key={item.id} className="card rounded-3xl p-5 hover-lift">
                                         <div className="flex justify-between items-start mb-3">
-                                            <span className="text-sm font-bold text-indigo-600">{new Date(item.date).toLocaleDateString('pt-BR')}</span>
-                                            <span className="text-2xl" title={moodObj?.label}>{moodObj?.emoji}</span>
+                                            <div>
+                                                <span className="text-sm font-bold text-violet-600">
+                                                    {new Date(item.date + 'T12:00:00').toLocaleDateString('pt-BR', {
+                                                        day: 'numeric',
+                                                        month: 'long',
+                                                    })}
+                                                </span>
+                                            </div>
+                                            <span className="text-2xl" title={moodObj?.label} aria-label={moodObj?.label}>
+                                                {moodObj?.emoji}
+                                            </span>
                                         </div>
-                                        <p className="text-stone-800 font-serif mb-2">{item.ai_summary || item.free_text.substring(0, 60) + '...'}</p>
-                                        <div className="flex gap-2 flex-wrap mt-3">
-                                            {item.ai_themes?.map((t: string, i: number) => (
-                                                <span key={i} className="text-[10px] bg-stone-100 text-stone-500 px-2 py-1 rounded-full uppercase tracking-wider">{t}</span>
-                                            ))}
-                                        </div>
+                                        <p className="text-stone-700 font-serif text-sm leading-relaxed mb-3">
+                                            {item.ai_summary || item.free_text.substring(0, 80) + '...'}
+                                        </p>
+                                        {item.ai_themes && item.ai_themes.length > 0 && (
+                                            <div className="flex gap-1.5 flex-wrap">
+                                                {item.ai_themes.map((t, i) => (
+                                                    <span key={i} className="pill bg-stone-100 text-stone-500 border border-stone-100">
+                                                        {t}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })

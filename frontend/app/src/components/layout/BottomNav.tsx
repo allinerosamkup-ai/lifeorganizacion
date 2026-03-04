@@ -1,30 +1,104 @@
 import { Home as HomeIcon, Calendar as CalendarIcon, CheckCircle2, User, Brain } from 'lucide-react';
 
+const NAV_ITEMS = [
+    {
+        id: 'home',
+        icon: HomeIcon,
+        label: 'Home',
+        activeColor: 'text-rose-500',
+        activeBg: 'bg-rose-50',
+        activeDot: 'bg-rose-400',
+    },
+    {
+        id: 'agenda',
+        icon: CalendarIcon,
+        label: 'Agenda',
+        activeColor: 'text-sky-500',
+        activeBg: 'bg-sky-50',
+        activeDot: 'bg-sky-400',
+    },
+    {
+        id: 'tasks',
+        icon: CheckCircle2,
+        label: 'Tarefas',
+        activeColor: 'text-violet-500',
+        activeBg: 'bg-violet-50',
+        activeDot: 'bg-violet-400',
+    },
+    {
+        id: 'insights',
+        icon: Brain,
+        label: 'Insights',
+        activeColor: 'text-orange-500',
+        activeBg: 'bg-orange-50',
+        activeDot: 'bg-orange-400',
+    },
+    {
+        id: 'profile',
+        icon: User,
+        label: 'Perfil',
+        activeColor: 'text-stone-700',
+        activeBg: 'bg-stone-100',
+        activeDot: 'bg-stone-500',
+    },
+] as const;
+
 export const BottomNav = ({ current, navigate }: { current: string, navigate: (view: string) => void }) => {
     if (['login', 'onboarding-1', 'onboarding-2', 'onboarding-3', 'sanctuary'].includes(current)) return null;
 
     return (
-        <nav className="w-full bg-white/80 backdrop-blur-xl border-t border-white/50 flex justify-around py-3 pb-6 px-4 z-50 shrink-0 shadow-[0_-4px_20px_rgba(0,0,0,0.04)]">
-            <button onClick={() => navigate('home')} className={`flex flex-col items-center gap-1 transition-all active:scale-90 ${current === 'home' ? 'text-emerald-600' : 'text-stone-400'}`}>
-                <HomeIcon className={`w-6 h-6 ${current === 'home' ? 'fill-emerald-600/20' : ''}`} />
-                <span className="text-[10px] font-medium">Home</span>
-            </button>
-            <button onClick={() => navigate('agenda')} className={`flex flex-col items-center gap-1 transition-all active:scale-90 ${current === 'agenda' ? 'text-blue-500' : 'text-stone-400'}`}>
-                <CalendarIcon className={`w-6 h-6 ${current === 'agenda' ? 'fill-blue-500/20' : ''}`} />
-                <span className="text-[10px] font-medium">Agenda</span>
-            </button>
-            <button onClick={() => navigate('tasks')} className={`flex flex-col items-center gap-1 transition-all active:scale-90 ${current === 'tasks' ? 'text-purple-500' : 'text-stone-400'}`}>
-                <CheckCircle2 className={`w-6 h-6 ${current === 'tasks' ? 'fill-purple-500/20' : ''}`} />
-                <span className="text-[10px] font-medium">Tarefas</span>
-            </button>
-            <button onClick={() => navigate('insights')} className={`flex flex-col items-center gap-1 transition-all active:scale-90 ${current === 'insights' ? 'text-orange-500' : 'text-stone-400'}`}>
-                <Brain className={`w-6 h-6 ${current === 'insights' ? 'fill-orange-500/20' : ''}`} />
-                <span className="text-[10px] font-medium">Insights</span>
-            </button>
-            <button onClick={() => navigate('profile')} className={`flex flex-col items-center gap-1 transition-all active:scale-90 ${current === 'profile' ? 'text-stone-600' : 'text-stone-400'}`}>
-                <User className={`w-6 h-6 ${current === 'profile' ? 'fill-stone-600/20' : ''}`} />
-                <span className="text-[10px] font-medium">Perfil</span>
-            </button>
+        <nav
+            className="w-full flex justify-around py-2 px-2 pb-[calc(8px+env(safe-area-inset-bottom,0px))] z-50 shrink-0"
+            style={{
+                background: 'rgba(255, 255, 255, 0.90)',
+                backdropFilter: 'blur(24px) saturate(1.6)',
+                WebkitBackdropFilter: 'blur(24px) saturate(1.6)',
+                borderTop: '1px solid rgba(0,0,0,0.06)',
+                boxShadow: '0 -4px 20px rgba(0,0,0,0.04)',
+            }}
+            aria-label="Navegação principal"
+        >
+            {NAV_ITEMS.map(({ id, icon: Icon, label, activeColor, activeBg, activeDot }) => {
+                const isActive = current === id;
+                return (
+                    <button
+                        key={id}
+                        onClick={() => navigate(id)}
+                        className={`
+                            relative flex flex-col items-center gap-1 px-3 py-2 rounded-2xl
+                            transition-all duration-200 ease-out tap-spring
+                            ${isActive ? `${activeBg} ${activeColor}` : 'text-stone-400 hover:text-stone-600 hover:bg-stone-50/60'}
+                        `}
+                        style={{ minWidth: 52 }}
+                        aria-label={label}
+                        aria-current={isActive ? 'page' : undefined}
+                    >
+                        {/* Icon */}
+                        <Icon
+                            className={`w-[22px] h-[22px] transition-all duration-200 ${isActive ? 'scale-110' : 'scale-100'}`}
+                            strokeWidth={isActive ? 2.2 : 1.8}
+                        />
+
+                        {/* Label */}
+                        <span
+                            className={`
+                                text-[10px] font-bold tracking-wide transition-all duration-200
+                                ${isActive ? 'opacity-100' : 'opacity-75'}
+                            `}
+                        >
+                            {label}
+                        </span>
+
+                        {/* Active dot indicator */}
+                        <span
+                            className={`
+                                absolute -bottom-0.5 w-1 h-1 rounded-full transition-all duration-300
+                                ${isActive ? `${activeDot} opacity-100 scale-100` : 'opacity-0 scale-0'}
+                            `}
+                        />
+                    </button>
+                );
+            })}
         </nav>
     );
 };
