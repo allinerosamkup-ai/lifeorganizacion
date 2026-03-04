@@ -40,7 +40,7 @@ export const Exercises = () => {
     const [customRequest, setCustomRequest] = useState('');
     const [generating, setGenerating] = useState(false);
     const [aiPlan, setAiPlan] = useState<string | null>(null);
-    const [selectedExercise, setSelectedExercise] = useState<any | null>(null);
+    const [selectedExercise, setSelectedExercise] = useState<Partial<ExerciseEntry> & { description?: string } | null>(null);
 
     useEffect(() => {
         if (!user) return;
@@ -64,10 +64,10 @@ export const Exercises = () => {
 
     const suggestions = {
         low: {
-            type: 'Alongamento + Respiração',
-            duration: 10,
+            type: 'Yoga Restaurativa',
+            duration: 15,
             intensity: 'leve',
-            description: 'Alongamentos suaves + 5 min respiração box (4-4-4-4)',
+            description: 'Sessão suave de Yoga focada em respiração e recuperação.',
             icon: '🌙'
         },
         medium: {
@@ -111,8 +111,8 @@ export const Exercises = () => {
     const openHistoryExercise = (entry: ExerciseEntry) => {
         let desc = `Sessão de ${entry.title}.`;
         if (entry.ai_generated_plan && typeof entry.ai_generated_plan === 'object') {
-            const plan: any = entry.ai_generated_plan;
-            desc = `${plan.ai_reasoning || ''}\n\nExercícios:\n- ${(plan.items || []).join('\n- ')}`;
+            const plan = entry.ai_generated_plan as Record<string, any>;
+            desc = `${plan.ai_reasoning || ''}\n\nExercícios:\n- ${(plan.items as string[] || []).join('\n- ')}`;
         }
         setSelectedExercise({
             id: entry.id,

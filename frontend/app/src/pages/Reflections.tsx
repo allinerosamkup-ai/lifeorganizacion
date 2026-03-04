@@ -18,25 +18,25 @@ export const Reflections = ({ onBack }: { onBack: () => void }) => {
     const [mood, setMood] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [view, setView] = useState<'create' | 'result' | 'history'>('create');
-    const [result, setResult] = useState<any>(null);
-    const [history, setHistory] = useState<any[]>([]);
+    const [result, setResult] = useState<{ ai_summary?: string; ai_themes?: string[]; ai_actions?: string[] } | null>(null);
+    const [history, setHistory] = useState<{ id: string; date: string; mood: string; ai_summary?: string; ai_themes?: string[]; free_text: string }[]>([]);
 
     useEffect(() => {
+        const fetchHistory = async () => {
+            if (!user) return;
+            const { data } = await supabase
+                .from('daily_reflections')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('date', { ascending: false })
+                .limit(7);
+            if (data) setHistory(data);
+        };
+
         if (view === 'history') {
             fetchHistory();
         }
-    }, [view]);
-
-    const fetchHistory = async () => {
-        if (!user) return;
-        const { data } = await supabase
-            .from('daily_reflections')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('date', { ascending: false })
-            .limit(7);
-        if (data) setHistory(data);
-    };
+    }, [view, user]);
 
     const handleReflect = async () => {
         if (!user || !text.trim() || !mood) {
