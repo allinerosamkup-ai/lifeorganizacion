@@ -20,9 +20,9 @@
   --color-accent-glow: rgba(214, 81, 125, 0.20);
 
   /* Energy levels */
-  --color-energy-high: #22C55E;
-  --color-energy-medium: #F59E0B;
-  --color-energy-low: #EF4444;
+  --color-energy-high: #22c55ec9;
+  --color-energy-medium: #f59f0bad;
+  --color-energy-low: #ef4444ee;
 
   /* Cycle phases */
   --color-phase-menstrual: #FDA4AF;
