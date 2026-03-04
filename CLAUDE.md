@@ -40,7 +40,7 @@ The frontend and Supabase backend sit alongside this orchestration layer.
 | AI (Edge Fns) | OpenAI GPT-4o |
 | AI (n8n) | Claude API (Anthropic) |
 | Payments | Stripe |
-| Deploy | Azure Static Web App |
+| Deploy | Vercel |
 | Scripts | Python 3.8+ |
 
 ---
@@ -132,6 +132,7 @@ setView('cycle')        // from App itself
 ```
 
 **View flow:**
+
 ```
 login → onboarding-1 → onboarding-2 → onboarding-3 → sanctuary → home
 home ↔ agenda / cycle / chat / focus / profile
@@ -220,6 +221,7 @@ npm run preview   # Preview production build
 ### Cycle Phase Logic
 
 Phases: `menstrual` → `follicular` → `ovulatory` → `luteal`
+
 - **Menstrual:** High rest, low-energy tasks
 - **Follicular:** High creativity, complex tasks
 - **Ovulatory:** Peak energy, social/collaborative tasks
@@ -273,6 +275,7 @@ serve(async (req) => {
 ```
 
 All functions:
+
 1. Handle `OPTIONS` preflight for CORS.
 2. Require `Authorization: Bearer <user-token>` header.
 3. Create a Supabase client scoped to the user's JWT so RLS applies automatically.
@@ -359,6 +362,7 @@ export class WelcomeWorkflow {
 ```
 
 **Critical n8n rules (from AGENTS.md):**
+
 - Node `type` must have full package prefix: `"n8n-nodes-base.switch"` not `"switch"`.
 - Always use the **highest** `typeVersion` from the schema.
 - Never guess parameter names — always run `./n8nac-skills get <node>` first.
@@ -411,6 +415,7 @@ STRIPE_SECRET_KEY=<stripe-key>
 ```
 
 **Security rules:**
+
 - `.env` is gitignored — **never commit it**.
 - `SUPABASE_SERVICE_ROLE_KEY` bypasses RLS — never expose it client-side.
 - Frontend only uses the `ANON_KEY` (prefixed with `VITE_`).

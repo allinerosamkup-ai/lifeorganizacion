@@ -25,7 +25,7 @@ O projeto segue uma **arquitetura de 3 camadas** definida em `Agent.md`:
 - **Automações:** n8n Cloud
 - **IA:** Claude API (Anthropic)
 - **Pagamentos:** Stripe
-- **Deploy:** Azure Static Web App
+- **Deploy:** Vercel
 
 ## 📁 Estrutura do Projeto
 
