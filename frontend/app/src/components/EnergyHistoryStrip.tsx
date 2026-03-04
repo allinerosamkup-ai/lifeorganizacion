@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../lib/AuthContext";
 
-export function EnergyHistoryStrip() {
+export function EnergyHistoryStrip({ refreshTrigger }: { refreshTrigger?: number }) {
     const { user } = useAuth();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [points, setPoints] = useState<any[]>([]);
@@ -47,7 +47,7 @@ export function EnergyHistoryStrip() {
             setPoints(map);
         };
         load();
-    }, [user]);
+    }, [user, refreshTrigger]);
 
     if (points.length === 0) return null;
 

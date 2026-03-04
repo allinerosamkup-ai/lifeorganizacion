@@ -12,6 +12,10 @@ export const BottomNav = ({ current, navigate }: { current: string, navigate: (v
                 <HomeIcon className={`w-6 h-6 ${current === 'home' ? 'fill-emerald-600/20' : ''}`} />
                 <span className="text-[10px] font-medium">Home</span>
             </button>
+            <button onClick={() => navigate('tasks')} className={`flex flex-col items-center gap-1 transition-all active:scale-90 ${current === 'tasks' ? 'text-rose-500' : 'text-stone-400'}`}>
+                <CheckSquare className={`w-6 h-6 ${current === 'tasks' ? 'fill-rose-500/20' : ''}`} />
+                <span className="text-[10px] font-medium">Tasks</span>
+            </button>
             <button onClick={() => navigate('agenda')} className={`flex flex-col items-center gap-1 transition-all active:scale-90 ${current === 'agenda' ? 'text-blue-500' : 'text-stone-400'}`}>
                 <CalendarIcon className={`w-6 h-6 ${current === 'agenda' ? 'fill-blue-500/20' : ''}`} />
                 <span className="text-[10px] font-medium">Agenda</span>
@@ -19,10 +23,6 @@ export const BottomNav = ({ current, navigate }: { current: string, navigate: (v
             <button onClick={() => navigate('exercises')} className={`flex flex-col items-center gap-1 transition-all active:scale-90 ${current === 'exercises' ? 'text-purple-500' : 'text-stone-400'}`}>
                 <Dumbbell className={`w-6 h-6 ${current === 'exercises' ? 'fill-purple-500/20' : ''}`} />
                 <span className="text-[10px] font-medium">Exercícios</span>
-            </button>
-            <button onClick={() => navigate('tasks')} className={`flex flex-col items-center gap-1 transition-all active:scale-90 ${current === 'tasks' ? 'text-rose-500' : 'text-stone-400'}`}>
-                <CheckSquare className={`w-6 h-6 ${current === 'tasks' ? 'fill-rose-500/20' : ''}`} />
-                <span className="text-[10px] font-medium">Tasks</span>
             </button>
             <button onClick={() => navigate('chat')} className={`flex flex-col items-center gap-1 transition-all active:scale-90 ${current === 'chat' ? 'text-orange-500' : 'text-stone-400'}`}>
                 <MessageCircle className={`w-6 h-6 ${current === 'chat' ? 'fill-orange-500/20' : ''}`} />
