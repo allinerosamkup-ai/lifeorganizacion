@@ -1,8 +1,13 @@
 import { useState } from 'react';
 import { Calendar as CalendarIcon, Minus, Plus } from 'lucide-react';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const Onboarding1 = ({ onNext }: { onNext: (data: any) => void }) => {
+interface Onboarding1Data {
+    last_period_start: string;
+    cycle_length: number;
+    period_duration: number;
+}
+
+export const Onboarding1 = ({ onNext }: { onNext: (data: Onboarding1Data) => void }) => {
     const [lastPeriod, setLastPeriod] = useState(new Date().toISOString().split('T')[0]);
     const [cycleLength, setCycleLength] = useState(28);
     const [periodDuration, setPeriodDuration] = useState(5);

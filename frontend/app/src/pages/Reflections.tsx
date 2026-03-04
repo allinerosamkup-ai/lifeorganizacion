@@ -73,7 +73,7 @@ export const Reflections = ({ onBack }: { onBack: () => void }) => {
                 </button>
                 <div className="flex justify-between items-center">
                     <h1 className="text-3xl font-serif text-stone-800 tracking-tight">Reflexão da Noite</h1>
-                    <button onClick={() => setView(v => v === 'history' ? 'create' : 'history')} className="text-indigo-500 p-2 rounded-full hover:bg-stone-100 flex items-center justify-center">
+                    <button aria-label="Alternar histórico de reflexões" onClick={() => setView(v => v === 'history' ? 'create' : 'history')} className="text-indigo-500 p-2 rounded-full hover:bg-stone-100 flex items-center justify-center">
                         <History className="w-5 h-5" />
                     </button>
                 </div>

@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
+import { useCyclePhase } from '../hooks/useCyclePhase';
 import {
     format, addMonths, subMonths, startOfMonth, endOfMonth,
     startOfWeek, endOfWeek, eachDayOfInterval,
@@ -32,6 +33,7 @@ const phaseInfo: Record<string, { label: string; icon: string; color: string; bg
 
 export const CycleTracker = ({ navigate }: { navigate: (view: string) => void }) => {
     const { user, profile } = useAuth();
+    const { getCyclePhaseForDate } = useCyclePhase();
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const loading = !profile;
     const [selectedFlow, setSelectedFlow] = useState<string | null>(null);
@@ -63,20 +65,6 @@ export const CycleTracker = ({ navigate }: { navigate: (view: string) => void })
         };
         fetchEnergy();
     }, [user, currentMonth]);
-
-    // Calculate cycle phase for a given date
-    const getCyclePhaseForDate = (date: Date) => {
-        if (!profile?.last_period_start) return null;
-        const lastPeriod = new Date(profile.last_period_start);
-        const cycleLength = profile.cycle_length || 28;
-        const daysDiff = Math.floor((date.getTime() - lastPeriod.getTime()) / (1000 * 3600 * 24));
-        const dayInCycle = ((daysDiff % cycleLength) + cycleLength) % cycleLength;
-
-        if (dayInCycle < 5) return 'menstrual';
-        if (dayInCycle < 13) return 'folicular';
-        if (dayInCycle < 16) return 'ovulatoria';
-        return 'luteal';
-    };
 
     const getDayInCycle = () => {
         if (!profile?.last_period_start) return null;

@@ -77,7 +77,7 @@ export const Profile = () => {
             const { data: habitCompletions } = await supabase.from('habit_completions').select('habit_id, completed_date').eq('user_id', user.id).gte('completed_date', thirtyDaysAgo);
 
             if (activeHabits) {
-                const streakData: StreakData[] = activeHabits.slice(0, 4).map((h: any) => {
+                const streakData: StreakData[] = activeHabits.slice(0, 4).map((h: { id: string; title: string; emoji?: string }) => {
                     const comps = habitCompletions?.filter(c => c.habit_id === h.id).map(c => c.completed_date) || [];
                     const sorted = [...comps].sort().reverse();
                     let hStreak = 0;
@@ -101,7 +101,7 @@ export const Profile = () => {
                         completedToday: sorted.includes(cToday),
                     };
                 });
-                setStreaks(streakData as any);
+                setStreaks(streakData);
             }
 
             setStatsLoading(false);

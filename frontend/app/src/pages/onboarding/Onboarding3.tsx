@@ -3,8 +3,14 @@ import { Sparkles } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../lib/AuthContext';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const Onboarding3 = ({ data, onComplete }: { data: any, onComplete: () => void }) => {
+export interface OnboardingData {
+    last_period_start: string;
+    cycle_length: number;
+    period_duration: number;
+    goals: string[];
+}
+
+export const Onboarding3 = ({ data, onComplete }: { data: OnboardingData, onComplete: () => void }) => {
     const { user, refreshProfile } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
 

@@ -6,6 +6,7 @@ import { Login } from './pages/auth/Login';
 import { Onboarding1 } from './pages/onboarding/Onboarding1';
 import { Onboarding2 } from './pages/onboarding/Onboarding2';
 import { Onboarding3 } from './pages/onboarding/Onboarding3';
+import type { OnboardingData } from './pages/onboarding/Onboarding3';
 import { Sanctuary } from './pages/Sanctuary';
 import { Home } from './pages/Home';
 import { CycleTracker } from './pages/CycleTracker';
@@ -60,7 +61,7 @@ export default function App() {
     goals: [] as string[]
   });
 
-  const handleOnboardingNext = (stepData: Record<string, unknown>, nextView: string) => {
+  const handleOnboardingNext = (stepData: Partial<OnboardingData>, nextView: string) => {
     setOnboardingData(prev => ({ ...prev, ...stepData }));
     setView(nextView);
   };

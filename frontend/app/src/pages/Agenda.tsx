@@ -16,6 +16,7 @@ import { WeeklyBoard } from '../components/WeeklyBoard';
 import { TaskEditModal } from '../components/TaskEditModal';
 import { DayTimeline } from '../components/DayTimeline';
 import { showToast } from '../components/ui/Toast';
+import { useCyclePhase } from '../hooks/useCyclePhase';
 import type { Task } from '../components/TaskEditModal';
 
 type Category = 'all' | 'saude' | 'trabalho' | 'pessoal' | 'ciclo';
@@ -49,7 +50,7 @@ const calEnergyColors: Record<string, { bg: string; border: string; dot: string 
 
 export const Agenda = ({ navigate }: { navigate?: (view: string) => void } = {}) => {
     if (navigate) { /* skip */ }
-    const { user, profile } = useAuth();
+    const { user } = useAuth();
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [viewMode, setViewMode] = useState<'day' | 'week' | 'timeline'>('timeline');
@@ -98,17 +99,7 @@ export const Agenda = ({ navigate }: { navigate?: (view: string) => void } = {})
         return eachDayOfInterval({ start, end });
     }, [currentMonth]);
 
-    const getCyclePhaseForDate = (date: Date) => {
-        if (!profile?.last_period_start) return null;
-        const lastPeriod = new Date(profile.last_period_start);
-        const cycleLength = (profile as Record<string, unknown>).cycle_length as number || 28;
-        const daysDiff = Math.floor((date.getTime() - lastPeriod.getTime()) / (1000 * 3600 * 24));
-        const dayInCycle = ((daysDiff % cycleLength) + cycleLength) % cycleLength;
-        if (dayInCycle < 5) return 'menstrual';
-        if (dayInCycle < 13) return 'folicular';
-        if (dayInCycle < 16) return 'ovulatoria';
-        return 'luteal';
-    };
+    const { getCyclePhaseForDate } = useCyclePhase();
 
     const fetchTasks = async () => {
         if (!user) return;

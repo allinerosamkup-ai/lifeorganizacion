@@ -2,10 +2,16 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../lib/AuthContext";
 
+interface EnergyPoint {
+    date: string;
+    score: number;
+    energy_level: string;
+    checkins_count: number;
+}
+
 export function EnergyHistoryStrip({ refreshTrigger }: { refreshTrigger?: number }) {
     const { user } = useAuth();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [points, setPoints] = useState<any[]>([]);
+    const [points, setPoints] = useState<EnergyPoint[]>([]);
 
     useEffect(() => {
         if (!user) return;
@@ -21,7 +27,7 @@ export function EnergyHistoryStrip({ refreshTrigger }: { refreshTrigger?: number
             ]);
 
             const checkinCountByDate: Record<string, number> = {};
-            checkIns?.forEach((c: any) => {
+            checkIns?.forEach((c: { checked_at: string }) => {
                 const d = c.checked_at.split("T")[0];
                 checkinCountByDate[d] = (checkinCountByDate[d] || 0) + 1;
             });
@@ -35,7 +41,7 @@ export function EnergyHistoryStrip({ refreshTrigger }: { refreshTrigger?: number
             }
 
             const map = days.map((dateStr) => {
-                const e = energy?.find((en: any) => en.date === dateStr);
+                const e = energy?.find((en: { date: string; total_score: number; energy_level: string }) => en.date === dateStr);
                 return {
                     date: dateStr,
                     score: e?.total_score || 50,

@@ -7,6 +7,7 @@ import {
 import { showToast } from '../components/ui/Toast';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
+import { useCyclePhase } from '../hooks/useCyclePhase';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import {
     DndContext,
@@ -219,7 +220,8 @@ function SortableTaskItem({
 
 export const Tasks = () => {
     const { t } = useTranslation();
-    const { user, profile } = useAuth();
+    const { user } = useAuth();
+    const { getCyclePhaseForDate } = useCyclePhase();
     const [tab, setTab] = useState<'today' | 'week' | 'completed'>('today');
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
@@ -239,17 +241,8 @@ export const Tasks = () => {
     const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
     const weekEnd = format(endOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
 
-    const getCurrentPhase = () => {
-        if (!profile?.last_period_start) return null;
-        const lastPeriod = new Date(profile.last_period_start);
-        const cycleLength = profile.cycle_length || 28;
-        const daysDiff = Math.floor((new Date().getTime() - lastPeriod.getTime()) / (1000 * 3600 * 24));
-        const dayInCycle = ((daysDiff % cycleLength) + cycleLength) % cycleLength;
-        if (dayInCycle < 5) return 'menstrual';
-        if (dayInCycle < 13) return 'folicular';
-        if (dayInCycle < 16) return 'ovulatoria';
-        return 'luteal';
-    };
+    // Use centralised cycle phase hook instead of local duplicate logic
+    const currentPhase = getCyclePhaseForDate(new Date());
 
     useEffect(() => {
         if (!user) return;
@@ -412,7 +405,6 @@ export const Tasks = () => {
     };
 
     const filtered = filterEnergy ? tasks.filter(t => t.energy_level === filterEnergy) : tasks;
-    const currentPhase = getCurrentPhase();
 
     const tabs: { id: 'today' | 'week' | 'completed'; label: string }[] = [
         { id: 'today', label: t('tasks.tab_today') },

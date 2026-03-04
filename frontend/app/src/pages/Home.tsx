@@ -3,6 +3,7 @@ import { CheckCircle2, Clock, User, Check, Moon, Sun, Sparkles } from 'lucide-re
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import { useEnergyScore } from '../hooks/useEnergyScore';
+import { useCyclePhase } from '../hooks/useCyclePhase';
 import { EnergyGauge } from '../components/ui/EnergyGauge';
 import { EnergyHistoryStrip } from '../components/EnergyHistoryStrip';
 import { TaskEditModal } from '../components/TaskEditModal';
@@ -40,19 +41,8 @@ export const Home = ({ navigate }: { navigate: (view: string) => void }) => {
         return hour >= 17 ? 'evening' : 'morning';
     }, []);
 
+    const { getCyclePhaseForDate } = useCyclePhase();
     const firstName = profile?.full_name?.split(' ')[0] || 'você';
-
-    const getCyclePhaseForDate = (date: Date) => {
-        if (!profile?.last_period_start || !profile?.tracks_cycle) return null;
-        const lastPeriod = new Date(profile.last_period_start);
-        const cycleLength = (profile as Record<string, unknown>).cycle_length as number || 28;
-        const daysDiff = Math.floor((date.getTime() - lastPeriod.getTime()) / (1000 * 3600 * 24));
-        const dayInCycle = ((daysDiff % cycleLength) + cycleLength) % cycleLength;
-        if (dayInCycle < 5) return 'menstrual';
-        if (dayInCycle < 13) return 'folicular';
-        if (dayInCycle < 16) return 'ovulatoria';
-        return 'luteal';
-    };
 
     const currentPhase = getCyclePhaseForDate(new Date());
 

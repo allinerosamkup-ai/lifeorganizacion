@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'dev-dist', '*.config.*']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -20,7 +20,10 @@ export default defineConfig([
       globals: globals.browser,
     },
     rules: {
+      // AuthContext exports both provider and hook — acceptable pattern
       'react-refresh/only-export-components': 'off',
+      // Allow unused vars prefixed with _ for intentional ignores
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
   },
 ])

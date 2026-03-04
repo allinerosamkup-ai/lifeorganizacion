@@ -23,7 +23,6 @@ export const CheckinModal = ({ onClose, onComplete }: { onClose: () => void, onC
     const [energy, setEnergy] = useState<number | null>(null);
     const [emotions, setEmotions] = useState<string[]>([]);
     const [note, setNote] = useState('');
-    const [sleepQuality] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
     const toggleEmotion = (emotion: string) => {
@@ -43,15 +42,17 @@ export const CheckinModal = ({ onClose, onComplete }: { onClose: () => void, onC
         if (hour >= 5 && hour < 12) currentPeriod = 'morning';
         else if (hour >= 18 || hour < 5) currentPeriod = 'evening';
 
+        const today = new Date().toISOString().split('T')[0];
+
         const { error } = await supabase
             .from('check_ins')
             .insert([{
                 user_id: user.id,
+                date: today,
                 cycle_day: profile?.current_cycle_day || 1,
                 energy: energy * 2, // Map 1-5 to 2-10 for backward compat
                 emotions,
-                sleep_quality: sleepQuality, // Can be null
-                note: note.trim() || undefined,
+                note: note.trim() || null,
                 check_in_type: currentPeriod
             }]);
 
